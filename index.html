@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>ShopTok — TikTok-style Shopping MVP</title>
+<style>
+  :root {
+    --bg: #000;
+    --fg: #fff;
+    --muted: rgba(255,255,255,.72);
+    --pink: #fe2c55;
+    --cyan: #25f4ee;
+    --card: rgba(20,20,22,.72);
+    --line: rgba(255,255,255,.14);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    overscroll-behavior: none;
+  }
+
+  /* phone frame so it feels app-like on desktop too */
+  .phone {
+    position: relative;
+    width: 100vw;
+    max-width: 440px;
+    height: 100dvh;
+    margin: 0 auto;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    position: absolute; inset: 0 0 auto 0;
+    z-index: 30;
+    padding: max(env(safe-area-inset-top), 14px) 16px 12px;
+    display: flex; justify-content: center; align-items: center; gap: 28px;
+    background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0));
+    pointer-events: none;
+  }
+  .tab {
+    color: var(--muted); font-weight: 700; font-size: 16px;
+    pointer-events: auto; cursor: pointer; padding: 6px 2px;
+    transition: color .2s;
+  }
+  .tab.active { color: #fff; position: relative; }
+  .tab.active::after {
+    content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%);
+    width: 22px; height: 3px; background: #fff; border-radius: 2px;
+  }
+  .topbar .search {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-25%);
+    color: #fff; pointer-events: auto; cursor: pointer;
+  }
+
+  /* ---------- feed ---------- */
+  .feed {
+    position: absolute; inset: 0;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+  }
+  .feed::-webkit-scrollbar { display: none; }
+
+  .slide {
+    position: relative;
+    width: 100%; height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .bgart {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    filter: saturate(1.05);
+  }
+  .bgart::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(120% 60% at 50% 90%, rgba(0,0,0,.55), rgba(0,0,0,0) 60%),
+      linear-gradient(180deg, rgba(0,0,0,.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,.55) 100%);
+  }
+
+  /* simulated "play" pill */
+  .live {
+    position: absolute; top: 64px; left: 16px; z-index: 5;
+    background: var(--pink); color: #fff;
+    font-size: 11px; font-weight: 800; letter-spacing: .04em;
+    padding: 4px 8px; border-radius: 4px; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .live .dot { width: 6px; height: 6px; border-radius: 50%; background: #fff;
+    animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+
+  /* ---------- right rail actions ---------- */
+  .rail {
+    position: absolute; right: 10px; bottom: 130px; z-index: 5;
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+  }
+  .rail .avatar {
+    position: relative; width: 48px; height: 48px; border-radius: 50%;
+    border: 2px solid #fff; background-size: cover; background-position: center;
+    background-color: #444;
+  }
+  .rail .avatar .plus {
+    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    width: 20px; height: 20px; border-radius: 50%; background: var(--pink);
+    color: #fff; font-size: 14px; line-height: 18px; text-align: center;
+    border: 2px solid transparent; font-weight: 800;
+  }
+  .action {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; user-select: none;
+  }
+  .action svg { width: 34px; height: 34px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+  .action span { font-size: 12px; font-weight: 700; color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+  .action.liked svg path { fill: var(--pink); stroke: var(--pink); }
+  .heart-pop { animation: pop .35s ease; }
+  @keyframes pop {
+    0% { transform: scale(1) }
+    40% { transform: scale(1.4) }
+    100% { transform: scale(1) }
+  }
+  .spin { animation: spin 8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg) } }
+
+  /* ---------- bottom info + CTA ---------- */
+  .info {
+    position: absolute; left: 12px; right: 76px; bottom: 130px; z-index: 4;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .creator { font-weight: 800; font-size: 16px; }
+  .caption { font-size: 14px; line-height: 1.35; color: rgba(255,255,255,.95); }
+  .caption .tag { color: var(--cyan); font-weight: 700; }
+  .audio {
+    margin-top: 4px; display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; color: #fff; opacity: .9;
+  }
+  .audio .marquee {
+    display: inline-block; max-width: 200px; overflow: hidden;
+    white-space: nowrap; mask-image: linear-gradient(90deg, #000 80%, transparent);
+  }
+  .audio .marquee b { display: inline-block; padding-right: 24px;
+    animation: marq 9s linear infinite; }
+  @keyframes marq { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+
+  /* product mini-card (yellow bag) */
+  .prodcard {
+    position: absolute; left: 12px; right: 12px; bottom: 92px; z-index: 5;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(14px);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px; display: grid; grid-template-columns: 56px 1fr auto; gap: 12px;
+    align-items: center; cursor: pointer;
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .prodcard:active { transform: scale(.98); }
+  .prodcard .thumb {
+    width: 56px; height: 56px; border-radius: 8px; background-size: cover; background-position: center;
+  }
+  .prodcard .ptitle { font-size: 13px; font-weight: 700; line-height: 1.2;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .prodcard .pmeta { font-size: 11px; color: var(--muted); margin-top: 2px;
+    display: flex; align-items: center; gap: 6px; }
+  .prodcard .star { color: #ffd84a; }
+  .prodcard .price { font-size: 16px; font-weight: 800; color: #fff;
+    background: var(--pink); padding: 8px 12px; border-radius: 999px;
+    white-space: nowrap;
+  }
+  .prodcard .price small { font-size: 10px; opacity: .85; font-weight: 700; }
+
+  /* ---------- bottom navigation ---------- */
+  .bottomnav {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: rgba(0,0,0,.92);
+    border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+  }
+  .nav {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    color: var(--muted); font-size: 10.5px; font-weight: 700;
+    cursor: pointer;
+  }
+  .nav.active { color: #fff; }
+  .nav svg { width: 26px; height: 26px; }
+  .nav.create {
+    background: linear-gradient(135deg, var(--cyan), #fff 50%, var(--pink));
+    width: 44px; height: 28px; border-radius: 8px; color: transparent;
+    position: relative;
+  }
+  .nav.create::before {
+    content: "+"; position: absolute; inset: 0;
+    display: grid; place-items: center; color: #000; font-weight: 900; font-size: 22px;
+  }
+
+  /* ---------- toast / floating cart badge ---------- */
+  .toast {
+    position: absolute; left: 50%; top: 80px; transform: translate(-50%, -10px);
+    background: rgba(255,255,255,.96); color: #111;
+    padding: 10px 14px; border-radius: 999px; font-weight: 700; font-size: 13px;
+    z-index: 100; opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .badge {
+    position: absolute; top: -6px; right: -8px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    background: var(--pink); color: #fff;
+    border-radius: 999px; font-size: 10px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+  .nav .holder { position: relative; }
+
+  /* ---------- sheets ---------- */
+  .scrim {
+    position: absolute; inset: 0; background: rgba(0,0,0,.5);
+    z-index: 50; opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 60;
+    background: #18181b; color: #fff;
+    border-radius: 18px 18px 0 0;
+    transform: translateY(100%); transition: transform .3s cubic-bezier(.2,.7,.2,1);
+    max-height: 86%; display: flex; flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .sheet.show { transform: translateY(0); }
+  .sheet .grab { width: 40px; height: 4px; background: #555; border-radius: 4px;
+    margin: 8px auto; }
+  .sheet header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 16px 12px; border-bottom: 1px solid var(--line);
+  }
+  .sheet header h3 { margin: 0; font-size: 16px; }
+  .sheet header .close { background: none; border: 0; color: #fff;
+    font-size: 22px; cursor: pointer; padding: 4px 8px; }
+  .sheet .body { overflow-y: auto; padding: 14px 16px; }
+
+  /* product details */
+  .pd-hero {
+    width: 100%; aspect-ratio: 1/1; border-radius: 12px;
+    background-size: cover; background-position: center;
+    margin-bottom: 12px;
+  }
+  .pd-title { font-size: 18px; font-weight: 800; line-height: 1.25; margin: 0 0 4px; }
+  .pd-meta { color: var(--muted); font-size: 13px; display: flex;
+    gap: 10px; align-items: center; margin-bottom: 12px; }
+  .pd-price { font-size: 24px; font-weight: 900; color: var(--pink); }
+  .pd-old { color: var(--muted); text-decoration: line-through; margin-left: 8px; font-weight: 600; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+  .opt {
+    border: 1px solid var(--line); padding: 8px 12px; border-radius: 999px;
+    font-size: 13px; color: #fff; cursor: pointer;
+  }
+  .opt.selected { background: #fff; color: #000; border-color: #fff; }
+  .desc { color: rgba(255,255,255,.85); font-size: 14px; line-height: 1.45; }
+  .pd-actions {
+    position: sticky; bottom: 0; background: #18181b;
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .btn {
+    border: 0; border-radius: 999px; padding: 12px 14px;
+    font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  .btn.alt { background: #2a2a2e; color: #fff; }
+  .btn.cta { background: var(--pink); color: #fff; }
+
+  /* cart */
+  .cart-empty { text-align: center; color: var(--muted); padding: 40px 0; }
+  .cart-item {
+    display: grid; grid-template-columns: 64px 1fr auto; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--line); align-items: center;
+  }
+  .cart-item .ci-thumb { width: 64px; height: 64px; border-radius: 8px;
+    background-size: cover; background-position: center; }
+  .cart-item .ci-title { font-size: 13px; font-weight: 700; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cart-item .ci-price { color: var(--pink); font-weight: 800; margin-top: 4px; }
+  .qty { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .qty button { background: #2a2a2e; color: #fff; border: 0; width: 22px; height: 22px;
+    border-radius: 6px; font-weight: 800; cursor: pointer; }
+  .ci-remove { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 18px; }
+  .totals {
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; font-weight: 800;
+  }
+  .totals .total-price { color: var(--pink); font-size: 20px; }
+  .checkout {
+    margin-top: 12px; width: 100%;
+    background: var(--pink); color: #fff; border: 0; padding: 14px;
+    border-radius: 999px; font-weight: 800; cursor: pointer; font-size: 15px;
+  }
+
+  /* hint */
+  .hint {
+    position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%);
+    z-index: 6; color: rgba(255,255,255,.85); font-size: 12px; pointer-events: none;
+    background: rgba(0,0,0,.35); padding: 6px 10px; border-radius: 999px;
+    animation: fadeOut 4s 1s forwards;
+  }
+  @keyframes fadeOut { to { opacity: 0; visibility: hidden } }
+
+  /* heart double-tap */
+  .doubletap-heart {
+    position: absolute; left: 50%; top: 50%; z-index: 8;
+    width: 110px; height: 110px;
+    transform: translate(-50%, -50%) scale(.4);
+    pointer-events: none; opacity: 0;
+  }
+  .doubletap-heart.go {
+    animation: dtap .8s ease forwards;
+  }
+  @keyframes dtap {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+    30% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+  }
+</style>
+</head>
+<body>
+  <div class="phone" id="phone">
+    <!-- top bar -->
+    <div class="topbar">
+      <div class="tab">Following</div>
+      <div class="tab active" id="topShop">Shop</div>
+      <div class="tab">For You</div>
+      <div class="search" title="Search">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+          <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="hint">Swipe up for next ▴</div>
+
+    <!-- vertical feed -->
+    <div class="feed" id="feed"></div>
+
+    <!-- toast -->
+    <div class="toast" id="toast">Added to cart ✓</div>
+
+    <!-- bottom navigation -->
+    <nav class="bottomnav">
+      <div class="nav active" data-nav="home">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3z"/></svg>
+        Home
+      </div>
+      <div class="nav" data-nav="discover">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        Discover
+      </div>
+      <div class="nav create"></div>
+      <div class="nav" data-nav="cart">
+        <div class="holder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 4h2l2.6 12.3a2 2 0 0 0 2 1.7h7.8a2 2 0 0 0 2-1.6L21 8H6"/>
+            <circle cx="9" cy="20" r="1.5" fill="currentColor"/>
+            <circle cx="17" cy="20" r="1.5" fill="currentColor"/>
+          </svg>
+          <span class="badge" id="cartBadge" style="display:none">0</span>
+        </div>
+        Cart
+      </div>
+      <div class="nav" data-nav="profile">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/>
+        </svg>
+        Profile
+      </div>
+    </nav>
+
+    <!-- sheets -->
+    <div class="scrim" id="scrim"></div>
+
+    <div class="sheet" id="productSheet">
+      <div class="grab"></div>
+      <header>
+        <h3>Product details</h3>
+        <button class="close" data-close>✕</button>
+      </header>
+      <div class="body" id="productBody"></div>
+      <div class="pd-actions">
+        <button class="btn alt" id="addCartBtn">Add to cart</button>
+        <button class="btn cta" id="buyNowBtn">Buy now</button>
+      </div>
+    </div>
+
+    <div class="sheet" id="cartSheet">
+      <div class="grab"></div>
+      <header>
+        <h3>Your cart</h3>
+        <button class="close" data-close>✕</button>
+      </header>
+      <div class="body" id="cartBody"></div>
+    </div>
+  </div>
+
+<script>
+  // ----- mock catalog -----
+  // gradients double as faux video stills so the prototype runs offline
+  const PRODUCTS = [
+    {
+      id: "p1",
+      creator: "@glowstudio",
+      avatar: "linear-gradient(135deg,#ff7eb3,#ff758c)",
+      caption: "POV: glass-skin routine that actually works ✨",
+      tags: ["#skincare", "#korean"],
+      audio: "original sound — glowstudio",
+      bg: "linear-gradient(160deg,#ffd6e0 0%,#ff8aa1 35%,#7a3a5a 100%)",
+      title: "Hydra-Glow Vitamin C Serum 30ml",
+      price: 18.99, old: 29.00, rating: 4.8, sold: "12k",
+      thumb: "linear-gradient(135deg,#ffd6e0,#ff7eb3)",
+      desc: "5% pure vitamin C + niacinamide. Brightens, evens tone, hydrates. Paraben-free, vegan, made in Seoul.",
+      options: ["30ml", "50ml — $24.99"]
+    },
+    {
+      id: "p2",
+      creator: "@kicks.daily",
+      avatar: "linear-gradient(135deg,#25f4ee,#0a84ff)",
+      caption: "Unboxing the cloud-walker runners 👟 link below 🔗",
+      tags: ["#sneakers", "#runtok"],
+      audio: "trending — Phonk Beat",
+      bg: "linear-gradient(160deg,#0f2027 0%,#203a43 50%,#2c5364 100%)",
+      title: "CloudWalker Pro Runners",
+      price: 64.50, old: 89.00, rating: 4.7, sold: "8.4k",
+      thumb: "linear-gradient(135deg,#25f4ee,#0a84ff)",
+      desc: "Featherweight knit upper, EVA cushion midsole. True to size. Free 30-day returns.",
+      options: ["US 7", "US 8", "US 9", "US 10", "US 11"]
+    },
+    {
+      id: "p3",
+      creator: "@homecozy",
+      avatar: "linear-gradient(135deg,#f6d365,#fda085)",
+      caption: "TikTok made me buy this aroma diffuser 🪷 obsessed",
+      tags: ["#homedecor", "#cozy"],
+      audio: "Lo-Fi Chill — Aria",
+      bg: "linear-gradient(160deg,#fceabb 0%,#f8b500 100%)",
+      title: "Mist Aroma Diffuser 300ml + 3 Oils",
+      price: 22.00, old: 34.99, rating: 4.9, sold: "23k",
+      thumb: "linear-gradient(135deg,#fceabb,#f8b500)",
+      desc: "Ultrasonic mist, 7-color LED, 8h timer. Quiet motor. Bundle includes lavender, eucalyptus & citrus oils.",
+      options: ["White", "Wood", "Black"]
+    },
+    {
+      id: "p4",
+      creator: "@techbites",
+      avatar: "linear-gradient(135deg,#43e97b,#38f9d7)",
+      caption: "These earbuds shouldn't be this good for $29 🤯",
+      tags: ["#techtok", "#audio"],
+      audio: "Drop the Beat — Vega",
+      bg: "linear-gradient(160deg,#0b132b 0%,#1c2541 60%,#3a506b 100%)",
+      title: "Aero Buds — ANC Wireless Earbuds",
+      price: 29.99, old: 59.99, rating: 4.6, sold: "31k",
+      thumb: "linear-gradient(135deg,#43e97b,#38f9d7)",
+      desc: "Active noise cancellation, 32h battery w/ case, BT 5.3, IPX5. USB-C fast charge.",
+      options: ["Midnight", "Pearl", "Sage"]
+    },
+    {
+      id: "p5",
+      creator: "@fitwithjo",
+      avatar: "linear-gradient(135deg,#fa709a,#fee140)",
+      caption: "Resistance bands routine — 10 min full body 🔥",
+      tags: ["#fittok", "#homegym"],
+      audio: "Pump It — DJ Reno",
+      bg: "linear-gradient(160deg,#ff9a9e 0%,#fad0c4 99%,#fbc2eb 100%)",
+      title: "5-Pack Resistance Bands Set",
+      price: 14.99, old: 24.99, rating: 4.8, sold: "19k",
+      thumb: "linear-gradient(135deg,#fa709a,#fee140)",
+      desc: "Latex bands 10–50 lbs, door anchor, ankle straps, handles & carry bag. 1-yr warranty.",
+      options: ["Standard set", "Pro set — $19.99"]
+    }
+  ];
+
+  // ----- state -----
+  const state = {
+    cart: JSON.parse(localStorage.getItem("st_cart") || "[]"),
+    likes: new Set(JSON.parse(localStorage.getItem("st_likes") || "[]")),
+    activeProduct: null,
+    selectedOption: 0,
+  };
+
+  const $ = (q, el = document) => el.querySelector(q);
+  const $$ = (q, el = document) => [...el.querySelectorAll(q)];
+
+  // ----- render feed -----
+  const feed = $("#feed");
+  feed.innerHTML = PRODUCTS.map((p, i) => slideHTML(p, i)).join("");
+
+  function slideHTML(p, i) {
+    const liked = state.likes.has(p.id);
+    return `
+      <section class="slide" data-id="${p.id}" data-idx="${i}">
+        <div class="bgart" style="background-image:${p.bg}"></div>
+
+        ${i === 0 ? `<div class="live"><span class="dot"></span> LIVE · ${p.sold} watching</div>` : ""}
+
+        <div class="doubletap-heart" data-dt>
+          <svg viewBox="0 0 24 24" fill="#fe2c55" stroke="#fff" stroke-width="1.2">
+            <path d="M12 21s-7.5-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12C19.5 16.5 12 21 12 21z"/>
+          </svg>
+        </div>
+
+        <div class="rail">
+          <div class="avatar" style="background:${p.avatar}">
+            <div class="plus">+</div>
+          </div>
+          <div class="action ${liked ? "liked" : ""}" data-act="like">
+            <svg viewBox="0 0 24 24" fill="${liked ? "#fe2c55" : "none"}" stroke="${liked ? "#fe2c55" : "#fff"}" stroke-width="2">
+              <path d="M12 21s-7.5-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12C19.5 16.5 12 21 12 21z"/>
+            </svg>
+            <span data-likes>${formatN(120000 + i * 4321)}</span>
+          </div>
+          <div class="action" data-act="comment">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+              <path d="M21 12c0 4.4-4 8-9 8-1.3 0-2.6-.2-3.7-.7L3 21l1.7-4.3C3.6 15.3 3 13.7 3 12c0-4.4 4-8 9-8s9 3.6 9 8z"/>
+            </svg>
+            <span>${formatN(2300 + i * 211)}</span>
+          </div>
+          <div class="action" data-act="share">
+            <svg viewBox="0 0 24 24" fill="#fff">
+              <path d="M21 12 13 4v4.5C7.5 9 4 13 4 19c2-4 5.5-5 9-5V18z"/>
+            </svg>
+            <span>Share</span>
+          </div>
+          <div class="action" data-act="cart-icon">
+            <svg class="spin" viewBox="0 0 24 24" fill="#fff">
+              <circle cx="12" cy="12" r="10" fill="#222"/>
+              <circle cx="12" cy="12" r="3" fill="#fff"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="info">
+          <div class="creator">${p.creator}</div>
+          <div class="caption">${escapeHTML(p.caption)}
+            ${p.tags.map(t => `<span class="tag">${t}</span>`).join(" ")}
+          </div>
+          <div class="audio">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            <span class="marquee"><b>♪ ${p.audio}  ·  ♪ ${p.audio}  ·  </b></span>
+          </div>
+        </div>
+
+        <div class="prodcard" data-act="product">
+          <div class="thumb" style="background:${p.thumb}"></div>
+          <div>
+            <div class="ptitle">${escapeHTML(p.title)}</div>
+            <div class="pmeta"><span class="star">★</span> ${p.rating} · ${p.sold} sold</div>
+          </div>
+          <div class="price">$${p.price.toFixed(2)} <small>Shop now ›</small></div>
+        </div>
+      </section>
+    `;
+  }
+
+  // ----- interactions on the feed -----
+  feed.addEventListener("click", (e) => {
+    const slide = e.target.closest(".slide");
+    if (!slide) return;
+    const id = slide.dataset.id;
+    const product = PRODUCTS.find(p => p.id === id);
+
+    const actEl = e.target.closest("[data-act]");
+    const act = actEl?.dataset.act;
+
+    if (act === "like") {
+      toggleLike(id, slide);
+    } else if (act === "comment") {
+      toast("Comments coming soon 💬");
+    } else if (act === "share") {
+      toast("Link copied 🔗");
+    } else if (act === "cart-icon") {
+      openCart();
+    } else if (act === "product") {
+      openProduct(product);
+    }
+  });
+
+  // double-tap to like
+  let lastTap = { id: null, t: 0 };
+  feed.addEventListener("click", (e) => {
+    const slide = e.target.closest(".slide");
+    if (!slide) return;
+    if (e.target.closest("[data-act]")) return;
+    const id = slide.dataset.id;
+    const now = Date.now();
+    if (lastTap.id === id && now - lastTap.t < 320) {
+      const dt = slide.querySelector("[data-dt]");
+      dt.classList.remove("go"); void dt.offsetWidth; dt.classList.add("go");
+      if (!state.likes.has(id)) toggleLike(id, slide);
+      lastTap = { id: null, t: 0 };
+    } else {
+      lastTap = { id, t: now };
+    }
+  });
+
+  function toggleLike(id, slide) {
+    const action = slide.querySelector('[data-act="like"]');
+    const countEl = action.querySelector("[data-likes]");
+    let n = parseN(countEl.textContent);
+    if (state.likes.has(id)) {
+      state.likes.delete(id); action.classList.remove("liked");
+      action.querySelector("svg").setAttribute("fill", "none");
+      action.querySelector("svg").setAttribute("stroke", "#fff");
+      n -= 1;
+    } else {
+      state.likes.add(id); action.classList.add("liked");
+      action.querySelector("svg").setAttribute("fill", "#fe2c55");
+      action.querySelector("svg").setAttribute("stroke", "#fe2c55");
+      action.querySelector("svg").classList.add("heart-pop");
+      setTimeout(() => action.querySelector("svg").classList.remove("heart-pop"), 360);
+      n += 1;
+    }
+    countEl.textContent = formatN(n);
+    localStorage.setItem("st_likes", JSON.stringify([...state.likes]));
+  }
+
+  // ----- product sheet -----
+  const scrim = $("#scrim"), productSheet = $("#productSheet"), productBody = $("#productBody");
+  const cartSheet = $("#cartSheet"), cartBody = $("#cartBody");
+
+  function openProduct(p) {
+    state.activeProduct = p;
+    state.selectedOption = 0;
+    productBody.innerHTML = `
+      <div class="pd-hero" style="background:${p.bg}"></div>
+      <h2 class="pd-title">${escapeHTML(p.title)}</h2>
+      <div class="pd-meta">
+        <span><span style="color:#ffd84a">★</span> ${p.rating}</span>
+        <span>·</span><span>${p.sold} sold</span>
+        <span>·</span><span>${p.creator}</span>
+      </div>
+      <div><span class="pd-price">$${p.price.toFixed(2)}</span><span class="pd-old">$${p.old.toFixed(2)}</span></div>
+      <h4 style="margin:18px 0 6px;font-size:13px;color:#aaa;text-transform:uppercase;letter-spacing:.06em">Variants</h4>
+      <div class="opts" id="opts">
+        ${p.options.map((o, i) => `<div class="opt ${i === 0 ? "selected" : ""}" data-i="${i}">${escapeHTML(o)}</div>`).join("")}
+      </div>
+      <h4 style="margin:8px 0 6px;font-size:13px;color:#aaa;text-transform:uppercase;letter-spacing:.06em">About</h4>
+      <p class="desc">${escapeHTML(p.desc)}</p>
+      <div style="height:60px"></div>
+    `;
+    $("#opts").addEventListener("click", (e) => {
+      const opt = e.target.closest(".opt"); if (!opt) return;
+      $$(".opt", productBody).forEach(o => o.classList.remove("selected"));
+      opt.classList.add("selected");
+      state.selectedOption = +opt.dataset.i;
+    });
+    showSheet(productSheet);
+  }
+
+  $("#addCartBtn").addEventListener("click", () => {
+    if (!state.activeProduct) return;
+    addToCart(state.activeProduct, state.selectedOption);
+    toast("Added to cart ✓");
+  });
+  $("#buyNowBtn").addEventListener("click", () => {
+    if (!state.activeProduct) return;
+    addToCart(state.activeProduct, state.selectedOption);
+    closeSheets();
+    setTimeout(openCart, 200);
+  });
+
+  // ----- cart -----
+  function addToCart(p, optIdx) {
+    const key = p.id + "::" + optIdx;
+    const found = state.cart.find(i => i.key === key);
+    if (found) found.qty += 1;
+    else state.cart.push({ key, id: p.id, opt: p.options[optIdx], qty: 1 });
+    persistCart(); renderBadge();
+  }
+
+  function persistCart() { localStorage.setItem("st_cart", JSON.stringify(state.cart)); }
+
+  function renderBadge() {
+    const total = state.cart.reduce((s, i) => s + i.qty, 0);
+    const b = $("#cartBadge");
+    b.textContent = total;
+    b.style.display = total ? "grid" : "none";
+  }
+  renderBadge();
+
+  function openCart() {
+    const items = state.cart.map(i => ({ ...i, p: PRODUCTS.find(x => x.id === i.id) }));
+    if (!items.length) {
+      cartBody.innerHTML = `
+        <div class="cart-empty">
+          <div style="font-size:44px">🛍️</div>
+          <p>Your cart is empty.<br/>Tap the yellow card on a video to shop.</p>
+        </div>`;
+    } else {
+      const subtotal = items.reduce((s, i) => s + i.p.price * i.qty, 0);
+      cartBody.innerHTML = items.map(i => `
+        <div class="cart-item" data-key="${i.key}">
+          <div class="ci-thumb" style="background:${i.p.thumb}"></div>
+          <div>
+            <div class="ci-title">${escapeHTML(i.p.title)}</div>
+            <div style="font-size:11px;color:#aaa;margin-top:2px">${escapeHTML(i.opt)}</div>
+            <div class="ci-price">$${i.p.price.toFixed(2)}</div>
+            <div class="qty">
+              <button data-q="-">−</button>
+              <span>${i.qty}</span>
+              <button data-q="+">+</button>
+            </div>
+          </div>
+          <button class="ci-remove" data-q="x" title="Remove">×</button>
+        </div>
+      `).join("") + `
+        <div class="totals"><span>Subtotal (${items.reduce((s, i) => s + i.qty, 0)} items)</span>
+          <span class="total-price">$${subtotal.toFixed(2)}</span></div>
+        <button class="checkout">Checkout</button>
+      `;
+      cartBody.addEventListener("click", cartClick);
+    }
+    showSheet(cartSheet);
+  }
+
+  function cartClick(e) {
+    const row = e.target.closest(".cart-item"); if (!row) return;
+    const key = row.dataset.key;
+    const item = state.cart.find(i => i.key === key); if (!item) return;
+    const q = e.target.dataset.q;
+    if (q === "+") item.qty += 1;
+    else if (q === "-") item.qty = Math.max(1, item.qty - 1);
+    else if (q === "x") state.cart = state.cart.filter(i => i.key !== key);
+    else if (e.target.classList.contains("checkout")) {
+      state.cart = []; persistCart(); renderBadge();
+      cartBody.innerHTML = `<div class="cart-empty"><div style="font-size:44px">🎉</div><p>Order placed!<br/>You'll get a tracking link soon.</p></div>`;
+      return;
+    } else return;
+    persistCart(); renderBadge(); openCart();
+  }
+
+  // ----- bottom nav -----
+  $$(".nav").forEach(n => n.addEventListener("click", () => {
+    const k = n.dataset.nav;
+    $$(".nav").forEach(x => x.classList.remove("active"));
+    if (k) n.classList.add("active");
+    if (k === "cart") openCart();
+    else if (k === "discover") toast("Discover · trending products 🔥");
+    else if (k === "profile") toast("Profile · sign in to save your likes 👤");
+    else if (k === "home") closeSheets();
+  }));
+  document.querySelector(".nav.create").addEventListener("click", () => toast("Creator studio coming soon 🎬"));
+
+  // ----- sheet helpers -----
+  function showSheet(sheet) {
+    scrim.classList.add("show"); sheet.classList.add("show");
+  }
+  function closeSheets() {
+    scrim.classList.remove("show");
+    productSheet.classList.remove("show");
+    cartSheet.classList.remove("show");
+  }
+  scrim.addEventListener("click", closeSheets);
+  $$("[data-close]").forEach(b => b.addEventListener("click", closeSheets));
+
+  // ----- toast -----
+  let toastT;
+  function toast(msg) {
+    const el = $("#toast");
+    el.textContent = msg; el.classList.add("show");
+    clearTimeout(toastT);
+    toastT = setTimeout(() => el.classList.remove("show"), 1600);
+  }
+
+  // ----- utils -----
+  function formatN(n) {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+    return String(n);
+  }
+  function parseN(s) {
+    s = String(s).trim();
+    if (s.endsWith("M")) return Math.round(parseFloat(s) * 1_000_000);
+    if (s.endsWith("K")) return Math.round(parseFloat(s) * 1_000);
+    return parseInt(s.replace(/,/g, ""), 10) || 0;
+  }
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[c]);
+  }
+</script>
+</body>
+</html>
