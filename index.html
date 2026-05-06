@@ -679,11 +679,19 @@
   });
 
   // ----- cart -----
+  function optionPrice(p, optLabel) {
+    const m = String(optLabel).match(/\$([\d.]+)/);
+    return m ? parseFloat(m[1]) : p.price;
+  }
+
   function addToCart(p, optIdx) {
     const key = p.id + "::" + optIdx;
     const found = state.cart.find(i => i.key === key);
     if (found) found.qty += 1;
-    else state.cart.push({ key, id: p.id, opt: p.options[optIdx], qty: 1 });
+    else state.cart.push({
+      key, id: p.id, opt: p.options[optIdx], qty: 1,
+      price: optionPrice(p, p.options[optIdx]),
+    });
     persistCart(); renderBadge();
   }
 
@@ -698,7 +706,11 @@
   renderBadge();
 
   function openCart() {
-    const items = state.cart.map(i => ({ ...i, p: PRODUCTS.find(x => x.id === i.id) }));
+    const items = state.cart.map(i => {
+      const p = PRODUCTS.find(x => x.id === i.id);
+      const price = typeof i.price === "number" ? i.price : optionPrice(p, i.opt);
+      return { ...i, p, price };
+    });
     if (!items.length) {
       cartBody.innerHTML = `
         <div class="cart-empty">
@@ -706,14 +718,14 @@
           <p>Your cart is empty.<br/>Tap the yellow card on a video to shop.</p>
         </div>`;
     } else {
-      const subtotal = items.reduce((s, i) => s + i.p.price * i.qty, 0);
+      const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
       cartBody.innerHTML = items.map(i => `
         <div class="cart-item" data-key="${i.key}">
           <div class="ci-thumb" style="background:${i.p.thumb}"></div>
           <div>
             <div class="ci-title">${escapeHTML(i.p.title)}</div>
             <div style="font-size:11px;color:#aaa;margin-top:2px">${escapeHTML(i.opt)}</div>
-            <div class="ci-price">$${i.p.price.toFixed(2)}</div>
+            <div class="ci-price">$${i.price.toFixed(2)}</div>
             <div class="qty">
               <button data-q="-">−</button>
               <span>${i.qty}</span>
