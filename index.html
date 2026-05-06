@@ -526,7 +526,7 @@
             <svg viewBox="0 0 24 24" fill="${liked ? "#fe2c55" : "none"}" stroke="${liked ? "#fe2c55" : "#fff"}" stroke-width="2">
               <path d="M12 21s-7.5-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12C19.5 16.5 12 21 12 21z"/>
             </svg>
-            <span data-likes>${formatN(120000 + i * 4321)}</span>
+            <span data-likes>${formatN(120000 + i * 4321 + (liked ? 1 : 0))}</span>
           </div>
           <div class="action" data-act="comment">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
@@ -753,8 +753,9 @@
   // ----- bottom nav -----
   $$(".nav").forEach(n => n.addEventListener("click", () => {
     const k = n.dataset.nav;
+    if (!k) return;
     $$(".nav").forEach(x => x.classList.remove("active"));
-    if (k) n.classList.add("active");
+    n.classList.add("active");
     if (k === "cart") openCart();
     else if (k === "discover") toast("Discover · trending products 🔥");
     else if (k === "profile") toast("Profile · sign in to save your likes 👤");
