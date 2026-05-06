@@ -727,12 +727,18 @@
           <span class="total-price">$${subtotal.toFixed(2)}</span></div>
         <button class="checkout">Checkout</button>
       `;
-      cartBody.addEventListener("click", cartClick);
     }
     showSheet(cartSheet);
   }
 
+  cartBody.addEventListener("click", cartClick);
+
   function cartClick(e) {
+    if (e.target.classList.contains("checkout")) {
+      state.cart = []; persistCart(); renderBadge();
+      cartBody.innerHTML = `<div class="cart-empty"><div style="font-size:44px">🎉</div><p>Order placed!<br/>You'll get a tracking link soon.</p></div>`;
+      return;
+    }
     const row = e.target.closest(".cart-item"); if (!row) return;
     const key = row.dataset.key;
     const item = state.cart.find(i => i.key === key); if (!item) return;
@@ -740,11 +746,7 @@
     if (q === "+") item.qty += 1;
     else if (q === "-") item.qty = Math.max(1, item.qty - 1);
     else if (q === "x") state.cart = state.cart.filter(i => i.key !== key);
-    else if (e.target.classList.contains("checkout")) {
-      state.cart = []; persistCart(); renderBadge();
-      cartBody.innerHTML = `<div class="cart-empty"><div style="font-size:44px">🎉</div><p>Order placed!<br/>You'll get a tracking link soon.</p></div>`;
-      return;
-    } else return;
+    else return;
     persistCart(); renderBadge(); openCart();
   }
 
