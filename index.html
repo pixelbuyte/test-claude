@@ -526,7 +526,7 @@
             <svg viewBox="0 0 24 24" fill="${liked ? "#fe2c55" : "none"}" stroke="${liked ? "#fe2c55" : "#fff"}" stroke-width="2">
               <path d="M12 21s-7.5-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12C19.5 16.5 12 21 12 21z"/>
             </svg>
-            <span data-likes>${formatN(120000 + i * 4321 + (liked ? 1 : 0))}</span>
+            <span data-likes data-count="${120000 + i * 4321 + (liked ? 1 : 0)}">${formatN(120000 + i * 4321 + (liked ? 1 : 0))}</span>
           </div>
           <div class="action" data-act="comment">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
@@ -615,7 +615,7 @@
   function toggleLike(id, slide) {
     const action = slide.querySelector('[data-act="like"]');
     const countEl = action.querySelector("[data-likes]");
-    let n = parseN(countEl.textContent);
+    let n = parseInt(countEl.dataset.count, 10) || parseN(countEl.textContent);
     if (state.likes.has(id)) {
       state.likes.delete(id); action.classList.remove("liked");
       action.querySelector("svg").setAttribute("fill", "none");
@@ -629,6 +629,7 @@
       setTimeout(() => action.querySelector("svg").classList.remove("heart-pop"), 360);
       n += 1;
     }
+    countEl.dataset.count = n;
     countEl.textContent = formatN(n);
     localStorage.setItem("st_likes", JSON.stringify([...state.likes]));
   }
@@ -799,6 +800,7 @@
   // ----- utils -----
   function formatN(n) {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 10_000) return n.toLocaleString();
     if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
     return String(n);
   }
