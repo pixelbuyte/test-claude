@@ -707,6 +707,11 @@
   renderBadge();
 
   function openCart() {
+    const stale = state.cart.filter(i => !PRODUCTS.find(x => x.id === i.id));
+    if (stale.length) {
+      state.cart = state.cart.filter(i => !stale.includes(i));
+      persistCart(); renderBadge();
+    }
     const items = state.cart.map(i => {
       const p = PRODUCTS.find(x => x.id === i.id);
       const price = typeof i.price === "number" ? i.price : optionPrice(p, i.opt);
@@ -800,7 +805,7 @@
   // ----- utils -----
   function formatN(n) {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
-    if (n >= 10_000) return n.toLocaleString();
+    if (n >= 10_000) return n.toLocaleString("en-US");
     if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
     return String(n);
   }
