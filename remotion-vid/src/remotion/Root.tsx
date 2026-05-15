@@ -9,6 +9,7 @@ import {
 } from "../../types/constants";
 import { Main } from "./MyComp/Main";
 import { NextLogo } from "./MyComp/NextLogo";
+import { Claude } from "./Claude/Claude";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -21,6 +22,14 @@ export const RemotionRoot: React.FC = () => {
         width={VIDEO_WIDTH}
         height={VIDEO_HEIGHT}
         defaultProps={defaultMyCompProps}
+      />
+      <Composition
+        id="Claude"
+        component={Claude}
+        durationInFrames={150}
+        fps={30}
+        width={1920}
+        height={1080}
       />
       <Composition
         id="NextLogo"

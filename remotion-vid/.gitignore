@@ -36,4 +36,4 @@ yarn-error.log*
 next-env.d.ts
 out/
 .env
-build
+buildremotion-vid/out/
