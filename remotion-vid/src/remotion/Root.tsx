@@ -10,6 +10,7 @@ import {
 import { Main } from "./MyComp/Main";
 import { NextLogo } from "./MyComp/NextLogo";
 import { Claude } from "./Claude/Claude";
+import { ClaudeIntro } from "./Claude/ClaudeIntro";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -27,6 +28,14 @@ export const RemotionRoot: React.FC = () => {
         id="Claude"
         component={Claude}
         durationInFrames={150}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="ClaudeIntro"
+        component={ClaudeIntro}
+        durationInFrames={900}
         fps={30}
         width={1920}
         height={1080}
