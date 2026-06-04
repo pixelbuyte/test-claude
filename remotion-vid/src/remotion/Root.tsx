@@ -11,6 +11,7 @@ import { Main } from "./MyComp/Main";
 import { NextLogo } from "./MyComp/NextLogo";
 import { Claude } from "./Claude/Claude";
 import { ClaudeIntro } from "./Claude/ClaudeIntro";
+import { AriaIntro } from "./Aria/AriaIntro";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -28,6 +29,14 @@ export const RemotionRoot: React.FC = () => {
         id="Claude"
         component={Claude}
         durationInFrames={150}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="AriaIntro"
+        component={AriaIntro}
+        durationInFrames={1770}
         fps={30}
         width={1920}
         height={1080}
