@@ -47,20 +47,177 @@ const Backdrop: React.FC<{ tone?: "violet" | "rose" | "mint" }> = ({
   tone = "violet",
 }) => {
   const frame = useCurrentFrame();
-  const drift = interpolate(frame, [0, 300], [0, 30]);
+  const { width, height } = useVideoConfig();
+
   const palettes = {
-    violet: ["#0a0612", "#1a0f24", "#3a1f55"],
-    rose: ["#0d0710", "#2a0f1e", "#55203f"],
-    mint: ["#06120f", "#0f2422", "#1e5546"],
+    violet: {
+      base: "#06030f",
+      blobs: [
+        { c: "#7a3df0", x: 0.18, y: 0.22, r: 0.55 },
+        { c: "#ff5cb8", x: 0.82, y: 0.78, r: 0.5 },
+        { c: "#5ce1ff", x: 0.65, y: 0.18, r: 0.35 },
+        { c: "#a070ff", x: 0.25, y: 0.85, r: 0.4 },
+      ],
+    },
+    rose: {
+      base: "#0a0408",
+      blobs: [
+        { c: "#ff4d8a", x: 0.2, y: 0.25, r: 0.55 },
+        { c: "#ffb088", x: 0.8, y: 0.7, r: 0.5 },
+        { c: "#7a3df0", x: 0.55, y: 0.15, r: 0.35 },
+        { c: "#ff5cb8", x: 0.3, y: 0.9, r: 0.4 },
+      ],
+    },
+    mint: {
+      base: "#02100c",
+      blobs: [
+        { c: "#1ee5a8", x: 0.2, y: 0.28, r: 0.55 },
+        { c: "#5ce1ff", x: 0.82, y: 0.75, r: 0.5 },
+        { c: "#7a3df0", x: 0.6, y: 0.18, r: 0.35 },
+        { c: "#a0ffd4", x: 0.28, y: 0.88, r: 0.4 },
+      ],
+    },
   } as const;
-  const [a, b, c] = palettes[tone];
+
+  const palette = palettes[tone];
+  const dim = Math.max(width, height);
+
+  const blobs = palette.blobs.map((b, i) => {
+    const drift = (frame / 50 + i * 1.7);
+    const dx = Math.sin(drift) * 60;
+    const dy = Math.cos(drift * 0.8) * 40;
+    return { ...b, dx, dy };
+  });
+
+  return (
+    <AbsoluteFill>
+      <AbsoluteFill style={{ background: palette.base }} />
+      {/* mesh gradient blobs (large, blurred) */}
+      <AbsoluteFill style={{ filter: "blur(120px) saturate(1.2)" }}>
+        {blobs.map((b, i) => (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: b.x * width + b.dx - (dim * b.r) / 2,
+              top: b.y * height + b.dy - (dim * b.r) / 2,
+              width: dim * b.r,
+              height: dim * b.r,
+              borderRadius: "50%",
+              background: b.c,
+              opacity: 0.7,
+              mixBlendMode: "screen",
+            }}
+          />
+        ))}
+      </AbsoluteFill>
+      {/* soft bokeh */}
+      <AbsoluteFill style={{ filter: "blur(8px)" }}>
+        {new Array(14).fill(0).map((_, i) => {
+          const x = random(`bk-x-${tone}-${i}`) * width;
+          const y = random(`bk-y-${tone}-${i}`) * height;
+          const size = 40 + random(`bk-s-${tone}-${i}`) * 90;
+          const drift = (frame / 80 + i) * 0.4;
+          const op =
+            0.05 +
+            0.12 * Math.abs(Math.sin((frame / 60 + i * 0.7) % Math.PI));
+          return (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                left: x + Math.sin(drift) * 20,
+                top: y + Math.cos(drift) * 20,
+                width: size,
+                height: size,
+                borderRadius: "50%",
+                background: i % 2 === 0 ? "#ffffff" : palette.blobs[i % 4].c,
+                opacity: op,
+                mixBlendMode: "screen",
+              }}
+            />
+          );
+        })}
+      </AbsoluteFill>
+      {/* vignette */}
+      <AbsoluteFill
+        style={{
+          background:
+            "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%)",
+        }}
+      />
+      {/* light leak sweep */}
+      <LightLeak tone={tone} />
+      {/* film grain */}
+      <FilmGrain />
+    </AbsoluteFill>
+  );
+};
+
+const FilmGrain: React.FC = () => {
+  const frame = useCurrentFrame();
+  const seed = Math.floor(frame / 2);
   return (
     <AbsoluteFill
       style={{
-        background: `radial-gradient(circle at 30% 20%, ${c} 0%, ${b} 40%, ${a} 80%)`,
-        transform: `scale(1.05) rotate(${drift * 0.05}deg)`,
+        opacity: 0.08,
+        mixBlendMode: "overlay",
+        pointerEvents: "none",
       }}
-    />
+    >
+      <svg width="100%" height="100%">
+        <filter id={`grain-${seed}`}>
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.9"
+            numOctaves="2"
+            seed={seed}
+          />
+          <feColorMatrix
+            values="0 0 0 0 1
+                    0 0 0 0 1
+                    0 0 0 0 1
+                    0 0 0 1.2 0"
+          />
+        </filter>
+        <rect width="100%" height="100%" filter={`url(#grain-${seed})`} />
+      </svg>
+    </AbsoluteFill>
+  );
+};
+
+const LightLeak: React.FC<{ tone?: "violet" | "rose" | "mint" }> = ({
+  tone = "violet",
+}) => {
+  const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const drift = (frame / 90) % 1;
+  const colors = {
+    violet: "#ff5cb8",
+    rose: "#ffb088",
+    mint: "#5ce1ff",
+  } as const;
+  return (
+    <AbsoluteFill
+      style={{
+        pointerEvents: "none",
+        opacity: 0.35,
+        mixBlendMode: "screen",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          left: -width * 0.3,
+          top: height * (0.2 + drift * 0.1),
+          width: width * 1.6,
+          height: 200,
+          background: `linear-gradient(90deg, transparent, ${colors[tone]}, transparent)`,
+          filter: "blur(60px)",
+          transform: `rotate(${-12 + drift * 4}deg)`,
+        }}
+      />
+    </AbsoluteFill>
   );
 };
 
@@ -110,54 +267,178 @@ const Particles: React.FC<{ count?: number; seed?: string }> = ({
 const Phone: React.FC<{
   children: React.ReactNode;
   rotateY?: number;
+  rotateX?: number;
   scale?: number;
   glow?: number;
-}> = ({ children, rotateY = 0, scale = 1, glow = 1 }) => {
+}> = ({ children, rotateY = 0, rotateX = 0, scale = 1, glow = 1 }) => {
   return (
     <div
       style={{
         position: "relative",
         width: 460,
         height: 940,
-        borderRadius: 60,
-        background: "linear-gradient(160deg, #1a1325 0%, #0a0612 100%)",
-        boxShadow: `
-          inset 0 0 0 2px rgba(255,255,255,0.08),
-          inset 0 0 0 8px #0a0612,
-          0 40px 80px rgba(0,0,0,0.6),
-          0 0 ${80 * glow}px rgba(255,92,184,${0.25 * glow}),
-          0 0 ${120 * glow}px rgba(92,225,255,${0.18 * glow})
-        `,
-        transform: `perspective(2000px) rotateY(${rotateY}deg) scale(${scale})`,
+        transform: `perspective(2200px) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(${scale})`,
         transformStyle: "preserve-3d",
-        padding: 14,
       }}
     >
+      {/* contact / ambient shadow */}
       <div
         style={{
           position: "absolute",
-          top: 22,
           left: "50%",
-          transform: "translateX(-50%)",
-          width: 110,
-          height: 28,
-          background: "#000",
-          borderRadius: 16,
-          zIndex: 10,
+          bottom: -60,
+          transform: "translateX(-50%) rotateX(85deg)",
+          width: 380,
+          height: 80,
+          background: "radial-gradient(ellipse, rgba(0,0,0,0.7), transparent 70%)",
+          filter: "blur(20px)",
         }}
       />
+      {/* outer frame (titanium/glass bezel) */}
       <div
         style={{
-          width: "100%",
-          height: "100%",
-          borderRadius: 48,
-          overflow: "hidden",
-          background: "#0a0612",
-          position: "relative",
+          position: "absolute",
+          inset: 0,
+          borderRadius: 62,
+          background:
+            "linear-gradient(160deg, #3a3340 0%, #1a1325 30%, #0a0612 60%, #2a2030 100%)",
+          boxShadow: `
+            inset 0 1px 0 rgba(255,255,255,0.25),
+            inset 0 -1px 0 rgba(0,0,0,0.6),
+            inset 0 0 0 1px rgba(255,255,255,0.06),
+            0 50px 100px rgba(0,0,0,0.7),
+            0 20px 40px rgba(0,0,0,0.5),
+            0 0 ${80 * glow}px rgba(255,92,184,${0.22 * glow}),
+            0 0 ${140 * glow}px rgba(92,225,255,${0.14 * glow})
+          `,
+          padding: 6,
         }}
       >
-        {children}
+        {/* inner bezel */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 6,
+            borderRadius: 56,
+            background: "#050308",
+            padding: 8,
+          }}
+        >
+          {/* screen */}
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 48,
+              overflow: "hidden",
+              background: "#0a0612",
+              position: "relative",
+              boxShadow: "inset 0 0 30px rgba(0,0,0,0.5)",
+            }}
+          >
+            {children}
+            {/* screen specular highlight */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                background:
+                  "linear-gradient(115deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 70%, rgba(255,255,255,0.06) 100%)",
+                mixBlendMode: "overlay",
+              }}
+            />
+            {/* subtle vignette on screen */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                background:
+                  "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.35) 100%)",
+              }}
+            />
+          </div>
+        </div>
+        {/* dynamic island */}
+        <div
+          style={{
+            position: "absolute",
+            top: 22,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 116,
+            height: 32,
+            background:
+              "radial-gradient(ellipse at 30% 30%, #1a1a22 0%, #000 70%)",
+            borderRadius: 18,
+            zIndex: 10,
+            boxShadow:
+              "inset 0 1px 1px rgba(255,255,255,0.1), inset 0 -1px 1px rgba(0,0,0,0.8)",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              right: 14,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: 7,
+              height: 7,
+              borderRadius: 4,
+              background: "#1a2030",
+              boxShadow: "inset 0 0 2px rgba(92,225,255,0.5)",
+            }}
+          />
+        </div>
+        {/* side button highlight */}
+        <div
+          style={{
+            position: "absolute",
+            left: -3,
+            top: 180,
+            width: 3,
+            height: 60,
+            background: "linear-gradient(180deg, #3a3340, #1a1325)",
+            borderRadius: 2,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            right: -3,
+            top: 220,
+            width: 3,
+            height: 100,
+            background: "linear-gradient(180deg, #3a3340, #1a1325)",
+            borderRadius: 2,
+          }}
+        />
       </div>
+    </div>
+  );
+};
+
+const CameraWrap: React.FC<{
+  children: React.ReactNode;
+  seed?: string;
+  intensity?: number;
+}> = ({ children, seed = "cam", intensity = 1 }) => {
+  const frame = useCurrentFrame();
+  const tx = Math.sin(frame / 70 + random(`${seed}x`) * 6) * 8 * intensity;
+  const ty = Math.cos(frame / 90 + random(`${seed}y`) * 6) * 6 * intensity;
+  const rot = Math.sin(frame / 110) * 0.4 * intensity;
+  const scale = 1 + Math.sin(frame / 180) * 0.01 * intensity;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`,
+        transformOrigin: "50% 50%",
+      }}
+    >
+      {children}
     </div>
   );
 };
@@ -167,17 +448,34 @@ const PhoneCenter: React.FC<{
   rotateY?: number;
   scale?: number;
   glow?: number;
-}> = (props) => (
-  <AbsoluteFill
-    style={{
-      justifyContent: "center",
-      alignItems: "center",
-      fontFamily: FONT,
-    }}
-  >
-    <Phone {...props}>{props.children}</Phone>
-  </AbsoluteFill>
-);
+  noDrift?: boolean;
+}> = ({ noDrift, ...props }) => {
+  const frame = useCurrentFrame();
+  const driftX = noDrift ? 0 : Math.sin(frame / 80) * 10;
+  const driftY = noDrift ? 0 : Math.cos(frame / 100) * 8;
+  const driftRot = noDrift ? 0 : Math.sin(frame / 140) * 0.6;
+  const floatY = Math.sin(frame / 50) * 6;
+  const baseRotY = props.rotateY ?? Math.sin(frame / 200) * 3;
+  const baseRotX = Math.cos(frame / 240) * 2;
+  return (
+    <AbsoluteFill
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: FONT,
+        transform: `translate(${driftX}px, ${driftY + floatY}px) rotate(${driftRot}deg)`,
+      }}
+    >
+      <Phone
+        {...props}
+        rotateY={baseRotY}
+        rotateX={baseRotX}
+      >
+        {props.children}
+      </Phone>
+    </AbsoluteFill>
+  );
+};
 
 const StatusBar: React.FC = () => (
   <div
