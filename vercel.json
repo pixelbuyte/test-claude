@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/starbound-sprinter/index.html" },
+    { "source": "/play", "destination": "/starbound-sprinter/index.html" }
+  ]
+}
