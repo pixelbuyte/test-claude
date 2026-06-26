@@ -1,0 +1,8 @@
+# rendered frames are large; keep final videos but not the PNG sequence
+output/preview_frames/
+output/*.log
+*.blend1
+
+# temporary in-session helpers
+_*.sh
+_*.py
