@@ -11,10 +11,22 @@ import { Main } from "./MyComp/Main";
 import { NextLogo } from "./MyComp/NextLogo";
 import { Claude } from "./Claude/Claude";
 import { ClaudeIntro } from "./Claude/ClaudeIntro";
+import {
+  FourthDimension,
+  FOURTH_DIMENSION_DURATION,
+} from "./FourthDimension/FourthDimension";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <Composition
+        id="FourthDimension"
+        component={FourthDimension}
+        durationInFrames={FOURTH_DIMENSION_DURATION}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
       <Composition
         id={COMP_NAME}
         component={Main}
