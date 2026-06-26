@@ -2,3 +2,7 @@
 output/preview_frames/
 output/*.log
 *.blend1
+
+# temporary in-session helpers
+_*.sh
+_*.py
