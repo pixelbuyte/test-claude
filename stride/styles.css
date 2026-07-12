@@ -20,6 +20,8 @@
 
 * { box-sizing: border-box; }
 
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -641,6 +643,122 @@ button { font-family: inherit; }
 
 .danger-zone { margin-top: 26px; text-align: center; }
 
+/* ---------------- live GPS tracker ---------------- */
+
+.gps-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.gps-stat {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px 6px 10px;
+}
+
+.gps-stat .g-value {
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.gps-stat .g-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gps-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 10px 0 12px;
+}
+
+.gps-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+
+.gps-dot.live {
+  background: #0ca30c;
+  animation: gps-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes gps-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(12, 163, 12, .45); }
+  55% { box-shadow: 0 0 0 7px rgba(12, 163, 12, 0); }
+}
+
+.gps-controls { display: flex; gap: 10px; }
+
+.gps-controls .btn { flex: 1; justify-content: center; padding: 12px; font-size: 15px; }
+
+/* ---------------- mobile bottom nav ---------------- */
+
+.bottombar { display: none; }
+
+@media (max-width: 760px) {
+  .bottombar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: var(--card);
+    border-top: 1px solid var(--hairline);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottombar a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 650;
+    padding: 4px 12px;
+    border-radius: 12px;
+    min-width: 58px;
+  }
+
+  .bottombar a.active { color: var(--accent-strong); }
+
+  .bottombar .bb-record {
+    background: var(--accent-strong);
+    color: #fff;
+    width: 50px;
+    height: 50px;
+    min-width: 0;
+    border-radius: 50%;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(207, 69, 20, .35);
+    margin-top: -18px;
+  }
+
+  .topbar .tabs, .topbar .record-btn { display: none; }
+  .topbar-inner { justify-content: center; }
+  .brand-name { display: inline; }
+
+  body { padding-bottom: 76px; }
+}
+
 /* ---------------- leaflet chrome ---------------- */
 
 .leaflet-container { font-family: var(--font); }
@@ -650,9 +768,6 @@ button { font-family: inherit; }
 
 @media (max-width: 760px) {
   .topbar-inner { padding: 8px 12px; gap: 10px; }
-  .brand-name { display: none; }
-  .tabs a { padding: 7px 10px; font-size: 14px; }
-  .record-btn { padding: 8px 12px; }
   .detail-grid { grid-template-columns: 1fr; }
   .stats-row { gap: 18px; flex-wrap: wrap; }
   .detail-map { height: 300px; }
