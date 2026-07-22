@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sherlock - Free OSINT Username Finder</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1>🔍 Sherlock</h1>
+        <p class="tagline">Free OSINT tool to find someone's social media accounts</p>
+        <div class="meta-info" id="metaInfo">
+          <span>Ready to search...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Search Area -->
+    <main class="main-search">
+      <div class="search-box">
+        <div class="tab-selector">
+          <button class="tab-btn active" data-tab="username">Username Search</button>
+          <button class="tab-btn" data-tab="image">Photo Search (Beta)</button>
+        </div>
+
+        <!-- Username Search Tab -->
+        <div class="tab-content active" id="tab-username">
+          <div class="search-input-group">
+            <input
+              type="text"
+              id="usernameInput"
+              class="search-input"
+              placeholder="Enter username (e.g., torvalds, elonmusk)"
+              autocomplete="off"
+            />
+            <button class="btn-primary" id="searchBtn">Search</button>
+          </div>
+          <div class="validation-error" id="validationError"></div>
+        </div>
+
+        <!-- Image Search Tab (Beta) -->
+        <div class="tab-content" id="tab-image">
+          <div class="image-upload-group">
+            <div class="upload-area" id="uploadArea">
+              <p>📸 Upload a photo to reverse search</p>
+              <p class="upload-hint">(Find where this image appears online)</p>
+              <input type="file" id="imageInput" accept="image/*" style="display:none;" />
+            </div>
+            <div id="imagePreview" style="display:none;">
+              <img id="previewImg" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px;" />
+            </div>
+            <button class="btn-primary" id="imageSearchBtn" style="display:none; margin-top: 10px;">Reverse Search</button>
+          </div>
+          <p class="beta-badge">🚀 Beta - Limited availability</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Progress Bar & Stats -->
+    <div class="progress-section" id="progressSection" style="display:none;">
+      <div class="progress-info">
+        <div class="progress-text" id="progressText">Checked 0 / 0 · 0 found</div>
+        <button class="btn-cancel" id="cancelBtn">Cancel</button>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- Results Area -->
+    <div class="results-section" id="resultsSection" style="display:none;">
+      <!-- Found Results -->
+      <div class="result-group">
+        <div class="result-group-header found" data-group="found">
+          <h3>✅ Found (<span id="countFound">0</span>)</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="result-items" id="foundItems"></div>
+      </div>
+
+      <!-- Not Found Results -->
+      <div class="result-group">
+        <div class="result-group-header not-found" data-group="not_found">
+          <h3>❌ Not Found (<span id="countNotFound">0</span>)</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="result-items" id="notFoundItems" style="display:none;"></div>
+      </div>
+
+      <!-- Skipped/Error Results -->
+      <div class="result-group">
+        <div class="result-group-header error" data-group="error">
+          <h3>⚠️ Skipped/Errors (<span id="countError">0</span>)</h3>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="result-items" id="errorItems" style="display:none;"></div>
+      </div>
+
+      <!-- Export Controls -->
+      <div class="export-controls" id="exportControls">
+        <button class="btn-export" id="copyTextBtn">📋 Copy as Text</button>
+        <button class="btn-export" id="copyJsonBtn">📋 Copy as JSON</button>
+        <button class="btn-export" id="downloadBtn">⬇️ Download TXT</button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <p>Enter a username above to search across hundreds of websites</p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="disclaimer">
+        <p>
+          <strong>⚠️ Ethical Use Only:</strong> Use this tool for personal security research,
+          investigating your own accounts, or with explicit consent only. Respect each site's
+          Terms of Service. Do not use for harassment, stalking, or any illegal purpose.
+        </p>
+      </div>
+      <div class="attribution">
+        <p>
+          Site definitions adapted from <a href="https://github.com/sherlock-project/sherlock" target="_blank" rel="noopener">Sherlock Project</a>
+          (MIT License) © Sherlock Project contributors
+        </p>
+      </div>
+      <div class="footer-links">
+        <a href="#" onclick="copyToClipboard('sessionInfo'); return false;">Report Issue</a> •
+        <a href="#" onclick="return false;">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
