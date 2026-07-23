@@ -1,0 +1,401 @@
+{
+  "GitHub": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://www.github.com/{}",
+    "urlMain": "https://www.github.com/",
+    "username_claimed": "torvalds",
+    "regexCheck": "^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$",
+    "isNSFW": false
+  },
+  "Twitter": {
+    "category": "social",
+    "errorType": "message",
+    "errorMsg": "User not found",
+    "url": "https://x.com/{}",
+    "urlMain": "https://x.com/",
+    "username_claimed": "elonmusk",
+    "regexCheck": "^[a-zA-Z0-9_]{1,15}$",
+    "isNSFW": false
+  },
+  "Instagram": {
+    "category": "social",
+    "errorType": "status_code",
+    "url": "https://instagram.com/{}",
+    "urlMain": "https://instagram.com/",
+    "username_claimed": "instagram",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Reddit": {
+    "category": "social",
+    "errorType": "message",
+    "errorMsg": "page not found",
+    "url": "https://www.reddit.com/user/{}",
+    "urlMain": "https://www.reddit.com/",
+    "username_claimed": "spez",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "TikTok": {
+    "category": "social",
+    "errorType": "status_code",
+    "url": "https://www.tiktok.com/@{}",
+    "urlMain": "https://www.tiktok.com",
+    "username_claimed": "tiktok",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "YouTube": {
+    "category": "social",
+    "errorType": "status_code",
+    "url": "https://www.youtube.com/@{}",
+    "urlMain": "https://www.youtube.com/",
+    "username_claimed": "youtube",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "LinkedIn": {
+    "category": "professional",
+    "errorType": "status_code",
+    "url": "https://linkedin.com/in/{}",
+    "urlMain": "https://linkedin.com",
+    "username_claimed": "satyanadella",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Pinterest": {
+    "category": "social",
+    "errorType": "status_code",
+    "url": "https://www.pinterest.com/{}/",
+    "urlMain": "https://www.pinterest.com/",
+    "username_claimed": "pinterest",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Telegram": {
+    "category": "social",
+    "errorType": "status_code",
+    "url": "https://t.me/{}",
+    "urlMain": "https://t.me/",
+    "username_claimed": "telegram",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Discord": {
+    "category": "social",
+    "errorType": "status_code",
+    "url": "https://discord.com/users/{}",
+    "urlMain": "https://discord.com/",
+    "username_claimed": "discordapp",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Twitch": {
+    "category": "gaming",
+    "errorType": "status_code",
+    "url": "https://www.twitch.tv/{}",
+    "urlMain": "https://www.twitch.tv",
+    "username_claimed": "twitch",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Steam": {
+    "category": "gaming",
+    "errorType": "message",
+    "errorMsg": "could not be found",
+    "url": "https://steamcommunity.com/id/{}/",
+    "urlMain": "https://steamcommunity.com/",
+    "username_claimed": "gabelogannewell",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Medium": {
+    "category": "blogging",
+    "errorType": "status_code",
+    "url": "https://medium.com/@{}",
+    "urlMain": "https://medium.com/",
+    "username_claimed": "ev",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Dev.to": {
+    "category": "professional",
+    "errorType": "status_code",
+    "url": "https://dev.to/{}",
+    "urlMain": "https://dev.to/",
+    "username_claimed": "ben",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "GitLab": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://gitlab.com/{}",
+    "urlMain": "https://gitlab.com/",
+    "username_claimed": "torvalds",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Stack Overflow": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://stackoverflow.com/users/{}",
+    "urlMain": "https://stackoverflow.com/",
+    "username_claimed": "jon",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "npm": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://www.npmjs.com/~{}",
+    "urlMain": "https://www.npmjs.com/",
+    "username_claimed": "npm",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "PyPI": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://pypi.org/user/{}/",
+    "urlMain": "https://pypi.org",
+    "username_claimed": "guido",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Docker Hub": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://hub.docker.com/u/{}/",
+    "urlMain": "https://hub.docker.com/",
+    "username_claimed": "docker",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Substack": {
+    "category": "blogging",
+    "errorType": "status_code",
+    "url": "https://{}.substack.com/",
+    "urlMain": "https://substack.com/",
+    "username_claimed": "example",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Spotify": {
+    "category": "misc",
+    "errorType": "status_code",
+    "url": "https://open.spotify.com/user/{}",
+    "urlMain": "https://open.spotify.com/",
+    "username_claimed": "spotify",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "SoundCloud": {
+    "category": "misc",
+    "errorType": "status_code",
+    "url": "https://soundcloud.com/{}",
+    "urlMain": "https://soundcloud.com/",
+    "username_claimed": "soundcloud",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Behance": {
+    "category": "professional",
+    "errorType": "status_code",
+    "url": "https://www.behance.net/{}",
+    "urlMain": "https://www.behance.net/",
+    "username_claimed": "adobe",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Dribbble": {
+    "category": "professional",
+    "errorType": "status_code",
+    "url": "https://dribbble.com/{}",
+    "urlMain": "https://dribbble.com/",
+    "username_claimed": "dribbble",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Keybase": {
+    "category": "misc",
+    "errorType": "status_code",
+    "url": "https://keybase.io/{}",
+    "urlMain": "https://keybase.io/",
+    "username_claimed": "chris",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Tumblr": {
+    "category": "blogging",
+    "errorType": "status_code",
+    "url": "https://{}.tumblr.com",
+    "urlMain": "https://www.tumblr.com/",
+    "username_claimed": "staff",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Last.fm": {
+    "category": "misc",
+    "errorType": "status_code",
+    "url": "https://last.fm/user/{}",
+    "urlMain": "https://last.fm/",
+    "username_claimed": "lastfm",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Flickr": {
+    "category": "social",
+    "errorType": "status_code",
+    "url": "https://www.flickr.com/people/{}",
+    "urlMain": "https://www.flickr.com/",
+    "username_claimed": "flickr",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Chess.com": {
+    "category": "gaming",
+    "errorType": "status_code",
+    "url": "https://www.chess.com/member/{}",
+    "urlMain": "https://www.chess.com/",
+    "username_claimed": "hikaru",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Lichess": {
+    "category": "gaming",
+    "errorType": "status_code",
+    "url": "https://lichess.org/@/{}",
+    "urlMain": "https://lichess.org",
+    "username_claimed": "lichess",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Roblox": {
+    "category": "gaming",
+    "errorType": "status_code",
+    "url": "https://www.roblox.com/user.aspx?username={}",
+    "urlMain": "https://www.roblox.com/",
+    "username_claimed": "roblox",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Unsplash": {
+    "category": "misc",
+    "errorType": "status_code",
+    "url": "https://unsplash.com/@{}",
+    "urlMain": "https://unsplash.com/",
+    "username_claimed": "unsplash",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "About.me": {
+    "category": "misc",
+    "errorType": "status_code",
+    "url": "https://about.me/{}",
+    "urlMain": "https://about.me/",
+    "username_claimed": "aboutme",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Kaggle": {
+    "category": "professional",
+    "errorType": "status_code",
+    "url": "https://www.kaggle.com/{}",
+    "urlMain": "https://www.kaggle.com/",
+    "username_claimed": "kaggle",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Itch.io": {
+    "category": "gaming",
+    "errorType": "status_code",
+    "url": "https://{}.itch.io/",
+    "urlMain": "https://itch.io/",
+    "username_claimed": "itch",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Patreon": {
+    "category": "professional",
+    "errorType": "status_code",
+    "url": "https://www.patreon.com/{}",
+    "urlMain": "https://www.patreon.com/",
+    "username_claimed": "patreon",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Ko-fi": {
+    "category": "misc",
+    "errorType": "status_code",
+    "url": "https://ko-fi.com/{}",
+    "urlMain": "https://ko-fi.com",
+    "username_claimed": "kofi",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "ProductHunt": {
+    "category": "professional",
+    "errorType": "status_code",
+    "url": "https://www.producthunt.com/@{}",
+    "urlMain": "https://www.producthunt.com/",
+    "username_claimed": "producthunt",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Codepen": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://codepen.io/{}",
+    "urlMain": "https://codepen.io/",
+    "username_claimed": "codepen",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Replit": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://replit.com/@{}",
+    "urlMain": "https://replit.com/",
+    "username_claimed": "replit",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "LeetCode": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://leetcode.com/{}",
+    "urlMain": "https://leetcode.com/",
+    "username_claimed": "1e9",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "HackerRank": {
+    "category": "dev",
+    "errorType": "status_code",
+    "url": "https://hackerrank.com/{}",
+    "urlMain": "https://hackerrank.com/",
+    "username_claimed": "hackerrank",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Wattpad": {
+    "category": "blogging",
+    "errorType": "status_code",
+    "url": "https://www.wattpad.com/user/{}",
+    "urlMain": "https://www.wattpad.com/",
+    "username_claimed": "wattpad",
+    "regexCheck": null,
+    "isNSFW": false
+  },
+  "Duolingo": {
+    "category": "misc",
+    "errorType": "status_code",
+    "url": "https://www.duolingo.com/profile/{}",
+    "urlMain": "https://duolingo.com/",
+    "username_claimed": "duolingo",
+    "regexCheck": null,
+    "isNSFW": false
+  }
+}
