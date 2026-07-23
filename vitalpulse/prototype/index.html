@@ -214,6 +214,18 @@
   .switch.on i{ left:22px; }
 
   .backlink{ display:flex; align-items:center; gap:5px; font:700 13px/1 var(--font-body); color:var(--teal); text-decoration:none; cursor:pointer; width:fit-content; }
+
+  .diagram{ width:100%; height:60px; border-radius:14px; background:var(--teal-tint); display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:12px; }
+  .diagram svg{ display:block; }
+  .wave-track{ animation: scrollWave 1.8s linear infinite; }
+  @keyframes scrollWave{ from{ transform:translateX(0); } to{ transform:translateX(-140px); } }
+  .gauge-needle{ transform-box: view-box; transform-origin: 12px 15.4px; animation: needleSweep 1.9s ease-in-out infinite; }
+  @keyframes needleSweep{ 0%,100%{ transform:rotate(-18deg); } 50%{ transform:rotate(18deg); } }
+  .lock-breathe{ animation: lockBreathe 2.8s ease-in-out infinite; transform-origin:center; }
+  @keyframes lockBreathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.12); } }
+  @media (prefers-reduced-motion: reduce){
+    .wave-track, .gauge-needle, .lock-breathe{ animation:none; }
+  }
 </style>
 
 <div class="backdrop"></div>
@@ -428,6 +440,10 @@
               <div class="field"><div class="fl">Diastolic</div><div class="fv">76</div></div>
               <div class="field"><div class="fl">Pulse</div><div class="fv">70</div></div>
             </div>
+            <div class="disclaimer reveal r2" style="margin-top:0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-info"/></svg>
+              <span><b>Systolic</b> (top number) is the pressure in your arteries when your heart beats. <b>Diastolic</b> (bottom) is the pressure when it rests between beats. A typical healthy reading is under 120/80&nbsp;mmHg.</span>
+            </div>
             <div class="keypad reveal r3">
               <button>1</button><button>2</button><button>3</button>
               <button>4</button><button>5</button><button>6</button>
@@ -488,14 +504,32 @@
           <div class="content">
             <h1 class="scr-title reveal r1" style="margin-top:8px;">How this works</h1>
             <div class="card paper reveal r2">
+              <div class="diagram">
+                <svg width="100%" height="60" viewBox="0 0 700 60" preserveAspectRatio="xMidYMid meet">
+                  <polyline class="wave-track" fill="none" stroke="var(--teal)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+                    points="0,30 20,30 27,10 34,54 41,6 48,30 140,30 160,30 167,10 174,54 181,6 188,30 280,30 300,30 307,10 314,54 321,6 328,30 420,30 440,30 447,10 454,54 461,6 468,30 560,30 580,30 587,10 594,54 601,6 608,30 700,30"/>
+                </svg>
+              </div>
               <div class="label">Pulse Check</div>
               <p class="scr-sub" style="margin-top:7px;">Uses your camera and flash to watch tiny color changes in your fingertip as blood moves through it, timing the beats to estimate heart rate and rhythm variability. This is real, useful data — but it is a wellness estimate, not a diagnosis.</p>
             </div>
             <div class="card paper reveal r3">
+              <div class="diagram">
+                <svg width="76" height="60" viewBox="0 0 24 24">
+                  <path d="M4.6 15.4a7.4 7.4 0 0 1 14.8 0" stroke="var(--line)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                  <path d="M4.6 15.4h14.8" stroke="var(--line)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                  <path class="gauge-needle" d="M12 15.4 15.1 10.6" stroke="var(--coral)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  <circle cx="12" cy="15.4" r="1.1" fill="var(--coral)"/>
+                </svg>
+              </div>
               <div class="label">Blood Pressure Log</div>
-              <p class="scr-sub" style="margin-top:7px;">There is no way for a phone to measure blood pressure on its own. Enter readings from your own validated cuff, and VitalPulse turns them into trends you and your doctor can actually use.</p>
+              <p class="scr-sub" style="margin-top:7px;">There is no way for a phone to measure blood pressure on its own — that needle can't do it alone either. A real cuff is what takes the actual reading. Enter it here and VitalPulse turns it into trends you and your doctor can use.</p>
+              <p class="scr-sub" style="margin-top:10px;"><b style="color:var(--ink)">Systolic</b> (top number) is the pressure in your arteries when your heart beats. <b style="color:var(--ink)">Diastolic</b> (bottom) is the pressure when it rests between beats.</p>
             </div>
             <div class="card paper reveal r4">
+              <div class="diagram">
+                <svg class="lock-breathe" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-lock"/></svg>
+              </div>
               <div class="label">Your privacy</div>
               <p class="scr-sub" style="margin-top:7px;">Every reading is stored only on this device. Nothing is uploaded, sold, or shared. Delete it all anytime in Settings.</p>
             </div>

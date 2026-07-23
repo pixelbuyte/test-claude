@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, Text } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
 import { Card, Label } from '../components/ui';
+import { PulseWaveform, GaugeSweep, PrivacyPulse } from '../components/HowItWorksAnimations';
 import { FONTS } from '../theme';
 
 export function HowItWorksScreen() {
@@ -13,6 +14,7 @@ export function HowItWorksScreen() {
       </Text>
 
       <Card theme={theme}>
+        <PulseWaveform theme={theme} />
         <Label theme={theme} textScale={textScale}>
           Pulse Check
         </Label>
@@ -25,17 +27,21 @@ export function HowItWorksScreen() {
       </Card>
 
       <Card theme={theme}>
+        <GaugeSweep theme={theme} />
         <Label theme={theme} textScale={textScale}>
           Blood Pressure Log
         </Label>
         <Text style={{ fontSize: 14.5 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, lineHeight: 21 * textScale, marginTop: 7 }}>
           There is no way for a phone to measure blood pressure on its own — no camera, no fingerprint sensor, no
-          app. Enter readings from your own validated cuff, and VitalPulse turns them into trends you and your
-          doctor can actually use.
+          app. That's what the needle above can't do on its own either: a real cuff is what takes the actual
+          reading. Enter your numbers here and VitalPulse turns them into trends you and your doctor can use.
+          {'\n\n'}Systolic (the top number) is the pressure in your arteries when your heart beats. Diastolic (the
+          bottom number) is the pressure when your heart rests between beats.
         </Text>
       </Card>
 
       <Card theme={theme}>
+        <PrivacyPulse theme={theme} />
         <Label theme={theme} textScale={textScale}>
           Your privacy
         </Label>
