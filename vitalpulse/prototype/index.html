@@ -1,0 +1,436 @@
+<title>VitalPulse — Product Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg:#f4f2ec;
+    --paper:#ffffff;
+    --ink:#122523;
+    --ink-soft:#3f5754;
+    --line:#dbe3df;
+    --teal:#0b5d5a;
+    --teal-deep:#083f3d;
+    --sage:#e3ede9;
+    --coral:#e8734a;
+    --coral-deep:#c85a34;
+    --amber:#b8862e;
+    --danger:#b3402f;
+    --shadow: 0 1px 2px rgba(18,37,35,.06), 0 8px 24px rgba(18,37,35,.08);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1716;
+    --paper:#152321;
+    --ink:#eef4f2;
+    --ink-soft:#aebdb9;
+    --line:#25403c;
+    --teal:#5fb3ac;
+    --teal-deep:#bfe6e1;
+    --sage:#1b2f2b;
+    --coral:#f0865c;
+    --coral-deep:#ffab84;
+    --amber:#e0ac5c;
+    --danger:#e2857a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1716; --paper:#152321; --ink:#eef4f2; --ink-soft:#aebdb9; --line:#25403c;
+      --teal:#5fb3ac; --teal-deep:#bfe6e1; --sage:#1b2f2b; --coral:#f0865c; --coral-deep:#ffab84;
+      --amber:#e0ac5c; --danger:#e2857a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+    font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display:flex; flex-direction:column; align-items:center; gap:18px;
+    padding:28px 16px 60px; overflow-x:hidden;
+  }
+  .rail{
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:900px;
+  }
+  .rail button{
+    font: 600 13px/1 -apple-system, Roboto, sans-serif; letter-spacing:.02em;
+    padding:10px 14px; border-radius:99px; border:1px solid var(--line);
+    background:var(--paper); color:var(--ink-soft); cursor:pointer;
+  }
+  .rail button.active{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .stage{ display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap; justify-content:center; }
+  .caption{ max-width:280px; font-size:13px; color:var(--ink-soft); line-height:1.5; padding-top:60px; }
+  .caption b{ color:var(--ink); }
+
+  .phone{
+    width:360px; height:760px; border-radius:46px; background:var(--paper);
+    border: 10px solid var(--teal-deep); box-shadow: var(--shadow);
+    position:relative; overflow:hidden; flex-shrink:0;
+  }
+  .notch{
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:120px; height:22px; background:var(--teal-deep); border-radius:0 0 14px 14px; z-index:5;
+  }
+  .screen{ position:absolute; inset:0; display:none; flex-direction:column; }
+  .screen.show{ display:flex; }
+
+  .status{ height:34px; flex-shrink:0; }
+
+  .content{ flex:1; overflow-y:auto; padding:20px 22px 10px; }
+  .content::-webkit-scrollbar{ display:none; }
+
+  h1.scr-title{ font-size:22px; margin:4px 0 6px; letter-spacing:-.01em; text-wrap:balance; }
+  p.scr-sub{ font-size:14.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 18px; }
+
+  .card{
+    background:var(--sage); border-radius:20px; padding:18px; margin-bottom:14px;
+  }
+  .card.paper{ background:var(--paper); border:1px solid var(--line); }
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .label{ font-size:13px; color:var(--ink-soft); font-weight:600; letter-spacing:.02em; text-transform:uppercase; }
+  .big-num{ font-size:44px; font-weight:700; line-height:1; font-variant-numeric: tabular-nums; letter-spacing:-.02em; }
+  .unit{ font-size:14px; color:var(--ink-soft); font-weight:600; }
+
+  .btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:16px 20px; border-radius:16px; border:none; cursor:pointer;
+    font-size:16px; font-weight:700; width:100%; letter-spacing:.01em;
+  }
+  .btn-primary{ background:var(--coral); color:#fff; }
+  .btn-primary:active{ background:var(--coral-deep); }
+  .btn-ghost{ background:transparent; color:var(--teal); border:1.5px solid var(--teal); }
+  .btn-quiet{ background:var(--paper); color:var(--ink); border:1px solid var(--line); }
+
+  .disclaimer{
+    display:flex; gap:10px; align-items:flex-start; background:var(--paper);
+    border:1.5px dashed var(--line); border-radius:16px; padding:14px; font-size:13px;
+    color:var(--ink-soft); line-height:1.5; margin:10px 0 4px;
+  }
+  .disclaimer b{ color:var(--ink); }
+
+  .onb-icon{
+    width:88px; height:88px; border-radius:26px; background:var(--sage);
+    display:flex; align-items:center; justify-content:center; font-size:42px; margin:18px 0 22px;
+  }
+  .dots{ display:flex; gap:6px; justify-content:center; padding:14px 0 2px; }
+  .dots span{ width:7px; height:7px; border-radius:99px; background:var(--line); }
+  .dots span.on{ background:var(--teal); width:18px; border-radius:99px; }
+
+  .tabbar{
+    height:78px; flex-shrink:0; border-top:1px solid var(--line); background:var(--paper);
+    display:flex; align-items:center; justify-content:space-around; padding-bottom:14px;
+  }
+  .tab{ display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ink-soft); font-size:11px; font-weight:600; cursor:pointer; }
+  .tab .ic{ font-size:20px; }
+  .tab.active{ color:var(--teal); }
+
+  .ring-wrap{ position:relative; display:flex; justify-content:center; align-items:center; padding:14px 0 6px; }
+  svg.ring{ transform:rotate(-90deg); }
+  .ring-num{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+  .ring-num .bpm{ font-size:52px; font-weight:700; font-variant-numeric: tabular-nums; }
+  .ring-num .lbl{ font-size:12px; color:var(--ink-soft); font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
+
+  .keypad{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:6px; }
+  .keypad button{
+    padding:14px 0; border-radius:14px; border:1px solid var(--line); background:var(--paper);
+    font-size:19px; font-weight:600; color:var(--ink); cursor:pointer;
+  }
+  .field-row{ display:flex; gap:10px; margin-bottom:12px; }
+  .field{ flex:1; background:var(--paper); border:1.5px solid var(--line); border-radius:14px; padding:10px 12px; text-align:center; }
+  .field.focus{ border-color:var(--teal); }
+  .field .fl{ font-size:11px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
+  .field .fv{ font-size:26px; font-weight:700; font-variant-numeric: tabular-nums; }
+
+  .seg{ display:flex; background:var(--sage); border-radius:12px; padding:3px; margin-bottom:16px; }
+  .seg button{ flex:1; border:none; background:transparent; padding:9px 0; border-radius:9px; font-size:13px; font-weight:700; color:var(--ink-soft); cursor:pointer; }
+  .seg button.on{ background:var(--paper); color:var(--teal); box-shadow: var(--shadow); }
+
+  .chart-card{ background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:16px; }
+  .legend{ display:flex; gap:16px; font-size:12px; color:var(--ink-soft); margin-top:8px; }
+  .legend span{ display:flex; align-items:center; gap:5px; }
+  .dot{ width:8px; height:8px; border-radius:99px; display:inline-block; }
+
+  .setting-row{ display:flex; align-items:center; justify-content:space-between; padding:14px 2px; border-bottom:1px solid var(--line); }
+  .setting-row:last-child{ border-bottom:none; }
+  .setting-title{ font-size:15px; font-weight:600; }
+  .setting-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .stepper{ display:flex; align-items:center; gap:10px; }
+  .stepper button{ width:32px; height:32px; border-radius:99px; border:1px solid var(--line); background:var(--paper); font-size:16px; font-weight:700; cursor:pointer; }
+  .switch{ width:46px; height:26px; border-radius:99px; background:var(--line); position:relative; cursor:pointer; flex-shrink:0; }
+  .switch.on{ background:var(--teal); }
+  .switch i{ position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:99px; background:#fff; transition:.15s; }
+  .switch.on i{ left:23px; }
+
+  a.back{ font-size:13px; color:var(--teal); text-decoration:none; font-weight:700; }
+</style>
+
+<div class="rail" id="rail"></div>
+
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="notch"></div>
+
+    <!-- ONBOARDING 1 -->
+    <div class="screen show" data-screen="onb1">
+      <div class="status"></div>
+      <div class="content" style="text-align:center; display:flex; flex-direction:column; align-items:center;">
+        <div class="onb-icon">💓</div>
+        <h1 class="scr-title">Know your numbers</h1>
+        <p class="scr-sub">VitalPulse tracks your pulse and blood pressure over time, and helps you spot what's worth a call to your doctor.</p>
+        <div class="dots"><span class="on"></span><span></span><span></span></div>
+      </div>
+      <div style="padding:16px 22px 26px;">
+        <button class="btn btn-primary" onclick="go('onb2')">Continue</button>
+      </div>
+    </div>
+
+    <!-- ONBOARDING 2 -->
+    <div class="screen" data-screen="onb2">
+      <div class="status"></div>
+      <div class="content" style="text-align:center; display:flex; flex-direction:column; align-items:center;">
+        <div class="onb-icon">🚫</div>
+        <h1 class="scr-title">What we won't do</h1>
+        <p class="scr-sub">No sensor — not your camera, not your fingerprint — can measure blood pressure. Anyone who tells you otherwise is wrong.</p>
+        <div class="disclaimer"><span>⚠️</span><span><b>Pulse Check</b> estimates heart rate &amp; rhythm variability only. For blood pressure, you'll log real readings from your own cuff — takes 10 seconds.</span></div>
+        <div class="dots"><span></span><span class="on"></span><span></span></div>
+      </div>
+      <div style="padding:16px 22px 26px;">
+        <button class="btn btn-primary" onclick="go('onb3')">Continue</button>
+      </div>
+    </div>
+
+    <!-- ONBOARDING 3 -->
+    <div class="screen" data-screen="onb3">
+      <div class="status"></div>
+      <div class="content" style="text-align:center; display:flex; flex-direction:column; align-items:center;">
+        <div class="onb-icon">🔒</div>
+        <h1 class="scr-title">Your data stays on your phone</h1>
+        <p class="scr-sub">No account. No cloud. Nothing shared with us or anyone else. You can export or delete everything, anytime, from Settings.</p>
+        <div class="dots"><span></span><span></span><span class="on"></span></div>
+      </div>
+      <div style="padding:16px 22px 26px;">
+        <button class="btn btn-primary" onclick="go('home')">Get started</button>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <div class="screen" data-screen="home">
+      <div class="status"></div>
+      <div class="content">
+        <h1 class="scr-title" style="margin-top:8px;">Good afternoon, Sam</h1>
+        <p class="scr-sub">Wednesday, July 22</p>
+
+        <div class="card">
+          <div class="row">
+            <div>
+              <div class="label">Last pulse check · 8:14am</div>
+              <div style="display:flex; align-items:baseline; gap:6px; margin-top:4px;"><span class="big-num">68</span><span class="unit">bpm · steady rhythm</span></div>
+            </div>
+            <div style="font-size:30px;">💓</div>
+          </div>
+        </div>
+
+        <div class="card paper">
+          <div class="row">
+            <div>
+              <div class="label">Last BP reading · yesterday</div>
+              <div style="display:flex; align-items:baseline; gap:6px; margin-top:4px;"><span class="big-num">118</span><span class="unit">/ 76 mmHg</span></div>
+            </div>
+            <div style="font-size:30px;">🩺</div>
+          </div>
+        </div>
+
+        <div class="disclaimer"><span>ℹ️</span><span>Pulse readings are a wellness estimate, not a medical diagnosis.</span></div>
+
+        <button class="btn btn-primary" style="margin-top:6px;" onclick="go('pulse')">Check my pulse</button>
+        <button class="btn btn-ghost" style="margin-top:10px;" onclick="go('logbp')">Log a blood pressure reading</button>
+      </div>
+      <div class="tabbar">
+        <div class="tab active" onclick="go('home')"><div class="ic">🏠</div>Home</div>
+        <div class="tab" onclick="go('trends')"><div class="ic">📈</div>Trends</div>
+        <div class="tab" onclick="go('how')"><div class="ic">📖</div>How it works</div>
+        <div class="tab" onclick="go('settings')"><div class="ic">⚙️</div>Settings</div>
+      </div>
+    </div>
+
+    <!-- PULSE CHECK -->
+    <div class="screen" data-screen="pulse">
+      <div class="status"></div>
+      <div class="content" style="text-align:center;">
+        <h1 class="scr-title">Pulse Check</h1>
+        <p class="scr-sub">Cover the camera and flash with your fingertip. Hold still.</p>
+        <div class="ring-wrap">
+          <svg class="ring" width="220" height="220">
+            <circle cx="110" cy="110" r="94" stroke="var(--line)" stroke-width="14" fill="none"/>
+            <circle cx="110" cy="110" r="94" stroke="var(--coral)" stroke-width="14" fill="none"
+              stroke-dasharray="590" stroke-dashoffset="165" stroke-linecap="round"/>
+          </svg>
+          <div class="ring-num">
+            <div class="bpm">71</div>
+            <div class="lbl">18s remaining</div>
+          </div>
+        </div>
+        <div class="disclaimer" style="text-align:left;"><span>⚠️</span><span>Estimate only — not a substitute for a medical device.</span></div>
+      </div>
+      <div style="padding:10px 22px 26px;">
+        <a class="back" onclick="go('home')" style="display:block; text-align:center; padding:10px;">Cancel</a>
+      </div>
+    </div>
+
+    <!-- LOG BP -->
+    <div class="screen" data-screen="logbp">
+      <div class="status"></div>
+      <div class="content">
+        <a class="back" onclick="go('home')">← Home</a>
+        <h1 class="scr-title" style="margin-top:10px;">Log blood pressure</h1>
+        <p class="scr-sub">Enter the reading from your own cuff.</p>
+        <div class="field-row">
+          <div class="field focus"><div class="fl">Systolic</div><div class="fv">118</div></div>
+          <div class="field"><div class="fl">Diastolic</div><div class="fv">76</div></div>
+          <div class="field"><div class="fl">Pulse</div><div class="fv">70</div></div>
+        </div>
+        <div class="keypad">
+          <button>1</button><button>2</button><button>3</button>
+          <button>4</button><button>5</button><button>6</button>
+          <button>7</button><button>8</button><button>9</button>
+          <button>⌫</button><button>0</button><button>✓</button>
+        </div>
+      </div>
+      <div style="padding:14px 22px 26px;">
+        <button class="btn btn-primary" onclick="go('home')">Save reading</button>
+      </div>
+    </div>
+
+    <!-- TRENDS -->
+    <div class="screen" data-screen="trends">
+      <div class="status"></div>
+      <div class="content">
+        <h1 class="scr-title" style="margin-top:8px;">Trends</h1>
+        <div class="seg">
+          <button class="on">7 days</button><button>30 days</button><button>90 days</button>
+        </div>
+        <div class="chart-card">
+          <div class="label">Blood pressure (mmHg)</div>
+          <svg width="100%" height="130" viewBox="0 0 280 130" style="margin-top:8px; overflow:visible;">
+            <polyline fill="none" stroke="var(--teal)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+              points="0,40 40,44 80,30 120,38 160,26 200,32 240,20 280,24"/>
+            <polyline fill="none" stroke="var(--coral)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+              points="0,90 40,86 80,94 120,88 160,80 200,84 240,76 280,78"/>
+            <circle cx="280" cy="24" r="4.5" fill="var(--teal)"/>
+            <circle cx="280" cy="78" r="4.5" fill="var(--coral)"/>
+          </svg>
+          <div class="legend">
+            <span><i class="dot" style="background:var(--teal)"></i>Systolic avg 121</span>
+            <span><i class="dot" style="background:var(--coral)"></i>Diastolic avg 78</span>
+          </div>
+        </div>
+        <div class="chart-card" style="margin-top:14px;">
+          <div class="label">Resting pulse (bpm)</div>
+          <svg width="100%" height="90" viewBox="0 0 280 90" style="margin-top:8px; overflow:visible;">
+            <polyline fill="none" stroke="var(--teal)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+              points="0,50 40,46 80,54 120,42 160,48 200,38 240,44 280,40"/>
+            <circle cx="280" cy="40" r="4.5" fill="var(--teal)"/>
+          </svg>
+          <div class="legend"><span><i class="dot" style="background:var(--teal)"></i>Avg 69 bpm</span></div>
+        </div>
+        <button class="btn btn-quiet" style="margin-top:14px;">⬇ Export report for my doctor</button>
+      </div>
+      <div class="tabbar">
+        <div class="tab" onclick="go('home')"><div class="ic">🏠</div>Home</div>
+        <div class="tab active" onclick="go('trends')"><div class="ic">📈</div>Trends</div>
+        <div class="tab" onclick="go('how')"><div class="ic">📖</div>How it works</div>
+        <div class="tab" onclick="go('settings')"><div class="ic">⚙️</div>Settings</div>
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="screen" data-screen="how">
+      <div class="status"></div>
+      <div class="content">
+        <h1 class="scr-title" style="margin-top:8px;">How this works</h1>
+        <div class="card paper">
+          <div class="label">Pulse Check</div>
+          <p class="scr-sub" style="margin-top:6px;">Uses your camera and flash to watch tiny color changes in your fingertip as blood moves through it, timing the beats to estimate heart rate and rhythm variability. This is real, useful data — but it is a wellness estimate, not a diagnosis.</p>
+        </div>
+        <div class="card paper">
+          <div class="label">Blood Pressure Log</div>
+          <p class="scr-sub" style="margin-top:6px;">There is no way for a phone to measure blood pressure on its own. Enter readings from your own validated cuff, and VitalPulse turns them into trends you and your doctor can actually use.</p>
+        </div>
+        <div class="card paper">
+          <div class="label">Your privacy</div>
+          <p class="scr-sub" style="margin-top:6px;">Every reading is stored only on this device. Nothing is uploaded, sold, or shared. Delete it all anytime in Settings.</p>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab" onclick="go('home')"><div class="ic">🏠</div>Home</div>
+        <div class="tab" onclick="go('trends')"><div class="ic">📈</div>Trends</div>
+        <div class="tab active" onclick="go('how')"><div class="ic">📖</div>How it works</div>
+        <div class="tab" onclick="go('settings')"><div class="ic">⚙️</div>Settings</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="screen" data-screen="settings">
+      <div class="status"></div>
+      <div class="content">
+        <h1 class="scr-title" style="margin-top:8px;">Settings</h1>
+        <div class="card paper" style="padding:4px 14px;">
+          <div class="setting-row">
+            <div><div class="setting-title">Text size</div><div class="setting-sub">Large, for comfortable reading</div></div>
+            <div class="stepper"><button>–</button><button>+</button></div>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-title">High-contrast theme</div><div class="setting-sub">Stronger colors, easier to read</div></div>
+            <div class="switch on" onclick="this.classList.toggle('on')"><i></i></div>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-title">Daily reminder</div><div class="setting-sub">8:00 AM, once a day</div></div>
+            <div class="switch on" onclick="this.classList.toggle('on')"><i></i></div>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-title">Left-hand camera mode</div><div class="setting-sub">Moves the pulse sensor to the left</div></div>
+            <div class="switch" onclick="this.classList.toggle('on')"><i></i></div>
+          </div>
+        </div>
+        <button class="btn btn-quiet" style="margin-top:6px;">⬇ Export my data</button>
+        <button class="btn btn-quiet" style="margin-top:10px; color:var(--danger);">Delete all my data</button>
+      </div>
+      <div class="tabbar">
+        <div class="tab" onclick="go('home')"><div class="ic">🏠</div>Home</div>
+        <div class="tab" onclick="go('trends')"><div class="ic">📈</div>Trends</div>
+        <div class="tab" onclick="go('how')"><div class="ic">📖</div>How it works</div>
+        <div class="tab active" onclick="go('settings')"><div class="ic">⚙️</div>Settings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption" id="caption">Tap the pills above, or tap inside the phone, to move through the VitalPulse flow.</div>
+</div>
+
+<script>
+  const notes = {
+    onb1: "Screen 1 of 3 · sets expectations honestly before anything else.",
+    onb2: "Screen 2 of 3 · the disclaimer that most competitors bury in a EULA.",
+    onb3: "Screen 3 of 3 · privacy stance stated up front, not in a settings sub-menu.",
+    home: "Home · one primary action, both readings visible without tapping in.",
+    pulse: "Pulse Check · large countdown ring, plain-language disclaimer stays visible.",
+    logbp: "Log BP · number-pad entry, no typing, three big fields.",
+    trends: "Trends · combined chart, doctor-ready export, no data locked behind a paywall.",
+    how: "How This Works · the permanent plain-language page explaining methodology.",
+    settings: "Settings · accessibility controls live at the top, not buried."
+  };
+  const order = ["onb1","onb2","onb3","home","pulse","logbp","trends","how","settings"];
+  const rail = document.getElementById('rail');
+  order.forEach(id=>{
+    const b = document.createElement('button');
+    b.textContent = id==='onb1'?'Onboarding 1':id==='onb2'?'Onboarding 2':id==='onb3'?'Onboarding 3':
+      id==='logbp'?'Log BP':id==='how'?'How it works':id.charAt(0).toUpperCase()+id.slice(1);
+    b.onclick = ()=>go(id);
+    b.dataset.id = id;
+    rail.appendChild(b);
+  });
+  function go(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show', s.dataset.screen===id));
+    document.querySelectorAll('.rail button').forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+    document.getElementById('caption').textContent = notes[id] || '';
+    document.getElementById('phone').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  go('onb1');
+</script>
