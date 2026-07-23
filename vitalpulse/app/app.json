@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "VitalPulse",
+    "slug": "vitalpulse",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#f4f2ec",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vitalpulse.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "VitalPulse uses the camera to estimate your pulse from your fingertip. It never measures blood pressure.",
+        "NSUserNotificationsUsageDescription": "VitalPulse can send a daily reminder to check in, if you turn that on in Settings."
+      }
+    },
+    "android": {
+      "package": "com.vitalpulse.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "VitalPulse uses the camera to estimate your pulse from your fingertip. It never measures blood pressure."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png"
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}
