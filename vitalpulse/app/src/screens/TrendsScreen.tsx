@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { useSettings } from '../context/SettingsContext';
 import { Button, Label, Sparkline } from '../components/ui';
+import { FONTS } from '../theme';
 import { exportAllAsCsv, getRecentBPReadings, getRecentPulseReadings } from '../storage/db';
 import { writeExportFile } from '../storage/exportFile';
 import { BloodPressureReading, PulseReading } from '../types';
@@ -54,11 +55,11 @@ export function TrendsScreen({ refreshSignal }: { refreshSignal: number }) {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ padding: 22 }}>
-      <Text style={{ fontSize: 22 * textScale, fontWeight: '700', color: theme.ink, marginBottom: 14 }} accessibilityRole="header">
+      <Text style={{ fontSize: 22 * textScale, fontFamily: FONTS.display, color: theme.ink, marginBottom: 14 }} accessibilityRole="header">
         Trends
       </Text>
 
-      <View style={{ flexDirection: 'row', backgroundColor: theme.sage, borderRadius: 12, padding: 3, marginBottom: 16 }}>
+      <View style={{ flexDirection: 'row', backgroundColor: theme.tealTint, borderRadius: 14, padding: 4, marginBottom: 16 }}>
         {RANGES.map((r) => (
           <Pressable
             key={r}
@@ -68,19 +69,19 @@ export function TrendsScreen({ refreshSignal }: { refreshSignal: number }) {
             style={{
               flex: 1,
               paddingVertical: 9,
-              borderRadius: 9,
+              borderRadius: 11,
               alignItems: 'center',
               backgroundColor: range === r ? theme.paper : 'transparent',
             }}
           >
-            <Text style={{ fontSize: 13 * textScale, fontWeight: '700', color: range === r ? theme.teal : theme.inkSoft }}>
+            <Text style={{ fontSize: 13 * textScale, fontFamily: FONTS.bodyBold, color: range === r ? theme.teal : theme.inkSoft }}>
               {r} days
             </Text>
           </Pressable>
         ))}
       </View>
 
-      <View style={{ backgroundColor: theme.paper, borderWidth: 1, borderColor: theme.line, borderRadius: 20, padding: 16, marginBottom: 14 }}>
+      <View style={{ backgroundColor: theme.paper, borderWidth: 1, borderColor: theme.line, borderRadius: 22, padding: 17, marginBottom: 14 }}>
         <Label theme={theme} textScale={textScale}>
           Blood pressure (mmHg)
         </Label>
@@ -88,35 +89,35 @@ export function TrendsScreen({ refreshSignal }: { refreshSignal: number }) {
           <>
             <Sparkline points={filteredBp.map((r) => r.systolic)} color={theme.teal} />
             <Sparkline points={filteredBp.map((r) => r.diastolic)} color={theme.coral} />
-            <View style={{ flexDirection: 'row', gap: 16, marginTop: 4 }}>
-              <Text style={{ fontSize: 12 * textScale, color: theme.inkSoft }}>● Systolic avg {sysAvg}</Text>
-              <Text style={{ fontSize: 12 * textScale, color: theme.inkSoft }}>● Diastolic avg {diaAvg}</Text>
+            <View style={{ flexDirection: 'row', gap: 16, marginTop: 6 }}>
+              <Text style={{ fontSize: 12 * textScale, fontFamily: FONTS.bodyBold, color: theme.inkSoft }}>● Systolic avg {sysAvg}</Text>
+              <Text style={{ fontSize: 12 * textScale, fontFamily: FONTS.bodyBold, color: theme.inkSoft }}>● Diastolic avg {diaAvg}</Text>
             </View>
           </>
         ) : (
-          <Text style={{ fontSize: 14 * textScale, color: theme.inkSoft, marginTop: 8 }}>
+          <Text style={{ fontSize: 14 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, marginTop: 8 }}>
             Log a couple of readings to see a trend here.
           </Text>
         )}
       </View>
 
-      <View style={{ backgroundColor: theme.paper, borderWidth: 1, borderColor: theme.line, borderRadius: 20, padding: 16, marginBottom: 16 }}>
+      <View style={{ backgroundColor: theme.paper, borderWidth: 1, borderColor: theme.line, borderRadius: 22, padding: 17, marginBottom: 16 }}>
         <Label theme={theme} textScale={textScale}>
           Resting pulse (bpm)
         </Label>
         {filteredPulse.length >= 2 ? (
           <>
             <Sparkline points={filteredPulse.map((r) => r.bpm)} color={theme.teal} height={80} />
-            <Text style={{ fontSize: 12 * textScale, color: theme.inkSoft, marginTop: 4 }}>Avg {pulseAvg} bpm</Text>
+            <Text style={{ fontSize: 12 * textScale, fontFamily: FONTS.bodyBold, color: theme.inkSoft, marginTop: 6 }}>Avg {pulseAvg} bpm</Text>
           </>
         ) : (
-          <Text style={{ fontSize: 14 * textScale, color: theme.inkSoft, marginTop: 8 }}>
+          <Text style={{ fontSize: 14 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, marginTop: 8 }}>
             Run a pulse check to start this trend.
           </Text>
         )}
       </View>
 
-      <Button title="⬇ Export report for my doctor" theme={theme} textScale={textScale} variant="quiet" onPress={exportReport} />
+      <Button title="Export report for my doctor" icon="download" theme={theme} textScale={textScale} variant="quiet" onPress={exportReport} />
     </ScrollView>
   );
 }

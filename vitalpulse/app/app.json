@@ -24,7 +24,9 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": ["CAMERA"]
+      "permissions": [
+        "CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,7 +45,8 @@
         {
           "icon": "./assets/icon.png"
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

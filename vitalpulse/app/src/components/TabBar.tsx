@@ -1,13 +1,14 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Theme } from '../theme';
+import { FONTS, Theme } from '../theme';
 import { MainTab } from '../navigation/types';
+import { Icon, IconName } from './Icon';
 
-const TABS: { key: MainTab; label: string; icon: string }[] = [
-  { key: 'home', label: 'Home', icon: '🏠' },
-  { key: 'trends', label: 'Trends', icon: '📈' },
-  { key: 'how', label: 'How it works', icon: '📖' },
-  { key: 'settings', label: 'Settings', icon: '⚙️' },
+const TABS: { key: MainTab; label: string; icon: IconName }[] = [
+  { key: 'home', label: 'Home', icon: 'home' },
+  { key: 'trends', label: 'Trends', icon: 'trend' },
+  { key: 'how', label: 'How it works', icon: 'book' },
+  { key: 'settings', label: 'Settings', icon: 'settings' },
 ];
 
 export function TabBar({ active, onSelect, theme, textScale }: {
@@ -30,6 +31,7 @@ export function TabBar({ active, onSelect, theme, textScale }: {
     >
       {TABS.map((tab) => {
         const isActive = tab.key === active;
+        const color = isActive ? theme.teal : theme.inkFaint;
         return (
           <Pressable
             key={tab.key}
@@ -37,12 +39,10 @@ export function TabBar({ active, onSelect, theme, textScale }: {
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
             accessibilityLabel={tab.label}
-            style={{ alignItems: 'center', gap: 3, minWidth: 60, paddingVertical: 4 }}
+            style={{ alignItems: 'center', gap: 4, minWidth: 60, paddingVertical: 4 }}
           >
-            <Text style={{ fontSize: 20 }}>{tab.icon}</Text>
-            <Text style={{ fontSize: 11 * textScale, fontWeight: '600', color: isActive ? theme.teal : theme.inkSoft }}>
-              {tab.label}
-            </Text>
+            <Icon name={tab.icon} size={21} color={color} />
+            <Text style={{ fontSize: 11 * textScale, fontFamily: FONTS.bodyBold, color }}>{tab.label}</Text>
           </Pressable>
         );
       })}

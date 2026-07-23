@@ -2,8 +2,8 @@ import React from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { useSettings } from '../context/SettingsContext';
-import { Switch } from '../components/ui';
-import { TEXT_SCALES } from '../theme';
+import { Button, Switch } from '../components/ui';
+import { FONTS, TEXT_SCALES } from '../theme';
 import { deleteAllData, exportAllAsCsv } from '../storage/db';
 import { writeExportFile } from '../storage/exportFile';
 import { setDailyReminder } from '../notifications';
@@ -29,14 +29,14 @@ function SettingRow({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 14,
+        paddingVertical: 15,
         borderBottomWidth: last ? 0 : 1,
         borderBottomColor: theme.line,
       }}
     >
       <View style={{ flex: 1, paddingRight: 12 }}>
-        <Text style={{ fontSize: 15 * textScale, fontWeight: '600', color: theme.ink }}>{title}</Text>
-        <Text style={{ fontSize: 12.5 * textScale, color: theme.inkSoft, marginTop: 2 }}>{subtitle}</Text>
+        <Text style={{ fontSize: 15 * textScale, fontFamily: FONTS.bodyBold, color: theme.ink }}>{title}</Text>
+        <Text style={{ fontSize: 12.5 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, marginTop: 3 }}>{subtitle}</Text>
       </View>
       {right}
     </View>
@@ -84,11 +84,11 @@ export function SettingsScreen({ onDataCleared }: { onDataCleared: () => void })
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ padding: 22 }}>
-      <Text style={{ fontSize: 22 * textScale, fontWeight: '700', color: theme.ink, marginBottom: 14 }} accessibilityRole="header">
+      <Text style={{ fontSize: 22 * textScale, fontFamily: FONTS.display, color: theme.ink, marginBottom: 14 }} accessibilityRole="header">
         Settings
       </Text>
 
-      <View style={{ backgroundColor: theme.paper, borderWidth: 1, borderColor: theme.line, borderRadius: 20, paddingHorizontal: 14 }}>
+      <View style={{ backgroundColor: theme.paper, borderWidth: 1, borderColor: theme.line, borderRadius: 22, paddingHorizontal: 15 }}>
         <SettingRow
           theme={theme}
           textScale={textScale}
@@ -102,7 +102,7 @@ export function SettingsScreen({ onDataCleared }: { onDataCleared: () => void })
                 accessibilityLabel="Decrease text size"
                 style={{ width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: theme.line, alignItems: 'center', justifyContent: 'center' }}
               >
-                <Text style={{ fontSize: 16, fontWeight: '700', color: theme.ink }}>–</Text>
+                <Text style={{ fontSize: 16, fontFamily: FONTS.bodyBold, color: theme.ink }}>–</Text>
               </Pressable>
               <Pressable
                 onPress={() => stepText(1)}
@@ -110,7 +110,7 @@ export function SettingsScreen({ onDataCleared }: { onDataCleared: () => void })
                 accessibilityLabel="Increase text size"
                 style={{ width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: theme.line, alignItems: 'center', justifyContent: 'center' }}
               >
-                <Text style={{ fontSize: 16, fontWeight: '700', color: theme.ink }}>+</Text>
+                <Text style={{ fontSize: 16, fontFamily: FONTS.bodyBold, color: theme.ink }}>+</Text>
               </Pressable>
             </View>
           }
@@ -141,21 +141,12 @@ export function SettingsScreen({ onDataCleared }: { onDataCleared: () => void })
         />
       </View>
 
-      <Pressable
-        onPress={exportData}
-        accessibilityRole="button"
-        style={{ marginTop: 18, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.paper, borderRadius: 16, paddingVertical: 16, alignItems: 'center' }}
-      >
-        <Text style={{ fontSize: 16 * textScale, fontWeight: '700', color: theme.ink }}>⬇ Export my data</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={confirmDelete}
-        accessibilityRole="button"
-        style={{ marginTop: 12, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.paper, borderRadius: 16, paddingVertical: 16, alignItems: 'center' }}
-      >
-        <Text style={{ fontSize: 16 * textScale, fontWeight: '700', color: theme.danger }}>Delete all my data</Text>
-      </Pressable>
+      <View style={{ marginTop: 18 }}>
+        <Button title="Export my data" icon="download" theme={theme} textScale={textScale} variant="quiet" onPress={exportData} />
+      </View>
+      <View style={{ marginTop: 12 }}>
+        <Button title="Delete all my data" icon="trash" danger theme={theme} textScale={textScale} variant="quiet" onPress={confirmDelete} />
+      </View>
     </ScrollView>
   );
 }

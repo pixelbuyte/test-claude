@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
-import { BigNumber, Button, Card, Disclaimer, Label } from '../components/ui';
+import { BigNumber, Button, Card, Disclaimer, IconChip, Label } from '../components/ui';
+import { FONTS } from '../theme';
 import { getRecentBPReadings, getRecentPulseReadings } from '../storage/db';
 import { BloodPressureReading, PulseReading } from '../types';
 
@@ -42,10 +43,10 @@ export function HomeScreen({
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ padding: 22 }}>
-      <Text style={{ fontSize: 22 * textScale, fontWeight: '700', color: theme.ink }} accessibilityRole="header">
+      <Text style={{ fontSize: 22 * textScale, fontFamily: FONTS.display, color: theme.ink }} accessibilityRole="header">
         Welcome back
       </Text>
-      <Text style={{ fontSize: 14 * textScale, color: theme.inkSoft, marginBottom: 18 }}>{today}</Text>
+      <Text style={{ fontSize: 14 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, marginBottom: 18 }}>{today}</Text>
 
       <Card theme={theme} filled>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -62,7 +63,7 @@ export function HomeScreen({
               />
             </View>
           </View>
-          <Text style={{ fontSize: 30 }}>💓</Text>
+          <IconChip theme={theme} name="heartPulse" color={theme.teal} />
         </View>
       </Card>
 
@@ -81,7 +82,7 @@ export function HomeScreen({
               />
             </View>
           </View>
-          <Text style={{ fontSize: 30 }}>🩺</Text>
+          <IconChip theme={theme} name="cuff" color={theme.coral} />
         </View>
       </Card>
 

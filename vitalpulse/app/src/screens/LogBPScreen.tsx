@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
 import { Button } from '../components/ui';
+import { Icon } from '../components/Icon';
+import { FONTS } from '../theme';
 import { insertBPReading } from '../storage/db';
 
 type FieldKey = 'systolic' | 'diastolic' | 'pulse';
@@ -12,7 +14,7 @@ const FIELDS: { key: FieldKey; label: string }[] = [
   { key: 'pulse', label: 'Pulse' },
 ];
 
-const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✓'];
+const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'backspace', '0', 'check'];
 
 export function LogBPScreen({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
   const { theme, textScale } = useSettings();
@@ -27,11 +29,11 @@ export function LogBPScreen({ onDone, onCancel }: { onDone: () => void; onCancel
   };
 
   const handleKey = (key: string) => {
-    if (key === '⌫') {
+    if (key === 'backspace') {
       setValues((v) => ({ ...v, [focused]: v[focused].slice(0, -1) }));
       return;
     }
-    if (key === '✓') {
+    if (key === 'check') {
       const next = nextField();
       if (next) setFocused(next);
       else if (canSave) save();
@@ -53,14 +55,20 @@ export function LogBPScreen({ onDone, onCancel }: { onDone: () => void; onCancel
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg, padding: 22 }}>
-      <Pressable onPress={onCancel} accessibilityRole="link" accessibilityLabel="Back to Home">
-        <Text style={{ color: theme.teal, fontWeight: '700', fontSize: 14 * textScale }}>← Home</Text>
+      <Pressable
+        onPress={onCancel}
+        accessibilityRole="link"
+        accessibilityLabel="Back to Home"
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+      >
+        <Icon name="back" size={16} color={theme.teal} strokeWidth={2} />
+        <Text style={{ color: theme.teal, fontFamily: FONTS.bodyBold, fontSize: 14 * textScale }}>Home</Text>
       </Pressable>
 
-      <Text style={{ fontSize: 22 * textScale, fontWeight: '700', color: theme.ink, marginTop: 12 }} accessibilityRole="header">
+      <Text style={{ fontSize: 22 * textScale, fontFamily: FONTS.display, color: theme.ink, marginTop: 12 }} accessibilityRole="header">
         Log blood pressure
       </Text>
-      <Text style={{ fontSize: 14.5 * textScale, color: theme.inkSoft, marginBottom: 18 }}>
+      <Text style={{ fontSize: 14.5 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, marginBottom: 18 }}>
         Enter the reading from your own cuff.
       </Text>
 
@@ -78,15 +86,15 @@ export function LogBPScreen({ onDone, onCancel }: { onDone: () => void; onCancel
                 backgroundColor: theme.paper,
                 borderWidth: 1.5,
                 borderColor: isFocused ? theme.teal : theme.line,
-                borderRadius: 14,
-                paddingVertical: 10,
+                borderRadius: 16,
+                paddingVertical: 11,
                 alignItems: 'center',
               }}
             >
-              <Text style={{ fontSize: 11 * textScale, fontWeight: '700', color: theme.inkSoft, textTransform: 'uppercase' }}>
+              <Text style={{ fontSize: 10.5 * textScale, fontFamily: FONTS.bodyBold, color: theme.inkSoft, textTransform: 'uppercase', letterSpacing: 0.4 }}>
                 {field.label}
               </Text>
-              <Text style={{ fontSize: 26 * textScale, fontWeight: '700', color: theme.ink }}>
+              <Text style={{ fontSize: 26 * textScale, fontFamily: FONTS.num, color: theme.ink }}>
                 {values[field.key] || '–'}
               </Text>
             </Pressable>
@@ -100,18 +108,23 @@ export function LogBPScreen({ onDone, onCancel }: { onDone: () => void; onCancel
             key={key}
             onPress={() => handleKey(key)}
             accessibilityRole="button"
-            accessibilityLabel={key === '⌫' ? 'Delete' : key === '✓' ? 'Next' : `Digit ${key}`}
+            accessibilityLabel={key === 'backspace' ? 'Delete' : key === 'check' ? 'Next' : `Digit ${key}`}
             style={{
               width: '31%',
               paddingVertical: 14,
-              borderRadius: 14,
+              borderRadius: 16,
               borderWidth: 1,
               borderColor: theme.line,
               backgroundColor: theme.paper,
               alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <Text style={{ fontSize: 19 * textScale, fontWeight: '600', color: theme.ink }}>{key}</Text>
+            {key === 'backspace' || key === 'check' ? (
+              <Icon name={key as 'backspace' | 'check'} size={19} color={theme.ink} strokeWidth={key === 'check' ? 2.4 : 1.8} />
+            ) : (
+              <Text style={{ fontSize: 19 * textScale, fontFamily: FONTS.num, color: theme.ink }}>{key}</Text>
+            )}
           </Pressable>
         ))}
       </View>

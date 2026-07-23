@@ -3,6 +3,8 @@ import { Text, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSettings } from '../context/SettingsContext';
 import { Button, Disclaimer, ProgressRing } from '../components/ui';
+import { Icon } from '../components/Icon';
+import { FONTS } from '../theme';
 import { capturePulse } from '../sensors/ppgSampler';
 import { insertPulseReading } from '../storage/db';
 import { PulseAnalysisResult } from '../sensors/pulseAnalysis';
@@ -70,17 +72,28 @@ export function PulseCheckScreen({ onDone, leftHandMode }: { onDone: () => void;
       ) : null}
 
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 26 }}>
-        <Text style={{ fontSize: 22 * textScale, fontWeight: '700', color: theme.ink, marginBottom: 8 }} accessibilityRole="header">
+        <Text style={{ fontSize: 22 * textScale, fontFamily: FONTS.display, color: theme.ink, marginBottom: 8 }} accessibilityRole="header">
           Pulse Check
         </Text>
 
         {phase === 'instructions' && (
           <>
-            <Text style={{ fontSize: 15.5 * textScale, color: theme.inkSoft, textAlign: 'center', marginBottom: 18 }}>
-              Gently cover {leftHandMode ? 'the' : 'the'} camera and flash on the back of your phone with your
-              fingertip, then hold still for 20 seconds.
+            <Text style={{ fontSize: 15.5 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, textAlign: 'center', marginBottom: 18 }}>
+              Gently cover the camera and flash on the back of your phone with your{' '}
+              {leftHandMode ? 'left' : 'right'} fingertip, then hold still for 20 seconds.
             </Text>
-            <Text style={{ fontSize: 60 }}>{leftHandMode ? '🫲' : '🫱'}</Text>
+            <View
+              style={{
+                width: 84,
+                height: 84,
+                borderRadius: 26,
+                backgroundColor: theme.tealTint,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name="finger" size={38} color={theme.teal} strokeWidth={1.6} />
+            </View>
           </>
         )}
 
@@ -97,20 +110,20 @@ export function PulseCheckScreen({ onDone, leftHandMode }: { onDone: () => void;
           <>
             {result.bpm != null ? (
               <>
-                <Text style={{ fontSize: 56 * textScale, fontWeight: '700', color: theme.ink }}>{result.bpm}</Text>
-                <Text style={{ fontSize: 14 * textScale, color: theme.inkSoft, marginBottom: 10 }}>beats per minute</Text>
-                <Text style={{ fontSize: 13 * textScale, color: theme.inkSoft, marginBottom: 6 }}>
+                <Text style={{ fontSize: 56 * textScale, fontFamily: FONTS.num, color: theme.ink }}>{result.bpm}</Text>
+                <Text style={{ fontSize: 14 * textScale, fontFamily: FONTS.bodyBold, color: theme.inkSoft, marginBottom: 10 }}>beats per minute</Text>
+                <Text style={{ fontSize: 13 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, marginBottom: 6 }}>
                   Signal quality: {result.signalQuality}
                   {result.signalQuality !== 'good' ? ' — try holding your finger a little more still' : ''}
                 </Text>
                 {result.hrvRmssdMs != null && (
-                  <Text style={{ fontSize: 13 * textScale, color: theme.inkSoft }}>
+                  <Text style={{ fontSize: 13 * textScale, fontFamily: FONTS.body, color: theme.inkSoft }}>
                     Rhythm variability (HRV): {Math.round(result.hrvRmssdMs)} ms
                   </Text>
                 )}
               </>
             ) : (
-              <Text style={{ fontSize: 16 * textScale, color: theme.inkSoft, textAlign: 'center' }}>
+              <Text style={{ fontSize: 16 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, textAlign: 'center' }}>
                 We couldn't get a clear enough reading. Try again with steady, gentle pressure over the camera and
                 flash.
               </Text>

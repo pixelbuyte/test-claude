@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
+import { useFonts } from 'expo-font';
 import { SettingsProvider, useSettings } from './src/context/SettingsContext';
 import { TabBar } from './src/components/TabBar';
 import { Screen } from './src/navigation/types';
@@ -65,6 +66,17 @@ function Root() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    'NationalPark-Bold': require('./assets/fonts/NationalPark-Bold.ttf'),
+    'InstrumentSans-Regular': require('./assets/fonts/InstrumentSans-Regular.ttf'),
+    'InstrumentSans-Bold': require('./assets/fonts/InstrumentSans-Bold.ttf'),
+    'Outfit-Bold': require('./assets/fonts/Outfit-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <View style={{ flex: 1, backgroundColor: '#f4f1e8' }} />;
+  }
+
   return (
     <SettingsProvider>
       <StatusBar style="auto" />

@@ -2,22 +2,24 @@ import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
 import { Button, Disclaimer } from '../components/ui';
+import { Icon, IconName } from '../components/Icon';
+import { FONTS } from '../theme';
 
-const STEPS = [
+const STEPS: { icon: IconName; title: string; body: string; disclaimer?: string }[] = [
   {
-    icon: '💓',
+    icon: 'heartPulse',
     title: 'Know your numbers',
     body: 'VitalPulse tracks your pulse and blood pressure over time, and helps you spot what’s worth a call to your doctor.',
   },
   {
-    icon: '🚫',
+    icon: 'x',
     title: 'What we won’t do',
     body: 'No sensor — not your camera, not your fingerprint — can measure blood pressure. Anyone who tells you otherwise is wrong.',
     disclaimer:
       'Pulse Check estimates heart rate & rhythm variability only. For blood pressure, you’ll log real readings from your own cuff — it takes about 10 seconds.',
   },
   {
-    icon: '🔒',
+    icon: 'lock',
     title: 'Your data stays on your phone',
     body: 'No account. No cloud. Nothing shared with us or anyone else. You can export or delete everything, anytime, from Settings.',
   },
@@ -34,24 +36,24 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
       <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
         <View
           style={{
-            width: 88,
-            height: 88,
+            width: 84,
+            height: 84,
             borderRadius: 26,
-            backgroundColor: theme.sage,
+            backgroundColor: current.icon === 'x' ? theme.coralTint : theme.tealTint,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 22,
           }}
         >
-          <Text style={{ fontSize: 42 }}>{current.icon}</Text>
+          <Icon name={current.icon} size={36} color={current.icon === 'x' ? theme.coral : theme.teal} strokeWidth={1.7} />
         </View>
         <Text
-          style={{ fontSize: 24 * textScale, fontWeight: '700', color: theme.ink, textAlign: 'center', marginBottom: 10 }}
+          style={{ fontSize: 24 * textScale, fontFamily: FONTS.display, color: theme.ink, textAlign: 'center', marginBottom: 10 }}
           accessibilityRole="header"
         >
           {current.title}
         </Text>
-        <Text style={{ fontSize: 16 * textScale, color: theme.inkSoft, textAlign: 'center', lineHeight: 23 * textScale }}>
+        <Text style={{ fontSize: 16 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, textAlign: 'center', lineHeight: 23 * textScale }}>
           {current.body}
         </Text>
         {current.disclaimer ? (

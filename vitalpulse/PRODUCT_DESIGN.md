@@ -91,11 +91,28 @@ support.
 
 ## 4. Visual direction
 
-- **Palette:** warm off-white background, deep teal (`#0B5D5A`) primary,
-  coral accent (`#E8734A`) reserved for the one action per screen, calm — not
-  clinical, not alarming red/green traffic-light framing for readings.
-- **Type:** rounded, humanist sans (system font: SF Pro / Roboto) — no
-  decorative fonts, ever, on a health app.
+- **Palette:** warm paper background (`#F4F1E8`), deep teal (`#0B5D5A`) primary,
+  coral (`#E8734A`) reserved for the one action per screen, a small gold accent
+  for calm informational notes, and a dedicated danger red kept only for
+  destructive actions — never used to editorialize a health reading.
+- **Type, a three-tier system:**
+  - *National Park* (bold) — the wordmark and every screen title. Warm and
+    rounded rather than clinical, with enough character to be memorable
+    without tipping into novelty.
+  - *Instrument Sans* — all body copy, labels, and button text. Chosen over
+    Inter/Roboto/system defaults for better warmth and legibility at the
+    larger sizes this app defaults to.
+  - *Outfit* (bold) — reserved for the numbers that matter: BPM, BP readings,
+    the pulse-check countdown, keypad digits. Tabular figures keep columns of
+    readings aligned in Trends.
+- **Iconography:** a small hand-drawn line-icon set (heart pulse, gauge, home,
+  trend, book, lock, etc.) replaces emoji everywhere. Emoji render
+  inconsistently across OS/keyboard versions and read as decoration; these
+  read as an intentional part of the interface and stay legible at any text
+  scale.
+- **Depth & atmosphere:** soft color-tinted shadows (teal-tinted glow behind
+  the pulse ring, coral-tinted lift under the primary button) instead of flat
+  cards, so the app has some dimensionality without ever feeling busy.
 - **Layout:** single-column, generous whitespace, one idea per screen.
 
 ## 5. Tech approach ("lightweight, easy to download")
