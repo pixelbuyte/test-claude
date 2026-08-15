@@ -76,6 +76,8 @@ export function makeRacer(index, opts = {}) {
     jumpCutApplied: false,
     slideTimer: 0,
     stumbleTimer: 0,
+    /** Seconds spent unable to make forward progress. Resets the moment it does. */
+    blockedTimer: 0,
 
     wallSide: 0,
     wallX: 0,
@@ -206,6 +208,14 @@ export function stepRacer(p, intent, world, ev) {
     return;
   }
 
+  // Wedged against geometry with no way through. A crash costs speed, which
+  // makes the next attempt worse, so a runner that has been stuck this long is
+  // not going to recover on its own - and a race cannot wait for it.
+  if (p.blockedTimer > PARKOUR.stuckDeathTime) {
+    die(p, world, ev);
+    return;
+  }
+
   world.collectTriggers(p, ev, currentHeight(p));
 
   const progress = world.progressOf(p.pos.z);
@@ -243,6 +253,9 @@ export function respawn(p, world, ev) {
   p.wallLockout = 0;
   p.stumbleTimer = 0;
   p.slideTimer = 0;
+  // Must clear, or a runner that died wedged respawns already most of the way
+  // to dying again.
+  p.blockedTimer = 0;
   p.jumpBuffer = 0;
   p.slideBuffer = 0;
   p.canDoubleJump = true;

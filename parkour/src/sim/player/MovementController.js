@@ -141,13 +141,22 @@ export function resolve(p, world, ev) {
         p.groundY = p.pos.y;
         // Complete the move the sweep cut short; the body is now above the step.
         p.pos.z += dz - safeDelta(dz, res);
+        p.blockedTimer = 0;
       } else {
         // Running into something head-on. The parkour layer already had its
         // chance to turn this into a vault, so this is a genuine mistake.
         crash(p, ev);
+        // How long the runner has been unable to make forward progress. A
+        // stumble costs speed, and a slower runner hits the same obstacle again
+        // next substep - without this the runner grinds against a wall forever.
+        p.blockedTimer += STEP;
       }
+    } else {
+      p.blockedTimer = 0;
     }
   }
+  // Note: dz === 0 deliberately does not count as blocked. A stationary runner
+  // is not wedged - it is waiting for a countdown, and must not die doing so.
 
   // --- X -------------------------------------------------------------------
   const dx = p.pendingX - p.pos.x;
@@ -189,6 +198,10 @@ export function resolve(p, world, ev) {
 
 export function crash(p, ev) {
   if (p.invulnTimer > 0) return;
+  // One crash per contact. The runner is still touching the obstacle on the next
+  // substep, and charging for that again turns a single mistake into sixty a
+  // second - which pins the runner, spams the event queue, and reads as a bug.
+  if (p.stumbleTimer > 0) return;
   if (p.shield > 0) {
     p.shield--;
     p.invulnTimer = 0.8;

@@ -1,0 +1,246 @@
+/*
+ * Vertigo Rush - shell and HUD.
+ *
+ * Portrait and landscape are both first-class: the HUD reflows rather than
+ * scaling, and every interactive target stays at least 44px. Nothing here
+ * animates layout during a race - the only moving parts are opacity and the
+ * progress fill, so the compositor handles them without touching the main
+ * thread the simulation is running on.
+ */
+
+:root {
+  --bg: #12192b;
+  --ink: #f2f5ff;
+  --ink-dim: #9aa6c4;
+  --accent: #ff7a3d;
+  --panel: rgba(14, 20, 36, 0.86);
+  --edge: rgba(255, 255, 255, 0.14);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* The canvas handles its own gestures; the page must never scroll or zoom. */
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+/* --- HUD ------------------------------------------------------------------ */
+
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  padding: calc(var(--safe-top) + 12px) calc(var(--safe-right) + 14px)
+           calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 14px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hud-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 12px;
+  min-width: 84px;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+}
+
+.stat-label {
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.stat-value {
+  font-size: 19px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+#hud-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+#hud-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), #ffd85e);
+  transition: width 120ms linear;
+}
+
+.hud-state {
+  margin-top: auto;
+  align-self: flex-start;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+#debug-stats {
+  align-self: flex-start;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(154, 166, 196, 0.65);
+}
+
+#toast {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  transform: translate(-50%, -8px);
+  padding: 8px 20px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* --- Start overlay -------------------------------------------------------- */
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(43, 58, 96, 0.7), rgba(10, 14, 26, 0.94));
+  backdrop-filter: blur(3px);
+  transition: opacity 220ms ease;
+}
+
+#overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.panel {
+  width: min(420px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 26px 24px;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 20px;
+}
+
+.panel h1 {
+  margin: 0;
+  font-size: clamp(30px, 8vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #fff, #ffb98a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tagline {
+  margin: 4px 0 18px;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.controls {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #d6ddf2;
+}
+
+.controls li + li { margin-top: 4px; }
+.controls b { color: var(--ink); }
+
+.start {
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 20px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1207;
+  background: linear-gradient(180deg, #ffb26b, var(--accent));
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.start:active { transform: translateY(1px); }
+
+.hint {
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+
+/* Landscape on a phone is short: drop to a single row and trim the chrome. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .panel { padding: 18px 20px; }
+  .panel h1 { font-size: 28px; }
+  .tagline { margin-bottom: 12px; }
+  .controls { font-size: 13px; }
+  .controls .keys { display: none; }
+  .hint { display: none; }
+  .stat { min-width: 74px; padding: 5px 10px; }
+  .stat-value { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #toast, #overlay, #hud-progress-fill { transition: none; }
+}

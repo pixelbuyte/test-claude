@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#1b2a4a">
+  <meta name="description" content="Vertigo Rush - a 3D parkour racing game that runs in the browser.">
+  <title>Vertigo Rush</title>
+  <link rel="stylesheet" href="./styles.css">
+  <!--
+    three.js is vendored, not fetched: the game has no build step and no network
+    dependency. The import map is what lets sim code use relative specifiers
+    (so Node can run it headlessly) while view code imports "three" by name.
+  -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.min.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="game" aria-label="Vertigo Rush game view" role="img"></canvas>
+
+  <div id="hud" aria-live="polite">
+    <div class="hud-row hud-top">
+      <div class="stat">
+        <span class="stat-label">Time</span>
+        <span class="stat-value" id="hud-time">0:00.00</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Coins</span>
+        <span class="stat-value" id="hud-coins">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Speed</span>
+        <span class="stat-value" id="hud-speed">0.0 m/s</span>
+      </div>
+    </div>
+
+    <div id="hud-progress" role="progressbar" aria-label="Course progress">
+      <div id="hud-progress-fill"></div>
+    </div>
+
+    <div id="toast" aria-live="assertive"></div>
+    <div id="hud-state" class="hud-state"></div>
+    <div id="debug-stats"></div>
+  </div>
+
+  <div id="overlay">
+    <div class="panel">
+      <h1>Vertigo&nbsp;Rush</h1>
+      <p class="tagline">Practice track</p>
+      <ul class="controls">
+        <li><b>Swipe up</b> or <b>tap</b> &mdash; jump, vault, wall&#8209;jump</li>
+        <li><b>Swipe down</b> &mdash; slide</li>
+        <li><b>Drag</b> left / right &mdash; steer</li>
+        <li class="keys"><b>Keyboard</b> &mdash; arrows or WASD, space to jump</li>
+      </ul>
+      <button type="button" class="start">Start running</button>
+      <p class="hint">Vaults and mantles fire on their own at speed. Slides and
+        wall&#8209;jumps are yours to time &mdash; but a press is remembered for
+        0.15&nbsp;s, so early and late both land.</p>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

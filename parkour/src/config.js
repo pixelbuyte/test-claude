@@ -119,6 +119,12 @@ export const PARKOUR = {
   // Failure
   crashSpeedLoss: 0.6,
   stumbleDuration: 0.5,
+  /**
+   * Blocked head-on for this long counts as wedged, and is resolved as a death
+   * and a checkpoint respawn. Long enough that a recoverable stumble against a
+   * vaultable crate resolves itself first, short enough that a race never waits.
+   */
+  stuckDeathTime: 1.4,
   /** Falling this far below the chunk floor is a death. */
   fallDeathDepth: 12,
 };

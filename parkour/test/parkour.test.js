@@ -283,6 +283,51 @@ test('a launch pad throws the runner up with no input at all', () => {
   assert.ok(apex > 2.2, `pad apex ${apex.toFixed(2)} is no higher than a normal jump`);
 });
 
+// --- Getting it wrong ---------------------------------------------------------
+
+test('running into a wall crashes once, not once per substep', () => {
+  const b = track();
+  // Far too tall to vault and too low to slide under: a genuine dead end.
+  b.box(-5, 0, 40, 5, 4, 42, { kind: KIND.SOLID });
+  const rig = makeRig(b.build(), { speed: 12, z: 30 });
+
+  rig.run(1.2, run);
+
+  const crashes = rig.countOf(EV.CRASH);
+  assert.ok(crashes >= 1, 'hitting a wall should crash');
+  assert.ok(crashes <= 3,
+    `one contact produced ${crashes} crash events - the stumble window is not holding them off`);
+});
+
+test('a runner wedged against geometry dies rather than grinding forever', () => {
+  const b = track();
+  b.checkpoint(20);
+  b.box(-5, 0, 40, 5, 4, 42, { kind: KIND.SOLID });
+  const rig = makeRig(b.build(), { speed: 12, z: 24 });
+  const p = rig.p;
+
+  rig.run(6, run);
+
+  assert.equal(rig.countOf(EV.DEATH), 1, 'a wedged runner must resolve to a death');
+  assert.ok(rig.countOf(EV.RESPAWN) >= 1, 'and then respawn');
+  // And the respawn has to actually recover - not land back in the same trap.
+  assert.ok(p.speed > 4,
+    `respawned runner never got going again (speed ${p.speed.toFixed(2)})`);
+  assert.ok(rig.countOf(EV.DEATH) < 3, 'respawn is looping straight back into death');
+});
+
+test('a stationary runner is not treated as wedged', () => {
+  // Nothing in front of it, no forward speed: this is a countdown, not a crash.
+  const rig = makeRig(track({ speedCurve: curve(0) }).build(), { speed: 0, z: 10 });
+  const p = rig.p;
+  p.baseSpeed = 0;
+
+  rig.run(4, (intent) => { p.speed = 0; p.vel.z = 0; });
+
+  assert.equal(rig.countOf(EV.DEATH), 0, 'standing still must never be fatal');
+  assert.equal(p.blockedTimer, 0);
+});
+
 // --- Invariants across the whole move set -----------------------------------
 
 test('no parkour move leaves the racer in a broken state', () => {
