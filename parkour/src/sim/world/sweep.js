@@ -188,13 +188,45 @@ export function groundProbe(x, y, z, halfX, halfZ, depth, cs, candidates, n, res
  * `maxDistance` if the ground is continuous. Drives gap detection for both the
  * player's jump hints and the AI's decision to leave the floor.
  */
+/**
+ * Whether anything at all supports the footprint between `lowest` and `highest`.
+ *
+ * The same test `groundProbe` runs, asking only the question `gapAhead` needs.
+ * Worth its own function rather than a call to `groundProbe`: that one writes
+ * seven fields, three of them doubles, into a result object, and V8 boxes a
+ * double written into a plain object field. `gapAhead` runs that up to eighteen
+ * times per racer per substep purely to read one boolean back, which made those
+ * boxes the largest single source of garbage in the simulation.
+ */
+function anyGroundUnder(x, z, halfX, halfZ, lowest, highest, cs, candidates, n) {
+  const bodyMinX = x - halfX, bodyMaxX = x + halfX;
+  const bodyMinZ = z - halfZ, bodyMaxZ = z + halfZ;
+  for (let k = 0; k < n; k++) {
+    const i = candidates[k];
+    const kind = cs.kind[i];
+    if (kind === KIND.TRIGGER || kind === KIND.RAIL) continue;
+    if (bodyMaxX <= cs.minX[i] || bodyMinX >= cs.maxX[i]) continue;
+    if (bodyMaxZ <= cs.minZ[i] || bodyMinZ >= cs.maxZ[i]) continue;
+    const surfaceY = kind === KIND.RAMP ? cs.rampY(i, z) : cs.maxY[i];
+    if (surfaceY > highest || surfaceY < lowest) continue;
+    return true;
+  }
+  return false;
+}
+
 export function gapAhead(x, y, fromZ, maxDistance, halfX, cs, candidates, n) {
   const step = 0.5;
   const probeDepth = 2.5;
-  const ground = makeGroundResult();
+  // The same band groundProbe would search from (y + 0.2) down by probeDepth,
+  // with its small upward tolerance - kept identical so this reports exactly
+  // what the full probe reported.
+  const from = y + 0.2;
+  const lowest = from - probeDepth;
+  const highest = from + 0.05;
   for (let d = step; d <= maxDistance; d += step) {
-    groundProbe(x, y + 0.2, fromZ + d, halfX, 0.15, probeDepth, cs, candidates, n, ground);
-    if (!ground.hit) return d;
+    if (!anyGroundUnder(x, fromZ + d, halfX, 0.15, lowest, highest, cs, candidates, n)) {
+      return d;
+    }
   }
   return maxDistance;
 }
