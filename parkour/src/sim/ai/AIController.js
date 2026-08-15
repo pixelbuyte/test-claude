@@ -101,7 +101,7 @@ export function thinkAI(ai, world) {
   if ((a.wallLeftValid || a.wallRightValid) && prof.riskAppetite > 0.35
       && p.speed > p.baseSpeed * PARKOUR.wallRunMinSpeedFactor) {
     goal = a.wallLeftValid ? -1 : 1;
-  } else if ((a.wallNearLeft || a.wallNearRight) && a.gapDistance > 0 && a.gapDistance < 16) {
+  } else if ((a.wallNearLeft || a.wallNearRight) && a.gapValid && a.gapDistance < 16) {
     // A gap with a wall beside it is crossed on the wall. Every racer commits to
     // this one regardless of appetite - the alternative is the hazard below.
     goal = a.wallNearLeft ? -1 : 1;
@@ -122,7 +122,7 @@ export function thinkAI(ai, world) {
 
   // A hole in the floor. Jump when the far edge is within reach at this speed,
   // biased by the profile's timing error so weaker racers jump early or late.
-  if (a.gapDistance > 0 && a.gapDistance < 30) {
+  if (a.gapValid && a.gapDistance < 30) {
     const leadTime = 0.16 + jitter;
     const leadDistance = Math.max(0.6, p.speed * leadTime);
     if (a.gapDistance <= leadDistance && p.grounded) wantJump = true;

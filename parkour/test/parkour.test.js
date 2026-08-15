@@ -59,6 +59,50 @@ function enterWallRun(rig, jumpAt = 30) {
   return rig.p.state === STATE.WALLRUN;
 }
 
+// --- Gap sensing -------------------------------------------------------------
+
+test('solid ground reports no gap, however far the probe reaches', () => {
+  // `gapAhead` returns its own probe range when it finds nothing, so
+  // `gapDistance` is a large positive number on a completely solid floor. Every
+  // consumer that treated `gapDistance > 0` as "there is a gap" was therefore
+  // permanently true - the camera's anticipation tilt and the AI's wall-route
+  // lane bias both were. `gapValid` is the predicate; this is what pins it.
+  const rig = makeRig(track().build());
+  rig.step(120, run);
+
+  const a = rig.p.affordances;
+  assert.equal(a.gapValid, false,
+    `unbroken floor reported a gap at ${a.gapDistance.toFixed(2)}m`);
+  assert.ok(a.gapDistance > 0,
+    'gapDistance is still a distance - it reports the probe range when clear');
+});
+
+test('a real hole in the floor is reported as a gap', () => {
+  const b = new LevelBuilder({ levelId: 'gap-fixture' });
+  b.section(-10, 260, -30);
+  b.floor(-10, 60, 0);
+  // A four-metre hole, then the floor resumes.
+  b.floor(64, 200, 0);
+  b.finishZ = 190;
+  const rig = makeRig(b.build());
+
+  let sawGap = false;
+  let sawDistance = 0;
+  for (let i = 0; i < 300 && rig.p.pos.z < 58; i++) {
+    rig.step(1, run);
+    const a = rig.p.affordances;
+    if (a.gapValid) {
+      sawGap = true;
+      sawDistance = a.gapDistance;
+      // The reported distance has to point at the hole, not past it.
+      assert.ok(rig.p.pos.z + a.gapDistance >= 59 && rig.p.pos.z + a.gapDistance <= 66,
+        `gap reported at z=${(rig.p.pos.z + a.gapDistance).toFixed(1)}, hole is 60-64`);
+    }
+  }
+  assert.ok(sawGap, 'a four-metre hole in the floor was never sensed');
+  assert.ok(sawDistance > 0);
+});
+
 // --- Vault ------------------------------------------------------------------
 
 test('a low obstacle at speed is vaulted, not crashed into', () => {
