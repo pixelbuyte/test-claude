@@ -4,7 +4,7 @@ An original 3D parkour racing game that runs in a mobile browser. No build step,
 no bundler, no external assets — open `index.html` from a static server and play.
 
 ```bash
-npm test                     # 68 tests, zero dependencies
+npm test                     # 120 tests, zero dependencies
 npx http-server . -p 8080    # ES modules need a server; file:// will not work
 npm run smoke                # headless Chromium playthrough + screenshots
 ```
@@ -81,15 +81,57 @@ src/app/RaceSession.js     the seam where sim and view meet
 tools/smoke.mjs            headless browser playthrough
 ```
 
+## Levels
+
+A level is data: theme, a **fixed seed**, a speed curve, an authored intro and a
+seeded-procedural tail drawn from the chunk kit. The seed is content, not a
+detail - the same seed always produces the same course.
+
+A chunk is **static data, never a generator function**. That is what makes
+completability provable: a finite set of shapes is validated once, and the
+assembler may only concatenate validated shapes. Variety comes from selection,
+X-mirroring and pacing rules.
+
+Generation is **total** - when no candidate satisfies the connection contract
+(lanes must meet, heights must match, projected speed must clear the chunk's
+minimum), a guaranteed-admissible fallback chunk is placed instead.
+
+Gaps declare **how** they are meant to be crossed - jump, wall-run or launch pad
+- and `validate.js` proves each one against that route's reach at the speed the
+runner will actually arrive with. Every limit is derived from `config.js`, so
+retuning the jump re-validates all twelve levels rather than silently breaking
+one.
+
+## Racing
+
+Opponents fill in exactly the same intent object the player's thumb does, and
+are advanced by the same `stepRacer`. Nothing about an AI racer is privileged:
+same gravity, same crates, same 60% speed loss for hitting one. Skill changes
+only the quality and timing of decisions - reaction time, lane error, jump
+timing, risk appetite, and how often it deliberately fumbles.
+
+`sim/race/headless.js` runs a whole race with no renderer, which is what makes
+difficulty tunable by measurement rather than by feel, and is how every level is
+proved finishable in the test suite.
+
+## Progress
+
+`SaveManager` takes a storage adapter rather than importing one, so it stays
+inside the purity rule and can be tested against a full quota, corrupt JSON and
+storage that throws on first access. Corrupt or unknown saves degrade to a fresh
+profile rather than throwing; player level is derived from XP rather than
+trusted, so a hand-edited file cannot grant it.
+
 ## Status
 
-Playable practice track: running, jumping, vaulting, sliding, wall-running,
-wall-jumping, mantling, launch pads, coins, checkpoints and respawns, with a
-chase camera and a working HUD in both portrait and landscape.
+Playable: twelve levels across four themes plus a practice track, raced against
+a field of AI opponents, with vaulting, sliding, wall-running, wall-jumping,
+mantling, launch pads, coins, checkpoints, respawns, a countdown, live rank, a
+results table, and best times, medals, coins and XP that survive a reload.
 
-Still to come: the chunk kit and level assembler, AI opponents and the race
-manager, power-ups, progression and save, the full menu flow, audio, and the
-keyframed animation system (the character rig is posed procedurally for now).
+Still to come: power-ups and collectible variety, character customisation, the
+full menu flow beyond level select, audio, VFX, and the keyframed animation
+system (the character rig is posed procedurally for now).
 
 ## Not included, rather than faked
 

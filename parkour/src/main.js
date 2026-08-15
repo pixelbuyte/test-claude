@@ -14,6 +14,8 @@ import { assembleLevel } from './sim/level/assemble.js';
 import { Renderer } from './render/Renderer.js';
 import { InputManager } from './input/InputManager.js';
 import { RaceSession, PHASE } from './app/RaceSession.js';
+import { SaveManager, targetsFor } from './sim/save/SaveManager.js';
+import { bestAvailableAdapter } from './app/storage.js';
 
 /**
  * Every course the player can pick, practice track first.
@@ -62,10 +64,16 @@ function boot() {
     countdown: el('countdown'),
     results: el('results'),
     resultsBody: el('results-body'),
+    resultsNotes: el('results-notes'),
+    wallet: el('wallet'),
     stats: el('debug-stats'),
   };
 
-  const tier = detectTier();
+  const storage = bestAvailableAdapter();
+  const save = new SaveManager(storage.adapter);
+  save.load();
+
+  const tier = save.data.settings.qualityTier || detectTier();
   const renderer = new Renderer(canvas, { tier });
   const input = new InputManager().attach(canvas);
 
@@ -128,16 +136,28 @@ function boot() {
 
   // --- Level select --------------------------------------------------------
   function renderGrid() {
+    hud.wallet.textContent = `Level ${save.data.playerLevel} · ${save.data.coins} coins`
+      + (storage.persistent ? '' : ' · not saving');
     hud.grid.innerHTML = '';
     for (const c of COURSES) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = `level-chip${c.id === course.id ? ' selected' : ''}`;
+      const locked = c.def ? !save.isUnlocked(c.def) : false;
+      const rec = save.levelRecord(c.id);
+      button.className = `level-chip${c.id === course.id ? ' selected' : ''}`
+        + `${locked ? ' locked' : ''}${rec.medal ? ` medal-${rec.medal}` : ''}`;
       button.dataset.courseId = c.id;
+      button.disabled = locked;
+
+      const detail = locked
+        ? `Level ${c.def.unlockAt}`
+        : rec.bestTime !== null ? formatTime(rec.bestTime) : c.theme;
       button.innerHTML = `<span class="level-name">${c.name}</span>`
-        + `<span class="level-theme">${c.theme}</span>`;
+        + `<span class="level-theme">${detail}</span>`;
+
       button.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (locked) return;
         course = c;
         renderGrid();
         hud.tagline.textContent = `${c.name} · ${c.roster.length + 1} racers`;
@@ -149,14 +169,41 @@ function boot() {
   const showResults = () => {
     if (resultsShown) return;
     resultsShown = true;
-    hud.resultsBody.innerHTML = session.results().map((r) => `
+
+    const results = session.results();
+    const me = results.find((r) => r.isPlayer);
+    const previousBest = save.bestTime(course.id);
+
+    // Targets are derived from the player's own best rather than an authored
+    // number, so a first finish always earns something and the bar then rises.
+    const targets = previousBest ? targetsFor(previousBest) : null;
+    const summary = save.recordRace(course.id, {
+      placement: me.placement,
+      time: me.time,
+      dnf: me.dnf,
+      coins: me.coins,
+      deaths: session.player.deaths,
+      distance: session.player.pos.z,
+    }, targets);
+
+    hud.resultsBody.innerHTML = results.map((r) => `
       <tr class="${r.isPlayer ? 'me' : ''}">
         <td>${r.placement}</td>
         <td>${r.name}</td>
         <td>${r.dnf ? 'DNF' : formatTime(r.time)}</td>
         <td>${r.coins}</td>
       </tr>`).join('');
+
+    const notes = [];
+    if (summary.improvedTime) notes.push('New best time');
+    if (summary.improvedMedal) notes.push(`${summary.medal} medal`);
+    if (summary.levelledUp) notes.push(`Level ${summary.levelAfter}`);
+    notes.push(`+${summary.coinsEarned} coins`, `+${summary.xpEarned} XP`);
+    if (!summary.persisted) notes.push('progress not saved - storage unavailable');
+    hud.resultsNotes.textContent = notes.join(' · ');
+
     hud.results.classList.remove('hidden');
+    renderGrid();
   };
 
   // --- Frame loop ----------------------------------------------------------

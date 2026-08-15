@@ -283,6 +283,29 @@ html, body {
   color: var(--ink-dim);
 }
 
+.wallet {
+  margin: -12px 0 14px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dim);
+}
+
+.results-notes {
+  margin: -6px 0 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--accent);
+}
+
+.level-chip.locked {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.level-chip.medal-gold { border-color: #ffd85e; }
+.level-chip.medal-silver { border-color: #cfd8e8; }
+.level-chip.medal-bronze { border-color: #d09050; }
+
 .level-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
