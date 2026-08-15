@@ -5,7 +5,7 @@
  * is the only file in the project that talks to requestAnimationFrame or reads
  * the clock - everything below it advances in fixed STEP-sized slices.
  */
-import { formatTime, ordinal } from './sim/math/scalar.js';
+import { formatTime, formatClock, ordinal } from './sim/math/scalar.js';
 import { EV } from './sim/core/events.js';
 import { stateName } from './sim/player/states.js';
 import { buildPracticeLevel } from './data/levels/practice.js';
@@ -16,6 +16,7 @@ import { InputManager } from './input/InputManager.js';
 import { RaceSession, PHASE } from './app/RaceSession.js';
 import { SaveManager, targetsFor } from './sim/save/SaveManager.js';
 import { bestAvailableAdapter } from './app/storage.js';
+import { AudioManager } from './audio/AudioManager.js';
 
 /**
  * Every course the player can pick, practice track first.
@@ -77,6 +78,7 @@ function boot() {
   const tier = save.data.settings.qualityTier || detectTier();
   const renderer = new Renderer(canvas, { tier });
   const input = new InputManager().attach(canvas);
+  const audio = new AudioManager({ enabled: save.data.settings.audio !== false });
 
   let course = COURSES[0];
   let session = null;
@@ -127,7 +129,7 @@ function boot() {
     if (session) session.dispose();
     const level = course.build();
     session = new RaceSession(level, renderer, input, {
-      roster: course.roster, seed: course.seed, tier,
+      roster: course.roster, seed: course.seed, tier, audio,
     });
     session.onEvent = handleEvent;
     resultsShown = false;
@@ -245,7 +247,7 @@ function boot() {
     session.render(dt);
 
     const s = session.hudState();
-    hud.time.textContent = formatTime(s.time);
+    hud.time.textContent = formatClock(s.time);
     hud.rank.textContent = `${s.rank}/${s.fieldSize}`;
     hud.coins.textContent = String(s.coins);
     hud.speed.textContent = s.speed.toFixed(1);
@@ -276,6 +278,10 @@ function boot() {
   // --- Lifecycle -----------------------------------------------------------
   const startRace = () => {
     hud.overlay.classList.add('hidden');
+    // Browsers only hand out a usable AudioContext from inside a gesture, so
+    // this is the first and only place it can be created.
+    if (audio.start()) audio.playMusic(course.theme);
+    else audio.resume();
     buildSession();
     session.start();
     last = performance.now();
@@ -290,13 +296,21 @@ function boot() {
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && session) session.pause();
+    if (document.hidden) {
+      if (session) session.pause();
+      audio.suspend();
+    } else {
+      audio.resume();
+    }
   });
-  window.addEventListener('blur', () => { if (session) session.pause(); });
+  window.addEventListener('blur', () => {
+    if (session) session.pause();
+    audio.suspend();
+  });
 
   // A handle for the smoke test to drive and inspect.
   window.__vertigo = {
-    renderer, input, start: startRace,
+    renderer, input, audio, save, start: startRace,
     get session() { return session; },
     get level() { return session ? session.level : null; },
     get course() { return course; },

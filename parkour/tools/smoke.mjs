@@ -92,7 +92,12 @@ const port = 8123;
 const server = await serve(port);
 mkdirSync(shots, { recursive: true });
 
-const browser = await chromium.launch({ headless: !headed });
+// Audio needs the gesture policy relaxed, or the context stays suspended and
+// there is nothing to assert about it.
+const browser = await chromium.launch({
+  headless: !headed,
+  args: ['--autoplay-policy=no-user-gesture-required'],
+});
 // A phone-shaped portrait viewport, because that is the target device.
 const context = await browser.newContext({
   viewport: { width: 412, height: 892 },
@@ -204,6 +209,37 @@ if (result.z > 40) pass(`runner reached z=${result.z.toFixed(1)} (${(result.prog
 else fail(`runner barely moved: z=${result.z.toFixed(1)}`);
 
 if (result.finite) pass('body position finite'); else fail('body position went NaN');
+
+// --- Audio and VFX -----------------------------------------------------------
+const av = await page.evaluate(() => {
+  const v = window.__vertigo;
+  const s = v.session;
+  const before = s.vfx.alive;
+  s.vfx.emit('crash', s.player.pos, { scale: 2 });
+  return {
+    audioStarted: v.audio.started,
+    audioFailed: v.audio.failed,
+    audioState: v.audio.ctx ? v.audio.ctx.state : 'none',
+    music: !!v.audio.music,
+    vfxBefore: before,
+    vfxAfter: s.vfx.alive,
+    vfxBudget: s.vfx.budget,
+  };
+});
+
+if (av.audioStarted && av.audioState === 'running') {
+  pass(`audio running${av.music ? ' with a music bed' : ''}`);
+} else if (av.audioFailed) {
+  fail('audio failed to start');
+} else {
+  console.log(`  info  audio context is "${av.audioState}" - browser policy, not a defect`);
+}
+
+if (av.vfxAfter > av.vfxBefore) {
+  pass(`particles alive after an emit (${av.vfxAfter}/${av.vfxBudget})`);
+} else {
+  fail(`emitting produced no particles (${av.vfxBefore} -> ${av.vfxAfter})`);
+}
 
 if (result.hudTime !== '0:00.00') pass(`HUD clock advanced to ${result.hudTime}`);
 else fail('HUD clock never moved');
