@@ -17,6 +17,8 @@ import { RaceSession, PHASE } from './app/RaceSession.js';
 import { SaveManager, targetsFor } from './sim/save/SaveManager.js';
 import { bestAvailableAdapter } from './app/storage.js';
 import { QualityGovernor } from './app/quality.js';
+import { TutorialDirector } from './app/tutorial.js';
+import { HINT_SECONDS } from './data/tutorial.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { CHARACTERS, character, purchaseState } from './data/characters.js';
 
@@ -79,6 +81,7 @@ function boot() {
     pauseButton: el('pause-button'),
     pause: el('pause'),
     pauseDetail: el('pause-detail'),
+    tutorialStatus: el('tutorial-status'),
   };
 
   const storage = bestAvailableAdapter();
@@ -96,16 +99,30 @@ function boot() {
   const input = new InputManager().attach(canvas);
   const audio = new AudioManager({ enabled: save.data.settings.audio !== false });
 
+  const tutorial = new TutorialDirector(save.data.tutorialSeen);
+  tutorial.enabled = save.data.settings.tutorialHints !== false;
+
   let course = COURSES[0];
   let session = null;
   let resultsShown = false;
   let toastTimer = 0;
+  let toastLock = 0;
   let fps = 0;
 
-  const toast = (text) => {
+  /**
+   * @param {number} [seconds] how long it stays up
+   * @param {boolean} [hold]   whether it may be interrupted before then
+   */
+  const toast = (text, seconds = 1.2, hold = false) => {
+    // A tutorial hint holds the toast against the move it is describing. The
+    // vault hint fires as the crate comes into range and the VAULT event lands
+    // a few frames later; without this the player would see "Vault" and never
+    // the sentence explaining that they did not have to do anything.
+    if (toastLock > 0 && !hold) return;
     hud.toast.textContent = text;
     hud.toast.classList.add('show');
-    toastTimer = 1.2;
+    toastTimer = seconds;
+    if (hold) toastLock = seconds;
   };
 
   /**
@@ -170,6 +187,16 @@ function boot() {
     resultsShown = false;
     hud.results.classList.add('hidden');
     return session;
+  }
+
+  /** The one line on the menu that survived the control list. */
+  function renderTutorialStatus() {
+    const left = tutorial.remaining.length;
+    hud.tutorialStatus.textContent = !tutorial.enabled
+      ? 'Tutorial hints are off. Turn them on in Settings to see them again.'
+      : left === 0
+        ? 'Every move learned. Toggle tutorial hints in Settings to replay them.'
+        : `Moves are taught in the run, as you meet them - ${left} to go.`;
   }
 
   // --- Level select --------------------------------------------------------
@@ -246,11 +273,13 @@ function boot() {
     const audioBox = el('set-audio');
     const hapticsBox = el('set-haptics');
     const motionBox = el('set-motion');
+    const tutorialBox = el('set-tutorial');
     const quality = el('set-quality');
 
     audioBox.checked = save.data.settings.audio !== false;
     hapticsBox.checked = save.data.settings.haptics !== false;
     motionBox.checked = save.data.settings.reducedMotion === true;
+    tutorialBox.checked = save.data.settings.tutorialHints !== false;
     quality.value = save.data.settings.qualityTier || '';
 
     audioBox.addEventListener('change', () => {
@@ -264,6 +293,19 @@ function boot() {
       save.setSetting('reducedMotion', motionBox.checked);
       if (session) session.setReducedMotion(motionBox.checked);
     });
+    tutorialBox.addEventListener('change', () => {
+      save.setSetting('tutorialHints', tutorialBox.checked);
+      tutorial.enabled = tutorialBox.checked;
+      // Switching them back on is how a player asks to be taught again, so it
+      // clears the set rather than resuming a half-finished one. Off then on is
+      // the replay, which is why this is a toggle and not a button.
+      if (tutorialBox.checked) {
+        tutorial.replay();
+        save.save();
+      }
+      renderTutorialStatus();
+    });
+
     quality.addEventListener('change', () => {
       const chosen = quality.value || null;
       save.setSetting('qualityTier', chosen);
@@ -275,8 +317,14 @@ function boot() {
 
     el('set-reset').addEventListener('click', () => {
       save.reset();
+      // `reset` swaps in a whole new save object, so the director would
+      // otherwise keep writing into the map belonging to the profile that was
+      // just thrown away - and the player would never see the hints again.
+      tutorial.rebind(save.data.tutorialSeen);
+      tutorial.enabled = save.data.settings.tutorialHints !== false;
       renderGrid();
       renderCharacters();
+      renderTutorialStatus();
       bindSettings();
       toast('Progress reset');
     });
@@ -399,12 +447,27 @@ function boot() {
     hud.progress.style.width = `${(s.progress * 100).toFixed(1)}%`;
     renderEffects(s.effects);
 
+    // Teaching happens only while the race is actually live - during the
+    // countdown nobody is stepping, and after the finish there is nothing left
+    // to teach. Read after `update`, so the affordances describe this frame.
+    if (session.running && s.phase === PHASE.RUNNING) {
+      const hint = tutorial.update(session.player.affordances, session.player, dt);
+      if (hint) {
+        toast(hint.text, HINT_SECONDS, true);
+        // Persisted the moment it is shown rather than at the finish: a player
+        // who quits mid-race has still been taught, and being taught the same
+        // thing twice is exactly what this is meant to avoid.
+        save.save();
+      }
+    }
+
     if (s.phase === PHASE.FINISHED) showResults();
 
     if (toastTimer > 0) {
       toastTimer -= dt;
       if (toastTimer <= 0) hud.toast.classList.remove('show');
     }
+    if (toastLock > 0) toastLock -= dt;
 
     fpsAccum += dt;
     fpsFrames++;
@@ -459,6 +522,7 @@ function boot() {
     hud.overlay.classList.remove('hidden');
     renderGrid();
     renderCharacters();
+    renderTutorialStatus();
   };
 
   hud.pauseButton.addEventListener('click', (e) => { e.stopPropagation(); showPause(); });
@@ -495,7 +559,7 @@ function boot() {
 
   // A handle for the smoke test to drive and inspect.
   window.__vertigo = {
-    renderer, input, audio, save, governor, start: startRace,
+    renderer, input, audio, save, governor, tutorial, start: startRace,
     get tier() { return tier; },
     applyTier,
     get session() { return session; },
@@ -512,6 +576,7 @@ function boot() {
 
   renderGrid();
   renderCharacters();
+  renderTutorialStatus();
   bindSettings();
   bindTabs();
   hud.pauseButton.classList.add('hidden');

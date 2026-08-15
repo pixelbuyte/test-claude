@@ -116,6 +116,10 @@
             <input type="checkbox" id="set-motion">
           </label>
           <label class="setting">
+            <span>Tutorial hints</span>
+            <input type="checkbox" id="set-tutorial" checked>
+          </label>
+          <label class="setting">
             <span>Quality</span>
             <select id="set-quality">
               <option value="">Auto</option>
@@ -128,16 +132,17 @@
         </div>
       </div>
 
-      <ul class="controls">
-        <li><b>Swipe up</b> or <b>tap</b> &mdash; jump, vault, wall&#8209;jump</li>
-        <li><b>Swipe down</b> &mdash; slide</li>
-        <li><b>Drag</b> left / right &mdash; steer</li>
-        <li class="keys"><b>Keyboard</b> &mdash; arrows or WASD, space to jump</li>
-      </ul>
+      <!--
+        The control list that used to sit here was read once, by someone who had
+        not yet seen a wall to run along. The moves are taught in the run now,
+        the first time each one comes up; this line only says how much is left.
+      -->
+      <p class="hint" id="tutorial-status"></p>
       <button type="button" class="start" id="start-button">Start race</button>
       <p class="hint">Vaults and mantles fire on their own at speed. Slides and
         wall&#8209;jumps are yours to time &mdash; but a press is remembered for
-        0.15&nbsp;s, so early and late both land.</p>
+        0.15&nbsp;s, so early and late both land.
+        <span class="keys">Keyboard: arrows or WASD, space to jump.</span></p>
     </div>
   </div>
 

@@ -153,16 +153,29 @@ const swipe = async (dx, dy) => {
 
 const deadline = Date.now() + seconds * 1000;
 let gestures = 0;
+let hintShot = false;
 while (Date.now() < deadline) {
   const st = await page.evaluate(() => {
     const s = window.__vertigo.session;
+    const toastEl = document.getElementById('toast');
     return {
       slide: s.player.affordances.slideNeeded,
       gap: s.player.affordances.gapDistance,
       grounded: s.player.grounded,
       wall: s.player.affordances.wallLeftValid,
+      // A hint is on screen when the toast is showing something the tutorial
+      // wrote rather than something an event wrote.
+      hint: toastEl.classList.contains('show')
+        && /swipe|steer|vault|launch/i.test(toastEl.textContent)
+        ? toastEl.textContent.trim() : null,
     };
   });
+
+  if (st.hint && !hintShot) {
+    hintShot = true;
+    await page.screenshot({ path: join(shots, '04-tutorial.png') });
+    pass(`caught a tutorial hint on screen: "${st.hint}"`);
+  }
 
   if (st.slide) await swipe(0, 70);
   else if (st.gap > 0 && st.gap < 3) await swipe(0, -70);
@@ -297,6 +310,35 @@ else fail(`${result.draws} draw calls exceeds the 120 budget`);
 
 if (result.tris <= 60000) pass(`${(result.tris / 1000).toFixed(1)}k triangles (budget 60k)`);
 else fail(`${result.tris} triangles exceeds the 60k budget`);
+
+// --- Tutorial -----------------------------------------------------------------
+// The director is unit-tested against synthetic affordances; what only a real
+// race proves is that a real course actually produces those affordances, in a
+// browser, with the toast wired up. A tutorial nobody is ever shown is the
+// failure mode a unit test cannot see.
+const tut = await page.evaluate(() => {
+  const v = window.__vertigo;
+  return {
+    remaining: v.tutorial.remaining,
+    seen: Object.keys(v.save.data.tutorialSeen),
+    enabled: v.tutorial.enabled,
+    persisted: Object.keys(JSON.parse(
+      window.localStorage.getItem('vertigo-rush.save.v1') || '{}',
+    ).tutorialSeen || {}),
+  };
+});
+
+if (tut.seen.length > 0) {
+  pass(`tutorial taught ${tut.seen.length} move(s) during the run `
+    + `(${tut.seen.join(', ')}; ${tut.remaining.length} left)`);
+} else {
+  fail('no tutorial hint fired in a whole race');
+}
+if (tut.persisted.length === tut.seen.length) {
+  pass(`hints persisted to storage (${tut.persisted.join(', ')})`);
+} else {
+  fail(`hints shown but not persisted: ${tut.seen} vs saved ${tut.persisted}`);
+}
 
 // --- Adaptive quality ---------------------------------------------------------
 // The governor's arithmetic is unit-tested; what only a browser can prove is
