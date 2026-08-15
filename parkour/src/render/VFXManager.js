@@ -34,6 +34,12 @@ export class VFXManager {
    */
   constructor(scene, tier = 'medium') {
     this.budget = QUALITY[tier]?.particleBudget ?? 900;
+    /**
+     * How many slots were actually allocated. The pool is sized once and never
+     * resized, so an adaptive downgrade can lower `budget` to do less work while
+     * a later upgrade can only ever climb back to what was reserved here.
+     */
+    this.capacity = this.budget;
     this.enabled = true;
 
     const n = this.budget;
@@ -210,9 +216,27 @@ export class VFXManager {
     if (!on) this.clear();
   }
 
+  /**
+   * Narrows (or restores) the working budget without reallocating.
+   *
+   * Everything alive is cleared first: shrinking the budget makes the slots
+   * above it unreachable, and a particle stranded there would never be
+   * integrated again and so would hang in the air for the rest of the race.
+   */
+  setBudget(n) {
+    const next = Math.max(1, Math.min(this.capacity, Math.floor(n)));
+    if (next === this.budget) return this.budget;
+    this.clear();
+    this.budget = next;
+    this.head = 0;
+    return this.budget;
+  }
+
   clear() {
     this.life.fill(0);
-    for (let i = 0; i < this.budget; i++) this.positions[i * 3 + 1] = -9999;
+    // Bounded by capacity, not budget: after a downgrade the stranded slots
+    // above the budget still have to be parked out of sight.
+    for (let i = 0; i < this.capacity; i++) this.positions[i * 3 + 1] = -9999;
     this.alive = 0;
     this.geometry.attributes.position.needsUpdate = true;
   }

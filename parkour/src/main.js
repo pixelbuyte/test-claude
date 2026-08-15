@@ -16,6 +16,7 @@ import { InputManager } from './input/InputManager.js';
 import { RaceSession, PHASE } from './app/RaceSession.js';
 import { SaveManager, targetsFor } from './sim/save/SaveManager.js';
 import { bestAvailableAdapter } from './app/storage.js';
+import { QualityGovernor } from './app/quality.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { CHARACTERS, character, purchaseState } from './data/characters.js';
 
@@ -80,8 +81,14 @@ function boot() {
   const save = new SaveManager(storage.adapter);
   save.load();
 
-  const tier = save.data.settings.qualityTier || detectTier();
+  // A saved tier is the player's own choice and outranks the probe; with no
+  // saved tier the probe only picks a starting point and the governor takes it
+  // from there, because what a device claims about itself and what it can
+  // actually sustain are different questions.
+  const pinnedTier = save.data.settings.qualityTier || null;
+  let tier = pinnedTier || detectTier();
   const renderer = new Renderer(canvas, { tier });
+  const governor = new QualityGovernor(tier, { userPinned: !!pinnedTier });
   const input = new InputManager().attach(canvas);
   const audio = new AudioManager({ enabled: save.data.settings.audio !== false });
 
@@ -96,6 +103,23 @@ function boot() {
     hud.toast.classList.add('show');
     toastTimer = 1.2;
   };
+
+  /**
+   * Carries out a tier change - the governor's verdict, or the player's choice.
+   *
+   * Told rather than asked: an automatic downgrade says so, because a player who
+   * sees shadows vanish mid-race deserves to know the game did it on purpose.
+   */
+  function applyTier(next, automatic) {
+    if (next === tier) return;
+    tier = next;
+    renderer.setTier(next);
+    if (session) session.setTier(next);
+    // A change from anywhere but the governor has to be reported back to it, or
+    // its next verdict would be one step below a tier that is no longer running.
+    if (!automatic) governor.adopt(next);
+    toast(automatic ? `Quality lowered to ${next}` : `Quality: ${next}`);
+  }
 
   function handleEvent(e) {
     if (!session) return;
@@ -237,9 +261,12 @@ function boot() {
       if (session) session.setReducedMotion(motionBox.checked);
     });
     quality.addEventListener('change', () => {
-      save.setSetting('qualityTier', quality.value || null);
-      // Tier is read when a renderer is built, so it applies to the next load.
-      toast('Quality applies on reload');
+      const chosen = quality.value || null;
+      save.setSetting('qualityTier', chosen);
+      // A named tier pins it and switches the adaptive governor off for good;
+      // "Auto" hands control back and lets it start measuring again.
+      governor.pin(chosen);
+      if (chosen) applyTier(chosen, false);
     });
 
     el('set-reset').addEventListener('click', () => {
@@ -338,6 +365,10 @@ function boot() {
     last = now;
 
     if (renderer.resize()) session.onResize();
+
+    // Sampled before the work, on the delta the previous frame actually took.
+    const downgrade = governor.sample(dt);
+    if (downgrade) applyTier(downgrade, true);
 
     session.update(dt);
     session.render(dt);
@@ -447,7 +478,9 @@ function boot() {
 
   // A handle for the smoke test to drive and inspect.
   window.__vertigo = {
-    renderer, input, audio, save, start: startRace,
+    renderer, input, audio, save, governor, start: startRace,
+    get tier() { return tier; },
+    applyTier,
     get session() { return session; },
     get level() { return session ? session.level : null; },
     get course() { return course; },

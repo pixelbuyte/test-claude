@@ -292,6 +292,22 @@ export class RaceSession {
     return this.race.results();
   }
 
+  /**
+   * Applies a quality tier to the live race.
+   *
+   * The renderer handles its own side; what belongs to the session is the
+   * particle budget and how many opponents are worth drawing. Both take effect
+   * on the very next frame, which matters: the point of an adaptive downgrade is
+   * to relieve pressure now, not at the next race.
+   */
+  setTier(tier) {
+    const q = QUALITY[tier];
+    if (!q || tier === this.tier) return false;
+    this.tier = tier;
+    this.vfx.setBudget(q.particleBudget);
+    return true;
+  }
+
   /** Applies the reduced-motion setting without rebuilding the race. */
   setReducedMotion(on) {
     this.vfx.setEnabled(!on);

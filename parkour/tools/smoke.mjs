@@ -298,6 +298,55 @@ else fail(`${result.draws} draw calls exceeds the 120 budget`);
 if (result.tris <= 60000) pass(`${(result.tris / 1000).toFixed(1)}k triangles (budget 60k)`);
 else fail(`${result.tris} triangles exceeds the 60k budget`);
 
+// --- Adaptive quality ---------------------------------------------------------
+// The governor's arithmetic is unit-tested; what only a browser can prove is
+// that carrying out its verdict on a live renderer - swapping pixel ratio and
+// recompiling every material for the shadow change - does not throw or blank the
+// scene. Frame times are fed in directly rather than waited for, because a
+// software rasteriser would take the real path for the wrong reason.
+const quality = await page.evaluate(() => {
+  const v = window.__vertigo;
+  // Whatever the governor did during the real drive is its own business; reset
+  // the budget so this check starts from a known place either way.
+  const duringRun = { tier: v.tier, downgrades: v.governor.downgrades };
+  v.governor.pin(null);
+  v.applyTier('high', false);
+  const before = { tier: v.tier, pixelRatio: v.renderer.renderer.getPixelRatio() };
+
+  // Two seconds of 40 ms frames, straight into the governor.
+  const verdicts = [];
+  for (let i = 0; i < 400; i++) {
+    const next = v.governor.sample(0.040);
+    if (next) { verdicts.push(next); v.applyTier(next, true); }
+  }
+  v.session.render(1 / 60);
+  return {
+    duringRun,
+    before,
+    verdicts,
+    tier: v.tier,
+    rendererTier: v.renderer.tier,
+    sessionTier: v.session.tier,
+    pixelRatio: v.renderer.renderer.getPixelRatio(),
+    particleBudget: v.session.vfx.budget,
+    capacity: v.session.vfx.capacity,
+    draws: v.renderer.drawCalls,
+  };
+});
+
+if (quality.verdicts.length > 0 && quality.tier === quality.rendererTier
+    && quality.tier === quality.sessionTier) {
+  pass(`adaptive downgrade high -> ${quality.verdicts.join(' -> ')} applied everywhere `
+    + `(pixel ratio ${quality.before.pixelRatio} -> ${quality.pixelRatio}, `
+    + `particles ${quality.particleBudget}/${quality.capacity})`);
+} else {
+  fail(`adaptive downgrade did not apply cleanly: ${JSON.stringify(quality)}`);
+}
+if (quality.draws > 0) pass(`still drawing after the tier change (${quality.draws} calls)`);
+else fail('the scene stopped drawing after a tier change');
+console.log(`  info  during the live run the governor made ${quality.duringRun.downgrades} `
+  + `downgrade(s), ending at tier "${quality.duringRun.tier}"`);
+
 // --- Landscape ---------------------------------------------------------------
 await page.setViewportSize({ width: 892, height: 412 });
 await page.waitForTimeout(600);

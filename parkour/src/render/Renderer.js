@@ -39,18 +39,59 @@ export class Renderer {
 
     this.sun = new THREE.DirectionalLight(0xffffff, 1);
     this.sun.position.set(-24, 40, -18);
-    if (q.shadows) {
-      this.sun.castShadow = true;
-      this.sun.shadow.mapSize.set(1024, 1024);
-      const c = this.sun.shadow.camera;
-      c.left = -40; c.right = 40; c.top = 40; c.bottom = -40; c.far = 160;
-    }
+    // Framed unconditionally, not only when shadows are on: an adaptive
+    // downgrade can turn them off and a Settings change can turn them back on,
+    // and a shadow camera configured only at construction would leave the second
+    // case rendering shadows through a default 5x5 frustum.
+    this.sun.shadow.mapSize.set(1024, 1024);
+    const sc = this.sun.shadow.camera;
+    sc.left = -40; sc.right = 40; sc.top = 40; sc.bottom = -40; sc.far = 160;
+    this.sun.castShadow = q.shadows;
     this.scene.add(this.sun);
     // The sun follows the runner, so its target has to be in the scene too.
     this.scene.add(this.sun.target);
 
     this._size = { width: 0, height: 0 };
     this.resize();
+  }
+
+  /**
+   * Switches quality tier on a live renderer.
+   *
+   * Pixel ratio, shadows and the light budget all move immediately; antialiasing
+   * cannot, because it is fixed when the WebGL context is created and changing
+   * it would mean tearing down the context and every GPU resource hanging off
+   * it mid-race. Dropping a tier without it still removes the great majority of
+   * the cost, so the honest trade is to apply what can be applied now and let
+   * antialiasing follow on the next load.
+   *
+   * @returns {boolean} whether anything changed
+   */
+  setTier(tier) {
+    const q = QUALITY[tier];
+    if (!q || tier === this.tier) return false;
+    const shadowsChanged = q.shadows !== QUALITY[this.tier].shadows;
+    this.tier = tier;
+
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q.pixelRatioCap));
+    this.renderer.shadowMap.enabled = q.shadows;
+    this.sun.castShadow = q.shadows;
+
+    // three.js compiles shadow sampling into the shader program, so a material
+    // built while shadows were on keeps sampling a map nobody is drawing any
+    // more. Flagging every material forces one recompile pass - expensive, but
+    // it happens at most twice a session and the alternative is a scene lit by
+    // a stale shadow map.
+    if (shadowsChanged) {
+      this.renderer.shadowMap.needsUpdate = true;
+      this.scene.traverse((o) => {
+        const m = o.material;
+        if (!m) return;
+        if (Array.isArray(m)) for (const sub of m) sub.needsUpdate = true;
+        else m.needsUpdate = true;
+      });
+    }
+    return true;
   }
 
   applyTheme(themeId) {
