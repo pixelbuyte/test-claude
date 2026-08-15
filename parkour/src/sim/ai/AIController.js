@@ -101,6 +101,10 @@ export function thinkAI(ai, world) {
   if ((a.wallLeftValid || a.wallRightValid) && prof.riskAppetite > 0.35
       && p.speed > p.baseSpeed * PARKOUR.wallRunMinSpeedFactor) {
     goal = a.wallLeftValid ? -1 : 1;
+  } else if ((a.wallNearLeft || a.wallNearRight) && a.gapDistance > 0 && a.gapDistance < 16) {
+    // A gap with a wall beside it is crossed on the wall. Every racer commits to
+    // this one regardless of appetite - the alternative is the hazard below.
+    goal = a.wallNearLeft ? -1 : 1;
   }
 
   if (fumbling) goal = clamp(goal + (ai.rng.float() - 0.5) * 1.6, -1, 1);

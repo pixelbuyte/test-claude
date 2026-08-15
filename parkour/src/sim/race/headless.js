@@ -7,11 +7,12 @@
  * unit tests structurally cannot - a level nobody can finish, a field that all
  * crashes at the same crate, a rank that stops being a permutation.
  */
-import { RACE } from '../../config.js';
+import { RACE, PARKOUR } from '../../config.js';
 import { World } from '../world/World.js';
 import { EventQueue, EV } from '../core/events.js';
 import { RaceManager, PHASE } from './RaceManager.js';
 import { makeRacer, makeIntent } from '../player/PlayerController.js';
+import { STATE } from '../player/states.js';
 import { checksumRacers } from '../core/checksum.js';
 
 /**
@@ -25,11 +26,21 @@ export function autoPlayer(intent, p) {
   intent.jumpPressed = false;
   intent.slidePressed = false;
 
+  const onWall = p.state === STATE.WALLRUN;
   const gapClose = a.gapDistance > 0 && a.gapDistance < Math.max(1.5, p.speed * 0.2);
   const needsHop = a.blockerValid && !a.vaultValid && p.grounded;
-  const wallAvailable = !p.grounded && (a.wallLeftValid || a.wallRightValid);
+  // Crucially not while already wall-running: pressing jump on the wall is a
+  // wall-jump, which throws the runner straight back off it. Ride it, then leave
+  // deliberately near the end.
+  const wallAvailable = !p.grounded && !onWall && (a.wallLeftValid || a.wallRightValid);
+  const leavingWall = onWall && p.stateTime > PARKOUR.wallRunMaxTime * 0.7;
 
-  if ((gapClose && p.grounded) || needsHop || wallAvailable) {
+  // A gap with a wall beside it is a wall-run, not a jump - and it has to be
+  // approached before it can be latched onto.
+  const wallRoute = (a.wallNearLeft || a.wallNearRight) && a.gapDistance > 0
+    && a.gapDistance < 16;
+
+  if ((gapClose && p.grounded) || needsHop || wallAvailable || leavingWall) {
     intent.jumpPressed = true;
     intent.jumpHeld = true;
   } else if (p.vel.y <= 0) {
@@ -43,7 +54,11 @@ export function autoPlayer(intent, p) {
     intent.slideHeld = false;
   }
 
-  intent.lateralTarget = a.wallLeftValid ? -1 : a.wallRightValid ? 1 : 0;
+  if (a.wallLeftValid) intent.lateralTarget = -1;
+  else if (a.wallRightValid) intent.lateralTarget = 1;
+  else if (wallRoute) intent.lateralTarget = a.wallNearLeft ? -1 : 1;
+  else intent.lateralTarget = 0;
+
   return intent;
 }
 

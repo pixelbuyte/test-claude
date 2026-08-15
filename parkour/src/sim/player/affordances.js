@@ -53,6 +53,18 @@ export function makeAffordanceSet() {
     wallRightIndex: -1,
     wallRightX: 0,
 
+    /**
+     * A runnable wall within steering range and a little way ahead - not yet
+     * close enough to latch onto.
+     *
+     * The adjacency probes above only fire within 0.45m, which is fine for the
+     * player (who can see the wall) but leaves a driver unable to ever approach
+     * one: it cannot detect the wall until it is already there, and will not go
+     * there until it detects it. This is the signal that breaks that cycle.
+     */
+    wallNearLeft: false,
+    wallNearRight: false,
+
     // Grabbable top edge just above head height.
     ledgeValid: false,
     ledgeIndex: -1,
@@ -84,6 +96,7 @@ export function clearAffordances(a) {
   a.ceilingBlocked = false;
   a.wallLeftValid = false; a.wallLeftIndex = -1;
   a.wallRightValid = false; a.wallRightIndex = -1;
+  a.wallNearLeft = false; a.wallNearRight = false;
   a.ledgeValid = false; a.ledgeIndex = -1;
   a.railValid = false; a.railIndex = -1;
   a.launchValid = false; a.launchIndex = -1;
@@ -188,6 +201,34 @@ export function sense(a, world, x, y, z, speed, height) {
     a.wallRightValid = true;
     a.wallRightIndex = i;
     a.wallRightX = cs.minX[i];
+    break;
+  }
+
+  // --- Walls within reach, looking further ahead ---------------------------
+  // Deliberately much wider and longer than the adjacency probes: this answers
+  // "is there a wall I could get to", not "am I on one".
+  const nearReach = 3.4;
+  const nearAhead = 7;
+
+  setBoxAABB(probe, x - hx - nearReach, wallBandLow, z + hz,
+    x - hx, wallBandHigh, z + hz + nearAhead);
+  m = overlapBox(probe, cs, candidates, n, WALLS, a._hits);
+  for (let k = 0; k < m; k++) {
+    const i = a._hits[k];
+    if ((cs.flags[i] & FLAG.NO_WALLRUN) !== 0) continue;
+    if (cs.maxY[i] - cs.minY[i] < PARKOUR.wallMinHeight) continue;
+    a.wallNearLeft = true;
+    break;
+  }
+
+  setBoxAABB(probe, x + hx, wallBandLow, z + hz,
+    x + hx + nearReach, wallBandHigh, z + hz + nearAhead);
+  m = overlapBox(probe, cs, candidates, n, WALLS, a._hits);
+  for (let k = 0; k < m; k++) {
+    const i = a._hits[k];
+    if ((cs.flags[i] & FLAG.NO_WALLRUN) !== 0) continue;
+    if (cs.maxY[i] - cs.minY[i] < PARKOUR.wallMinHeight) continue;
+    a.wallNearRight = true;
     break;
   }
 
