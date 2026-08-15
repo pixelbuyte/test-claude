@@ -33,9 +33,6 @@ export class AudioManager {
     this.music = null;
     this.started = false;
     this.failed = false;
-
-    /** Footsteps are paced from speed rather than from an animation callback. */
-    this._stepTimer = 0;
   }
 
   /**
@@ -106,20 +103,33 @@ export class AudioManager {
   }
 
   /**
-   * Footsteps.
+   * Plays the animation events the character rig emitted this frame.
    *
-   * Paced from actual speed rather than an animation event, so the cadence is
-   * right at any pace and never drifts out of sync with the legs.
+   * Footsteps come from the clip rather than from a timer, which is the whole
+   * reason clips carry embedded events: the sound lands on the frame the foot
+   * actually plants, at any playback rate, instead of approximately near it.
    */
-  updateFootsteps(dt, p) {
-    if (!this.started || !this.enabled) return;
-    if (!p.grounded || p.speed < 1.5) { this._stepTimer = 0; return; }
+  playAnimationEvents(names, p) {
+    if (!this.started || !this.enabled || !names || names.length === 0) return;
+    for (let i = 0; i < names.length; i++) {
+      switch (names[i]) {
+        case 'footstep': this._footstep(p); break;
+        case 'scrape':
+          noise(this.ctx, this.sfxBus, { freq: 2200, freqTo: 800, q: 1.6, dur: 0.3, gain: 0.06 });
+          break;
+        case 'plant':
+          noise(this.ctx, this.sfxBus, { freq: 700, freqTo: 300, q: 1.0, dur: 0.1, gain: 0.07 });
+          break;
+        case 'push':
+          noise(this.ctx, this.sfxBus, { freq: 500, freqTo: 220, dur: 0.12, gain: 0.08 });
+          break;
+        default: break;
+      }
+    }
+  }
 
-    const stride = Math.max(0.16, 0.62 - p.speed * 0.019);
-    this._stepTimer -= dt;
-    if (this._stepTimer > 0) return;
-    this._stepTimer = stride;
-
+  _footstep(p) {
+    if (p.speed < 1.5) return;
     const s = FOOTSTEP[p.groundSurface] || FOOTSTEP[0];
     noise(this.ctx, this.sfxBus, {
       freq: s.freq, q: s.q, dur: s.dur,

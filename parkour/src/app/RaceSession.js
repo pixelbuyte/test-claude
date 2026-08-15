@@ -256,7 +256,9 @@ export class RaceSession {
 
     this.vfx.speedLines(focus, this.player.speed, dtSeconds);
     this.vfx.update(dtSeconds);
-    if (this.audio) this.audio.updateFootsteps(dtSeconds, this.player);
+    // The player's rig emitted these while posing; footsteps land on the frame
+    // the foot planted rather than on a timer's best guess.
+    if (this.audio) this.audio.playAnimationEvents(me.view.events, this.player);
 
     this.renderer.render();
   }

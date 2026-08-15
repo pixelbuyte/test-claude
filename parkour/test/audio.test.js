@@ -26,7 +26,7 @@ test('the audio manager is inert without a browser, never broken', () => {
   // And every method stays safe to call afterwards.
   assert.doesNotThrow(() => {
     audio.handle({ type: EV.JUMP, actor: 0, a: 0, b: 0, c: 0 }, 0);
-    audio.updateFootsteps(0.016, { grounded: true, speed: 12, groundSurface: 0 });
+    audio.playAnimationEvents(['footstep', 'scrape'], { speed: 12, groundSurface: 0 });
     audio.playMusic('rooftops');
     audio.stopMusic();
     audio.setEnabled(false);
