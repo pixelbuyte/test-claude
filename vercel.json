@@ -2,7 +2,8 @@
   "rewrites": [
     { "source": "/", "destination": "/starbound-sprinter/index.html" },
     { "source": "/play", "destination": "/starbound-sprinter/index.html" },
-    { "source": "/sherlock", "destination": "/sherlock-web/index.html" }
+    { "source": "/sherlock", "destination": "/sherlock-web/index.html" },
+    { "source": "/parkour", "destination": "/parkour/index.html" }
   ],
   "functions": {
     "api/check.js": { "maxDuration": 10 },

@@ -1,0 +1,12 @@
+{
+  "name": "vertigo-rush",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vertigo Rush - an original 3D parkour racing game",
+  "scripts": {
+    "test": "node --test",
+    "serve": "npx http-server . -p 8080 -c-1",
+    "smoke": "node tools/smoke.mjs"
+  }
+}

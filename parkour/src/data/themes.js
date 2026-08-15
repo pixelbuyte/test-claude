@@ -1,0 +1,97 @@
+/**
+ * Theme palettes.
+ *
+ * Pure data - colours are plain 0xRRGGBB integers, not three.js Colors, so this
+ * file stays importable from Node and from the level validator. The renderer
+ * turns them into materials.
+ *
+ * There are no textures anywhere in this game: every surface is flat-shaded with
+ * vertex colours, so a theme is genuinely just this table.
+ */
+
+/** @typedef {keyof typeof THEMES} ThemeId */
+
+export const THEMES = {
+  rooftops: {
+    name: 'Rooftops',
+    sky: 0x1b2a4a,
+    fog: 0x24334f,
+    fogNear: 70,
+    fogFar: 280,
+    hemiSky: 0x9fb8ff,
+    hemiGround: 0x2a2438,
+    sunColor: 0xfff0d8,
+    sunIntensity: 1.15,
+    /** Indexed by SURFACE: concrete, metal, wood, glass, grate. */
+    surfaces: [0x59627a, 0x8a93a8, 0x7a6046, 0x6fa6c4, 0x4d5568],
+    accent: 0xff7a3d,
+    hazard: 0xff3b52,
+    vault: 0xf0a54a,
+    wall: 0x424c69,
+    rail: 0xc8d2ff,
+    decor: [0x38415c, 0x2c3348, 0x46527a],
+  },
+
+  undercity: {
+    name: 'Undercity',
+    sky: 0x120e1c,
+    fog: 0x1a1426,
+    fogNear: 45,
+    fogFar: 200,
+    hemiSky: 0x6f5cff,
+    hemiGround: 0x140f1e,
+    sunColor: 0xd9c6ff,
+    sunIntensity: 0.85,
+    surfaces: [0x3d3550, 0x5c5470, 0x53412f, 0x4a6f8a, 0x332c44],
+    accent: 0x38e8c8,
+    hazard: 0xff2d6f,
+    vault: 0x9d6cff,
+    wall: 0x2b2440,
+    rail: 0x38e8c8,
+    decor: [0x241d36, 0x1c1729, 0x3a3054],
+  },
+
+  solarworks: {
+    name: 'Solarworks',
+    sky: 0xf2b46a,
+    fog: 0xe8a86a,
+    fogNear: 80,
+    fogFar: 300,
+    hemiSky: 0xffd9a0,
+    hemiGround: 0x6b4326,
+    sunColor: 0xfff4e0,
+    sunIntensity: 1.4,
+    surfaces: [0xc9a077, 0xd8c2a0, 0xa87346, 0xe0d0b0, 0xb08c62],
+    accent: 0x2f6fd0,
+    hazard: 0xd42a1f,
+    vault: 0x3f8ae0,
+    wall: 0xb08a5e,
+    rail: 0xfff0d0,
+    decor: [0xb5905f, 0x9a7748, 0xd0aa78],
+  },
+
+  frostline: {
+    name: 'Frostline',
+    sky: 0xcfe6f5,
+    fog: 0xdcecf7,
+    fogNear: 60,
+    fogFar: 240,
+    hemiSky: 0xffffff,
+    hemiGround: 0x9ab4c8,
+    sunColor: 0xf0f8ff,
+    sunIntensity: 1.25,
+    surfaces: [0xa8bdcc, 0xc4d4e0, 0x8a7b6a, 0xd8ecf8, 0x93a8b8],
+    accent: 0x1f7ac4,
+    hazard: 0xe03050,
+    vault: 0x2f9ad8,
+    wall: 0x8fa6b8,
+    rail: 0xffffff,
+    decor: [0x93aabc, 0x7e94a6, 0xb4c8d6],
+  },
+};
+
+export const THEME_IDS = Object.keys(THEMES);
+
+export function getTheme(id) {
+  return THEMES[id] || THEMES.rooftops;
+}
