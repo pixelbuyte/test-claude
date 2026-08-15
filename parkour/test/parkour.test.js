@@ -283,6 +283,29 @@ test('a launch pad throws the runner up with no input at all', () => {
   assert.ok(apex > 2.2, `pad apex ${apex.toFixed(2)} is no higher than a normal jump`);
 });
 
+test('a slide does not end while there is still something overhead', () => {
+  const b = track();
+  // Long enough that the slide timer expires while the runner is still under it.
+  b.slideBar(40, 0, 0.9, 26);
+  const rig = makeRig(b.build(), { speed: 12, z: 30 });
+  const p = rig.p;
+
+  let stoodUpUnderIt = false;
+  rig.run(6, (intent) => {
+    intent.slidePressed = p.affordances.slideNeeded && p.grounded;
+    // Deliberately do not hold: the runner is asking to stand up the whole way.
+    intent.slideHeld = false;
+    if (p.affordances.ceilingBlocked && p.state !== STATE.SLIDE && p.grounded) {
+      stoodUpUnderIt = true;
+    }
+  });
+
+  assert.equal(stoodUpUnderIt, false,
+    'the body stood up inside the overhang - it can never get out of that');
+  assert.equal(rig.countOf(EV.DEATH), 0, 'wedged under the bar and died');
+  assert.ok(p.pos.z > 68, `never came out the far side (z=${p.pos.z.toFixed(1)})`);
+});
+
 // --- Getting it wrong ---------------------------------------------------------
 
 test('running into a wall crashes once, not once per substep', () => {

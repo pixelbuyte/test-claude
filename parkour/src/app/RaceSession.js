@@ -1,46 +1,49 @@
 /**
  * One run of one level.
  *
- * The seam between simulation and view. It owns the world, the racer and the
- * camera on the sim side; the scene and character on the view side; and it is
- * the only place the two are allowed to meet.
+ * The seam between simulation and view. It owns the race on the sim side and the
+ * scene on the view side, and it is the only place the two are allowed to meet.
  *
  * The loop is fixed-step with interpolated rendering: `update(dt)` runs whole
- * STEP-sized substeps and `render(alpha)` draws between the last two. That is
- * what keeps physics identical on a 60 Hz phone and a 144 Hz desktop.
+ * STEP-sized substeps and `render()` draws between the last two. That is what
+ * keeps physics identical on a 60 Hz phone and a 144 Hz desktop.
  */
-import { STEP, CAMERA } from '../config.js';
+import { STEP, CAMERA, QUALITY } from '../config.js';
 import { World } from '../sim/world/World.js';
 import { EventQueue, EV } from '../sim/core/events.js';
 import { createStepper, advance } from '../sim/core/fixedloop.js';
-import {
-  makeRacer, placeRacer, stepRacer, consumeEdges, saveCheckpoint, applyBoost,
-} from '../sim/player/PlayerController.js';
+import { makeRacer, placeRacer, makeIntent } from '../sim/player/PlayerController.js';
+import { RaceManager, PHASE } from '../sim/race/RaceManager.js';
 import { makeCamera, stepCamera, resetCamera, addShake, setAspectMode } from '../sim/camera/CameraController.js';
 import { SceneBuilder } from '../render/SceneBuilder.js';
 import { CharacterView } from '../render/character/CharacterView.js';
+
+/** Opponent palette - distinct enough to tell apart at speed. */
+const OPPONENT_COLORS = [0x4fc3f7, 0xba68c8, 0x81c784, 0xffd54f, 0xff8a65, 0x90a4ae];
 
 export class RaceSession {
   /**
    * @param {object} level     assembled level data
    * @param {Renderer} renderer
    * @param {InputManager} input
+   * @param {object} opts      { roster, seed, tier }
    */
-  constructor(level, renderer, input) {
+  constructor(level, renderer, input, opts = {}) {
     this.level = level;
     this.renderer = renderer;
     this.input = input;
+    this.tier = opts.tier || 'medium';
 
     this.world = new World(level);
-    this.events = new EventQueue(512);
+    this.events = new EventQueue(1024);
     this.stepper = createStepper();
-    this.tick = 0;
-    this.elapsed = 0;
     this.running = false;
 
-    this.player = makeRacer(0, { isPlayer: true, name: 'You' });
-    placeRacer(this.player, 0, 0, level.startZ + 2);
-    this.player.speed = 0;
+    const player = makeRacer(0, { isPlayer: true, name: 'You' });
+    this.race = new RaceManager(this.world, player, opts.roster || [], {
+      seed: opts.seed ?? 1,
+    });
+    this.player = player;
 
     this.camera = makeCamera();
     this.camera.allowShake = !prefersReducedMotion();
@@ -49,34 +52,49 @@ export class RaceSession {
     renderer.applyTheme(level.theme);
     renderer.scene.add(this.scene.group);
 
-    this.character = new CharacterView({ color: 0xff7a3d, accent: 0x2b3350 });
-    renderer.scene.add(this.character.root);
+    // One view per racer. Interpolation endpoints live alongside, so rendering
+    // never reads a half-stepped body.
+    this.views = this.race.racers.map((r, i) => {
+      const view = new CharacterView({
+        color: r.isPlayer ? 0xff7a3d : OPPONENT_COLORS[(i - 1) % OPPONENT_COLORS.length],
+        accent: r.isPlayer ? 0x2b3350 : 0x1e2438,
+      });
+      renderer.scene.add(view.root);
+      return {
+        view,
+        racer: r,
+        prev: { x: r.pos.x, y: r.pos.y, z: r.pos.z },
+        curr: { x: r.pos.x, y: r.pos.y, z: r.pos.z },
+        render: { pos: { x: 0, y: 0, z: 0 }, vel: { x: 0, y: 0, z: 0 }, state: 0, grounded: false, speed: 0 },
+      };
+    });
 
-    // Interpolation endpoints, so rendering never reads a half-stepped body.
-    this._prev = { x: 0, y: 0, z: 0 };
-    this._curr = { x: 0, y: 0, z: 0 };
-    this._render = { pos: { x: 0, y: 0, z: 0 }, vel: { x: 0, y: 0, z: 0 } };
-
-    this.stats = { coins: 0, crashes: 0, deaths: 0, finished: false, time: 0 };
+    this.intent = input ? input.intent : makeIntent();
     this.onEvent = null;
 
-    resetCamera(this.camera, this.player);
+    resetCamera(this.camera, player);
     this._syncAspect();
   }
 
   start() {
     this.running = true;
-    this.elapsed = 0;
   }
 
   pause() {
     this.running = false;
-    this.input.reset();
+    if (this.input) this.input.reset();
   }
 
   resume() {
     this.running = true;
+    this.stepper.accumulator = 0;
   }
+
+  get phase() { return this.race.phase; }
+  get elapsed() { return this.race.time; }
+  get tick() { return this.race.tick; }
+  get countdown() { return this.race.countdown; }
+  get finished() { return this.race.phase === PHASE.FINISHED; }
 
   /**
    * Advances the simulation by a wall-clock delta.
@@ -85,73 +103,47 @@ export class RaceSession {
   update(dtSeconds) {
     if (!this.running) return 0;
 
-    const intent = this.input.update();
+    const intent = this.input ? this.input.update() : this.intent;
     const steps = advance(this.stepper, dtSeconds);
 
     for (let s = 0; s < steps; s++) {
-      this._prev.x = this.player.pos.x;
-      this._prev.y = this.player.pos.y;
-      this._prev.z = this.player.pos.z;
+      for (const v of this.views) {
+        v.prev.x = v.racer.pos.x;
+        v.prev.y = v.racer.pos.y;
+        v.prev.z = v.racer.pos.z;
+      }
 
-      this.world.updateMovers(this.tick);
-      stepRacer(this.player, intent, this.world, this.events);
+      this.race.step(intent, this.events);
       stepCamera(this.camera, this.player, this.world);
-
-      // Edges belong to the first substep of a frame only, or one tap fires
-      // twice whenever the accumulator runs two substeps.
-      consumeEdges(intent);
-
       this._drainEvents();
-      this.tick++;
-      this.elapsed += STEP;
 
-      this._curr.x = this.player.pos.x;
-      this._curr.y = this.player.pos.y;
-      this._curr.z = this.player.pos.z;
+      for (const v of this.views) {
+        v.curr.x = v.racer.pos.x;
+        v.curr.y = v.racer.pos.y;
+        v.curr.z = v.racer.pos.z;
+      }
     }
 
-    this.stats.time = this.elapsed;
     return steps;
   }
 
+  /**
+   * Reacts to what the simulation reported. The race rules were already applied
+   * inside `race.step`; everything here is presentation.
+   */
   _drainEvents() {
-    const p = this.player;
     this.events.drain((e) => {
-      switch (e.type) {
-        case EV.CHECKPOINT: {
-          const cp = this.world.checkpoints[e.a];
-          if (cp) saveCheckpoint(p, cp.index, cp.x, cp.y, cp.z);
-          break;
+      if (e.actor === this.player.index) {
+        switch (e.type) {
+          case EV.BOOST_PAD: addShake(this.camera, CAMERA.shakeBoost); break;
+          case EV.LAND:
+            if (e.a > 12) addShake(this.camera, CAMERA.shakeLand * Math.min(1, e.a / 24));
+            break;
+          case EV.CRASH: addShake(this.camera, CAMERA.shakeCrash); break;
+          case EV.DEATH: addShake(this.camera, CAMERA.shakeCrash); break;
+          case EV.RESPAWN: resetCamera(this.camera, this.player); break;
+          default: break;
         }
-        case EV.COIN:
-          p.coins += e.c || 1;
-          this.stats.coins += e.c || 1;
-          break;
-        case EV.BOOST_PAD:
-          applyBoost(p);
-          addShake(this.camera, CAMERA.shakeBoost);
-          break;
-        case EV.LAND:
-          if (e.a > 12) addShake(this.camera, CAMERA.shakeLand * Math.min(1, e.a / 24));
-          break;
-        case EV.CRASH:
-          this.stats.crashes++;
-          addShake(this.camera, CAMERA.shakeCrash);
-          break;
-        case EV.DEATH:
-          this.stats.deaths++;
-          addShake(this.camera, CAMERA.shakeCrash);
-          break;
-        case EV.RESPAWN:
-          resetCamera(this.camera, p);
-          break;
-        case EV.FINISH:
-          this.stats.finished = true;
-          p.finished = true;
-          p.finishTime = this.elapsed;
-          break;
-        default:
-          break;
       }
       if (this.onEvent) this.onEvent(e);
     });
@@ -163,28 +155,65 @@ export class RaceSession {
    */
   render(dtSeconds) {
     const alpha = this.stepper.alpha;
-    const r = this._render;
+    const me = this.views[0];
+    const maxOpponents = QUALITY[this.tier].maxOpponentsRendered;
 
-    // Interpolate the body between the last two simulation states.
-    r.pos.x = this._prev.x + (this._curr.x - this._prev.x) * alpha;
-    r.pos.y = this._prev.y + (this._curr.y - this._prev.y) * alpha;
-    r.pos.z = this._prev.z + (this._curr.z - this._prev.z) * alpha;
-    r.vel.x = this.player.vel.x;
-    r.vel.y = this.player.vel.y;
-    r.vel.z = this.player.vel.z;
-    r.state = this.player.state;
-    r.grounded = this.player.grounded;
-    r.speed = this.player.speed;
+    for (let i = 0; i < this.views.length; i++) {
+      const v = this.views[i];
+      const r = v.render;
+      r.pos.x = v.prev.x + (v.curr.x - v.prev.x) * alpha;
+      r.pos.y = v.prev.y + (v.curr.y - v.prev.y) * alpha;
+      r.pos.z = v.prev.z + (v.curr.z - v.prev.z) * alpha;
+      r.vel.x = v.racer.vel.x;
+      r.vel.y = v.racer.vel.y;
+      r.vel.z = v.racer.vel.z;
+      r.state = v.racer.state;
+      r.grounded = v.racer.grounded;
+      r.speed = v.racer.speed;
 
-    this.character.pose(r, dtSeconds);
+      // Opponents far away, behind, or beyond the tier's budget are simply not
+      // drawn. Culling them is the single biggest draw-call saving available.
+      if (i > 0) {
+        const dz = r.pos.z - me.render.pos.z;
+        const visible = i <= maxOpponents && dz > -30 && dz < 90;
+        v.view.root.visible = visible;
+        if (!visible) continue;
+      }
+
+      v.view.pose(r, dtSeconds);
+    }
+
+    const focus = me.render.pos;
     this.renderer.syncCamera(this.camera);
-    this.renderer.followSun(r.pos.x, r.pos.y, r.pos.z);
+    this.renderer.followSun(focus.x, focus.y, focus.z);
 
-    this.scene.stream(r.pos.z);
+    this.scene.stream(focus.z);
     this.scene.updateMovers();
-    this.scene.updatePickups(this.world, this.elapsed);
+    this.scene.updatePickups(this.world, this.race.time);
 
     this.renderer.render();
+  }
+
+  /** Everything the HUD needs, gathered once per frame. */
+  hudState() {
+    const p = this.player;
+    return {
+      time: this.race.time,
+      rank: this.race.playerRank,
+      fieldSize: this.race.racers.length,
+      coins: p.coins,
+      speed: p.speed,
+      progress: this.world.progressOf(p.pos.z),
+      state: p.state,
+      phase: this.race.phase,
+      countdown: this.race.countdown,
+      finished: p.finished,
+      deaths: p.deaths,
+    };
+  }
+
+  results() {
+    return this.race.results();
   }
 
   onResize() {
@@ -197,9 +226,11 @@ export class RaceSession {
 
   dispose() {
     this.renderer.scene.remove(this.scene.group);
-    this.renderer.scene.remove(this.character.root);
+    for (const v of this.views) {
+      this.renderer.scene.remove(v.view.root);
+      v.view.dispose();
+    }
     this.scene.dispose();
-    this.character.dispose();
   }
 }
 
@@ -208,3 +239,5 @@ function prefersReducedMotion() {
     && typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
+
+export { PHASE };

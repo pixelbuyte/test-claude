@@ -174,18 +174,25 @@ await page.screenshot({ path: join(shots, '02-running.png') });
 const result = await page.evaluate(() => {
   const v = window.__vertigo;
   const s = v.session;
+  const hud = s.hudState();
   return {
     z: s.player.pos.z,
     tick: s.tick,
     elapsed: s.elapsed,
     coins: s.player.coins,
-    progress: s.world.progressOf(s.player.pos.z),
+    progress: hud.progress,
+    rank: hud.rank,
+    fieldSize: hud.fieldSize,
+    // Every opponent should be somewhere sensible on the course, not at 0.
+    opponentZ: s.race.racers.slice(1).map((r) => Math.round(r.pos.z)),
+    opponentsFinite: s.race.racers.every((r) => Number.isFinite(r.pos.z)),
     fps: v.fps,
     draws: v.renderer.drawCalls,
     tris: v.renderer.triangles,
     finite: Number.isFinite(s.player.pos.x) && Number.isFinite(s.player.pos.y)
       && Number.isFinite(s.player.pos.z),
     hudTime: document.getElementById('hud-time').textContent,
+    hudRank: document.getElementById('hud-rank').textContent,
     progressWidth: document.getElementById('hud-progress-fill').style.width,
   };
 });
@@ -200,6 +207,15 @@ if (result.finite) pass('body position finite'); else fail('body position went N
 
 if (result.hudTime !== '0:00.00') pass(`HUD clock advanced to ${result.hudTime}`);
 else fail('HUD clock never moved');
+
+if (result.opponentsFinite && result.opponentZ.some((z) => z > 20)) {
+  pass(`${result.fieldSize - 1} opponents racing (z = ${result.opponentZ.join(', ')})`);
+} else {
+  fail(`opponents are not racing: z = ${result.opponentZ.join(', ')}`);
+}
+
+if (/^\d+\/\d+$/.test(result.hudRank)) pass(`HUD rank showing ${result.hudRank}`);
+else fail(`HUD rank is "${result.hudRank}"`);
 
 if (parseFloat(result.progressWidth) > 0) pass(`progress bar at ${result.progressWidth}`);
 else fail('progress bar never filled');

@@ -49,3 +49,28 @@ export function hashString(h, str) {
   }
   return out >>> 0;
 }
+
+/**
+ * Hashes the gameplay-relevant state of a whole field.
+ *
+ * Covers what a divergence would actually show up in - position, velocity,
+ * speed, state and the scoring counters - rather than every field on the racer,
+ * so the checksum stays meaningful when a purely cosmetic field is added.
+ */
+export function checksumRacers(racers) {
+  let h = newChecksum();
+  for (let i = 0; i < racers.length; i++) {
+    const r = racers[i];
+    h = hashInt(h, r.index);
+    h = hashVec3(h, r.pos);
+    h = hashVec3(h, r.vel);
+    h = hashFloat(h, r.speed);
+    h = hashInt(h, r.state);
+    h = hashInt(h, r.coins);
+    h = hashInt(h, r.deaths);
+    h = hashInt(h, r.placement);
+    h = hashInt(h, r.finished ? 1 : 0);
+    h = hashFloat(h, r.finishTime, 1e-3);
+  }
+  return h >>> 0;
+}

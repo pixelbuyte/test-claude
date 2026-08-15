@@ -115,6 +115,21 @@ export class EventQueue {
     this.count = 0;
   }
 
+  /**
+   * Like `drain`, but leaves the queue intact.
+   *
+   * The simulation layer that applies rules (RaceManager) and the view layer
+   * that reacts to them both need to see every event. The rules pass peeks; the
+   * view drains afterwards. Events pushed from inside the callback are not
+   * visited by that pass, so a rule that emits an event cannot re-enter itself.
+   */
+  peek(fn) {
+    const n = this.count;
+    for (let i = 0; i < n; i++) {
+      fn(this.items[(this.head + i) % this.capacity]);
+    }
+  }
+
   /** Number of pending events matching `type` - test helper. */
   countOf(type) {
     let n = 0;

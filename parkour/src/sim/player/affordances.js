@@ -38,6 +38,13 @@ export function makeAffordanceSet() {
     slideNeeded: false,
     slideIndex: -1,
 
+    /**
+     * Something directly overhead, right now. Distinct from `slideNeeded`, which
+     * looks ahead: this answers "may the body stand back up where it is?" and is
+     * what stops a slide ending inside the bar it just ducked under.
+     */
+    ceilingBlocked: false,
+
     // Wall-run candidates to either side. side is -1 (left) or +1 (right).
     wallLeftValid: false,
     wallLeftIndex: -1,
@@ -74,6 +81,7 @@ export function clearAffordances(a) {
   a.vaultValid = false; a.vaultIndex = -1;
   a.blockerValid = false; a.blockerIndex = -1;
   a.slideNeeded = false; a.slideIndex = -1;
+  a.ceilingBlocked = false;
   a.wallLeftValid = false; a.wallLeftIndex = -1;
   a.wallRightValid = false; a.wallRightIndex = -1;
   a.ledgeValid = false; a.ledgeIndex = -1;
@@ -143,6 +151,14 @@ export function sense(a, world, x, y, z, speed, height) {
     a.blockerValid = true;
     a.blockerIndex = bestBlocker;
   }
+
+  // --- Headroom ------------------------------------------------------------
+  // The slab of space a crouched body would sweep through on standing up. If
+  // anything is in it, standing up would leave the body inside geometry - which
+  // is unrecoverable, so the slide has to continue instead.
+  setBoxAABB(probe, x - hx, y + BODY.slideHeight + 0.02, z - hz,
+    x + hx, y + BODY.height, z + hz);
+  a.ceilingBlocked = overlapBox(probe, cs, candidates, n, SOLIDS, a._hits) > 0;
 
   // --- Side walls ----------------------------------------------------------
   const wallBandLow = y + 0.4;

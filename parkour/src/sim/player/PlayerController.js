@@ -176,9 +176,13 @@ export function stepRacer(p, intent, world, ev) {
     p.baseSpeed += POWERUPS.speed.speedBonus;
   }
 
-  // Enforce the state table's duration cap so no state can wedge open.
+  // Enforce the state table's duration cap so no state can wedge open. The one
+  // exception is a slide under a ceiling: forcing that one to end would stand
+  // the body up inside the geometry it is ducking, which is the wedge this cap
+  // exists to prevent.
   const info = STATE_INFO[p.state];
-  if (info.maxDuration > 0 && p.stateTime > info.maxDuration + STEP) {
+  const heldUnder = p.state === STATE.SLIDE && p.affordances.ceilingBlocked;
+  if (info.maxDuration > 0 && p.stateTime > info.maxDuration + STEP && !heldUnder) {
     setState(p, p.grounded ? STATE.RUN : STATE.FALL);
   }
 

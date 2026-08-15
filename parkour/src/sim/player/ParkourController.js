@@ -237,10 +237,11 @@ export function parkourStep(p, intent, world, ev) {
   // --- Slide ---------------------------------------------------------------
   if (p.state === STATE.SLIDE) {
     p.slideTimer -= STEP;
-    // Holding the input extends the slide; releasing ends it early, unless
-    // there is still something overhead to duck under.
+    // Holding the input extends the slide; releasing ends it early - but never
+    // while there is still something overhead, or the body would stand up inside
+    // it and wedge with no way out.
     const wantsMore = intent.slideHeld && p.slideTimer > -0.4;
-    if ((p.slideTimer <= 0 && !wantsMore) || !p.grounded) {
+    if (((p.slideTimer <= 0 && !wantsMore) || !p.grounded) && !a.ceilingBlocked) {
       ev.push(EV.SLIDE_END, p.index);
       setState(p, p.grounded ? STATE.RUN : STATE.FALL);
     }

@@ -71,8 +71,11 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 7px 12px;
-  min-width: 84px;
+  /* Share the row evenly and stay shrinkable: four stats have to fit across a
+     narrow phone without any of them wrapping to a second line. */
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 7px clamp(6px, 2.2vw, 12px);
   background: var(--panel);
   border: 1px solid var(--edge);
   border-radius: 12px;
@@ -84,13 +87,17 @@ html, body {
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-value {
-  font-size: 19px;
+  font-size: clamp(15px, 4.4vw, 19px);
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 #hud-progress {
@@ -122,6 +129,80 @@ html, body {
   font-size: 10px;
   font-variant-numeric: tabular-nums;
   color: rgba(154, 166, 196, 0.65);
+}
+
+.stat-rank .stat-value { color: var(--accent); }
+
+#countdown {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(56px, 18vw, 120px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.55);
+}
+
+#countdown.pulse {
+  animation: countdown-pop 700ms ease-out;
+}
+
+@keyframes countdown-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* --- Results -------------------------------------------------------------- */
+
+#results {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(43, 58, 96, 0.72), rgba(10, 14, 26, 0.95));
+  backdrop-filter: blur(3px);
+}
+
+#results.hidden { display: none; }
+
+#results h2 {
+  margin: 0 0 14px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.results-table {
+  width: 100%;
+  margin-bottom: 18px;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.results-table th {
+  padding: 6px 8px;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  text-align: left;
+  border-bottom: 1px solid var(--edge);
+}
+
+.results-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.results-table tr.me td {
+  color: var(--accent);
+  font-weight: 700;
 }
 
 #toast {
@@ -237,8 +318,16 @@ html, body {
   .controls { font-size: 13px; }
   .controls .keys { display: none; }
   .hint { display: none; }
-  .stat { min-width: 74px; padding: 5px 10px; }
+  .hud-row { max-width: 460px; }
+  .stat { padding: 5px 10px; }
   .stat-value { font-size: 16px; }
+  #countdown { font-size: 64px; top: 44%; }
+}
+
+/* Below this the four stats stop being legible however they are sized, so speed
+   - the one the player can read off the world - is the first to go. */
+@media (max-width: 330px) {
+  .stat-speed { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
