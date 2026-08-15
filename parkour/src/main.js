@@ -34,6 +34,10 @@ const COURSES = [
   },
   ...LEVELS.map((def) => ({
     id: def.id, name: def.name, theme: def.theme, seed: def.seed,
+    // The definition itself, not just the fields copied out of it: the level
+    // grid needs `unlockAt` to gate a chip and the results screen needs
+    // `targets` to award a medal, and both were silently reading `undefined`.
+    def,
     build: () => assembleLevel(def),
     roster: def.roster,
   })),
@@ -323,9 +327,13 @@ function boot() {
     const me = results.find((r) => r.isPlayer);
     const previousBest = save.bestTime(course.id);
 
-    // Targets are derived from the player's own best rather than an authored
-    // number, so a first finish always earns something and the bar then rises.
-    const targets = previousBest ? targetsFor(previousBest) : null;
+    // Authored targets first. They come from actually racing the course
+    // headlessly (tools/tune.mjs), so every player on a level is chasing the
+    // same number - which is the whole point of a medal. The player's own best
+    // is only the fallback for a course nobody has measured, the practice
+    // track: there, a first finish still earns something and the bar rises.
+    const targets = (course.def && course.def.targets)
+      || (previousBest ? targetsFor(previousBest) : null);
     const summary = save.recordRace(course.id, {
       placement: me.placement,
       time: me.time,
@@ -346,6 +354,15 @@ function boot() {
     const notes = [];
     if (summary.improvedTime) notes.push('New best time');
     if (summary.improvedMedal) notes.push(`${summary.medal} medal`);
+    // Name the next rung rather than only the one just earned - a target the
+    // player cannot see is not a target they can chase.
+    if (targets && summary.finished) {
+      const next = summary.medal === 'gold' ? null
+        : summary.medal === 'silver' ? ['gold', targets.gold]
+          : summary.medal === 'bronze' ? ['silver', targets.silver]
+            : ['bronze', targets.bronze];
+      if (next) notes.push(`${next[0]} at ${formatTime(next[1])}`);
+    }
     if (summary.levelledUp) notes.push(`Level ${summary.levelAfter}`);
     notes.push(`+${summary.coinsEarned} coins`, `+${summary.xpEarned} XP`);
     if (!summary.persisted) notes.push('progress not saved - storage unavailable');
