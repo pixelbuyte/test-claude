@@ -277,6 +277,141 @@ html, body {
   transform: translate(-50%, 0);
 }
 
+/* --- Pause ---------------------------------------------------------------- */
+
+#pause-button {
+  position: fixed;
+  top: calc(var(--safe-top) + 84px);
+  right: calc(var(--safe-right) + 14px);
+  width: 44px;
+  height: 44px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  background: rgba(14, 20, 36, 0.7);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  z-index: 5;
+}
+
+#pause-button.hidden { display: none; }
+
+#pause {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 11, 20, 0.82);
+  backdrop-filter: blur(4px);
+  z-index: 6;
+}
+
+#pause.hidden { display: none; }
+
+#pause h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.ghost {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 11px 20px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.ghost:active { transform: translateY(1px); }
+
+/* --- Tabs and settings ---------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.tab {
+  flex: 1 1 0;
+  min-height: 36px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink-dim);
+  background: transparent;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.tab.selected {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tab-panel.hidden { display: none; }
+
+.settings {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 2px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+}
+
+.setting input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.setting select {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--edge);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+/* Character chips reuse the level grid, plus a colour swatch. */
+.char-swatch {
+  width: 100%;
+  height: 6px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+}
+
+.level-chip.owned { border-color: rgba(255, 255, 255, 0.3); }
+
 /* --- Start overlay -------------------------------------------------------- */
 
 #overlay {

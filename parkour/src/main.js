@@ -17,6 +17,7 @@ import { RaceSession, PHASE } from './app/RaceSession.js';
 import { SaveManager, targetsFor } from './sim/save/SaveManager.js';
 import { bestAvailableAdapter } from './app/storage.js';
 import { AudioManager } from './audio/AudioManager.js';
+import { CHARACTERS, character, purchaseState } from './data/characters.js';
 
 /**
  * Every course the player can pick, practice track first.
@@ -69,6 +70,10 @@ function boot() {
     resultsNotes: el('results-notes'),
     wallet: el('wallet'),
     stats: el('debug-stats'),
+    charGrid: el('character-grid'),
+    pauseButton: el('pause-button'),
+    pause: el('pause'),
+    pauseDetail: el('pause-detail'),
   };
 
   const storage = bestAvailableAdapter();
@@ -130,6 +135,8 @@ function boot() {
     const level = course.build();
     session = new RaceSession(level, renderer, input, {
       roster: course.roster, seed: course.seed, tier, audio,
+      character: character(save.data.characterId),
+      reducedMotion: save.data.settings.reducedMotion === true ? true : undefined,
     });
     session.onEvent = handleEvent;
     resultsShown = false;
@@ -166,6 +173,95 @@ function boot() {
         hud.tagline.textContent = `${c.name} · ${c.roster.length + 1} racers`;
       });
       hud.grid.appendChild(button);
+    }
+  }
+
+  // --- Runners -------------------------------------------------------------
+  function renderCharacters() {
+    hud.charGrid.innerHTML = '';
+    for (const def of CHARACTERS) {
+      const state = purchaseState(def, save);
+      const selected = save.data.characterId === def.id;
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `level-chip${selected ? ' selected' : ''}`
+        + `${state.owned ? ' owned' : ''}${state.locked ? ' locked' : ''}`;
+      button.disabled = !!state.locked;
+
+      const swatch = `linear-gradient(90deg, #${def.primary.toString(16).padStart(6, '0')}, `
+        + `#${def.accent.toString(16).padStart(6, '0')})`;
+      button.innerHTML = `<span class="char-swatch" style="background:${swatch}"></span>`
+        + `<span class="level-name">${def.name}</span>`
+        + `<span class="level-theme">${state.owned ? (selected ? 'wearing' : 'owned') : state.reason}</span>`;
+
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Recomputed here, not captured from render: the player's wallet changes
+        // every race, and a chip rendered when they were broke must not stay
+        // unbuyable once they are not.
+        const now = purchaseState(def, save);
+        if (now.locked) return;
+        if (!now.owned && !save.unlockCharacter(def.id, def.cost)) return;
+
+        save.data.characterId = def.id;
+        save.save();
+        renderCharacters();
+        renderGrid();
+      });
+      hud.charGrid.appendChild(button);
+    }
+  }
+
+  // --- Settings ------------------------------------------------------------
+  function bindSettings() {
+    const audioBox = el('set-audio');
+    const hapticsBox = el('set-haptics');
+    const motionBox = el('set-motion');
+    const quality = el('set-quality');
+
+    audioBox.checked = save.data.settings.audio !== false;
+    hapticsBox.checked = save.data.settings.haptics !== false;
+    motionBox.checked = save.data.settings.reducedMotion === true;
+    quality.value = save.data.settings.qualityTier || '';
+
+    audioBox.addEventListener('change', () => {
+      save.setSetting('audio', audioBox.checked);
+      audio.setEnabled(audioBox.checked);
+    });
+    hapticsBox.addEventListener('change', () => {
+      save.setSetting('haptics', hapticsBox.checked);
+    });
+    motionBox.addEventListener('change', () => {
+      save.setSetting('reducedMotion', motionBox.checked);
+      if (session) session.setReducedMotion(motionBox.checked);
+    });
+    quality.addEventListener('change', () => {
+      save.setSetting('qualityTier', quality.value || null);
+      // Tier is read when a renderer is built, so it applies to the next load.
+      toast('Quality applies on reload');
+    });
+
+    el('set-reset').addEventListener('click', () => {
+      save.reset();
+      renderGrid();
+      renderCharacters();
+      bindSettings();
+      toast('Progress reset');
+    });
+  }
+
+  // --- Tabs ----------------------------------------------------------------
+  function bindTabs() {
+    const tabs = [...document.querySelectorAll('.tab')];
+    for (const tab of tabs) {
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        for (const other of tabs) other.classList.toggle('selected', other === tab);
+        for (const name of ['courses', 'runners', 'settings']) {
+          el(`tab-${name}`).classList.toggle('hidden', name !== tab.dataset.tab);
+        }
+      });
     }
   }
 
@@ -281,11 +377,48 @@ function boot() {
     // Browsers only hand out a usable AudioContext from inside a gesture, so
     // this is the first and only place it can be created.
     if (audio.start()) audio.playMusic(course.theme);
-    else audio.resume();
+    else { audio.resume(); audio.playMusic(course.theme); }
+    hud.pauseButton.classList.remove('hidden');
     buildSession();
     session.start();
     last = performance.now();
   };
+
+  const showPause = () => {
+    if (!session || !session.running) return;
+    session.pause();
+    audio.suspend();
+    const s = session.hudState();
+    hud.pauseDetail.textContent = `${course.name} · ${ordinal(s.rank)} of ${s.fieldSize} `
+      + `· ${(s.progress * 100).toFixed(0)}% · ${formatClock(s.time)}`;
+    hud.pause.classList.remove('hidden');
+  };
+
+  const hidePause = () => {
+    hud.pause.classList.add('hidden');
+    if (!session) return;
+    session.resume();
+    audio.resume();
+    last = performance.now();
+  };
+
+  const toMenu = () => {
+    hud.pause.classList.add('hidden');
+    hud.results.classList.add('hidden');
+    hud.pauseButton.classList.add('hidden');
+    if (session) session.pause();
+    audio.stopMusic();
+    hud.overlay.classList.remove('hidden');
+    renderGrid();
+    renderCharacters();
+  };
+
+  hud.pauseButton.addEventListener('click', (e) => { e.stopPropagation(); showPause(); });
+  el('pause-resume').addEventListener('click', (e) => { e.stopPropagation(); hidePause(); });
+  el('pause-restart').addEventListener('click', (e) => { e.stopPropagation(); hud.pause.classList.add('hidden'); startRace(); });
+  el('pause-quit').addEventListener('click', (e) => { e.stopPropagation(); toMenu(); });
+  el('results-again').addEventListener('click', (e) => { e.stopPropagation(); startRace(); });
+  el('results-menu').addEventListener('click', (e) => { e.stopPropagation(); toMenu(); });
 
   hud.startButton.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -293,6 +426,10 @@ function boot() {
   });
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (!session || !session.running)) startRace();
+    if (e.key === 'Escape' || e.key === 'p') {
+      if (hud.pause.classList.contains('hidden')) showPause();
+      else hidePause();
+    }
   });
 
   document.addEventListener('visibilitychange', () => {
@@ -324,6 +461,10 @@ function boot() {
   };
 
   renderGrid();
+  renderCharacters();
+  bindSettings();
+  bindTabs();
+  hud.pauseButton.classList.add('hidden');
   // Build one immediately so there is something behind the menu to look at.
   buildSession();
   requestAnimationFrame(frame);

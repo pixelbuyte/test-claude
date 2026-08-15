@@ -48,21 +48,26 @@ export class RaceSession {
     this.player = player;
 
     this.camera = makeCamera();
-    this.camera.allowShake = !prefersReducedMotion();
 
     this.scene = new SceneBuilder(level);
     renderer.applyTheme(level.theme);
     renderer.scene.add(this.scene.group);
 
     this.vfx = new VFXManager(renderer.scene, this.tier);
-    // Reduced motion keeps the game readable but drops the flourish.
-    if (prefersReducedMotion()) this.vfx.setEnabled(false);
+    // Reduced motion keeps the game readable but drops the flourish. The saved
+    // setting wins over the OS hint, because it is the more specific choice.
+    const reduced = opts.reducedMotion ?? prefersReducedMotion();
+    if (reduced) this.vfx.setEnabled(false);
+    this.camera.allowShake = !reduced;
     this.audio = opts.audio || null;
 
     // One view per racer. Interpolation endpoints live alongside, so rendering
     // never reads a half-stepped body.
+    const me = opts.character;
     this.views = this.race.racers.map((r, i) => {
-      const view = new CharacterView({
+      const view = new CharacterView(r.isPlayer && me ? {
+        color: me.primary, accent: me.accent, skin: me.skin,
+      } : {
         color: r.isPlayer ? 0xff7a3d : OPPONENT_COLORS[(i - 1) % OPPONENT_COLORS.length],
         accent: r.isPlayer ? 0x2b3350 : 0x1e2438,
       });
@@ -285,6 +290,12 @@ export class RaceSession {
 
   results() {
     return this.race.results();
+  }
+
+  /** Applies the reduced-motion setting without rebuilding the race. */
+  setReducedMotion(on) {
+    this.vfx.setEnabled(!on);
+    this.camera.allowShake = !on;
   }
 
   onResize() {

@@ -4,7 +4,7 @@ An original 3D parkour racing game that runs in a mobile browser. No build step,
 no bundler, no external assets — open `index.html` from a static server and play.
 
 ```bash
-npm test                     # 120 tests, zero dependencies
+npm test                     # 165 tests, zero dependencies
 npx http-server . -p 8080    # ES modules need a server; file:// will not work
 npm run smoke                # headless Chromium playthrough + screenshots
 ```
@@ -72,10 +72,16 @@ src/sim/core/              event ring, pool, fixed-step accumulator, checksum
 src/sim/world/             ColliderSet (SoA), broadphase, sweep, World
 src/sim/player/            movement, affordances, parkour state machine
 src/sim/camera/            chase camera as pure numbers
-src/sim/level/             LevelBuilder
+src/sim/level/             builder, chunk assembler, reachability, validator
+src/sim/race/              RaceManager, headless race runner
+src/sim/ai/                opponent brains
+src/sim/systems/           power-ups
+src/sim/save/              schema + SaveManager (storage adapter injected)
+src/sim/anim/              clip sampling, blending, the blend tree
 src/sim/testing/rig.js     headless single-racer harness
-src/data/                  themes, levels — pure data
-src/render/                Renderer, SceneBuilder, boxMerge, CharacterView
+src/data/                  themes, levels, chunks, characters, rig, clips — pure
+src/render/                Renderer, SceneBuilder, boxMerge, VFX, CharacterView
+src/audio/                 procedural synth, SFX mapping, music beds
 src/input/                 touch + keyboard, normalised to one intent shape
 src/app/RaceSession.js     the seam where sim and view meet
 tools/smoke.mjs            headless browser playthrough
@@ -114,6 +120,23 @@ timing, risk appetite, and how often it deliberately fumbles.
 difficulty tunable by measurement rather than by feel, and is how every level is
 proved finishable in the test suite.
 
+## Presentation
+
+There are no asset files of any kind. Every sound is built from oscillators and
+shaped noise in `audio/synth.js` and scheduled against the AudioContext clock -
+scheduling rather than firing is what puts a footstep on the frame the foot
+planted rather than wherever the frame happened to land. Three procedural music
+beds cover four themes, each remapping timbre, tempo and key.
+
+Animation is data: `data/anim/clips.js` holds Euler keyframe tracks with
+blend-in times and embedded events, and `sim/anim/` samples and blends them
+across three layers - a 1-D locomotion blend by speed, the parkour state's clip,
+and additive lean. Because it is pure, "do crossfade weights stay sane" and
+"does a footstep fire once per cycle at any rate" are ordinary assertions.
+
+Every particle in the game lives in one `THREE.Points` over a preallocated pool,
+so a new effect costs a table entry rather than a draw call.
+
 ## Progress
 
 `SaveManager` takes a storage adapter rather than importing one, so it stays
@@ -124,14 +147,17 @@ trusted, so a hand-edited file cannot grant it.
 
 ## Status
 
-Playable: twelve levels across four themes plus a practice track, raced against
-a field of AI opponents, with vaulting, sliding, wall-running, wall-jumping,
-mantling, launch pads, coins, checkpoints, respawns, a countdown, live rank, a
-results table, and best times, medals, coins and XP that survive a reload.
+Playable end to end: twelve levels across four themes plus a practice track,
+raced against a field of AI opponents, with vaulting, sliding, wall-running,
+wall-jumping, mantling, launch pads, power-ups, coins and shards, checkpoints,
+respawns, a countdown, live rank, pause, results, six unlockable runners,
+settings, procedural audio and particles — and best times, medals, coins and XP
+that survive a reload.
 
-Still to come: power-ups and collectible variety, character customisation, the
-full menu flow beyond level select, audio, VFX, and the keyframed animation
-system (the character rig is posed procedurally for now).
+Still to come: a guided tutorial rather than the control list on the menu,
+adaptive quality downgrade under sustained frame pressure, and a tuning pass
+that sets per-level target times from measured reference runs rather than from
+the player's own previous best.
 
 ## Not included, rather than faked
 
