@@ -62,6 +62,7 @@ function boot() {
     grid: el('level-grid'),
     startButton: el('start-button'),
     countdown: el('countdown'),
+    effects: el('effects'),
     results: el('results'),
     resultsBody: el('results-body'),
     resultsNotes: el('results-notes'),
@@ -166,6 +167,29 @@ function boot() {
     }
   }
 
+  /**
+   * Draws the active power-up chips. Rebuilt only when the set actually changes,
+   * so this is not touching the DOM sixty times a second during a race.
+   */
+  let effectsKey = '';
+  function renderEffects(effects) {
+    const shown = [];
+    if (effects.shield > 0) shown.push(['shield', `${effects.shield}`, false]);
+    if (effects.speed > 0) shown.push(['speed', effects.speed.toFixed(0), effects.speed < 1]);
+    if (effects.magnet > 0) shown.push(['magnet', effects.magnet.toFixed(0), effects.magnet < 1]);
+    if (effects.slowmo > 0) shown.push(['slowmo', effects.slowmo.toFixed(0), effects.slowmo < 1]);
+    if (effects.invuln > 0) shown.push(['invuln', effects.invuln.toFixed(0), effects.invuln < 1]);
+
+    const key = shown.map((e) => e.join(':')).join('|');
+    if (key === effectsKey) return;
+    effectsKey = key;
+
+    hud.effects.innerHTML = shown.map(([name, value, expiring]) => `
+      <span class="effect effect-${name}${expiring ? ' expiring' : ''}">
+        <span class="effect-dot"></span>${name} ${value}
+      </span>`).join('');
+  }
+
   const showResults = () => {
     if (resultsShown) return;
     resultsShown = true;
@@ -227,6 +251,7 @@ function boot() {
     hud.speed.textContent = s.speed.toFixed(1);
     hud.state.textContent = stateName(s.state);
     hud.progress.style.width = `${(s.progress * 100).toFixed(1)}%`;
+    renderEffects(s.effects);
 
     if (s.phase === PHASE.FINISHED) showResults();
 

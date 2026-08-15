@@ -13,6 +13,7 @@ import { STEP, RACE } from '../../config.js';
 import { EV } from '../core/events.js';
 import { stepRacer, placeRacer, consumeEdges, saveCheckpoint, applyBoost } from '../player/PlayerController.js';
 import { thinkAI, makeField } from '../ai/AIController.js';
+import { stepPowerUps, collectPowerup } from '../systems/PowerUpSystem.js';
 import { STATE } from '../player/states.js';
 
 export const PHASE = {
@@ -101,6 +102,10 @@ export class RaceManager {
       stepRacer(ai.racer, intent, this.world, ev);
     }
 
+    // After everyone has moved: magnet range and slow-mo both depend on where
+    // the field actually ended up this substep.
+    stepPowerUps(this.racers, this.player, this.world, ev);
+
     this._resolveEvents(ev);
     this._updateOrder(ev);
     this._checkRaceEnd(ev);
@@ -133,6 +138,13 @@ export class RaceManager {
           break;
         case EV.BOOST_PAD:
           applyBoost(r);
+          break;
+        case EV.POWERUP_PICKUP:
+          // The world reported *which pickup* was touched; the system decides
+          // what it means and writes the kind back into the same record, so the
+          // view drains one event that says both. No second event, no
+          // double-count.
+          e.b = collectPowerup(r, this.world, e.a);
           break;
         case EV.FINISH:
           this._finish(r);

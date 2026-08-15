@@ -142,6 +142,48 @@ html, body {
 
 .stat-rank .stat-value { color: var(--accent); }
 
+.effects {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.effect {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  background: rgba(14, 20, 36, 0.7);
+  border: 1px solid var(--edge);
+  backdrop-filter: blur(4px);
+}
+
+.effect-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.effect-shield { color: #6fd0ff; }
+.effect-speed { color: #ffb26b; }
+.effect-magnet { color: #ffd85e; }
+.effect-slowmo { color: #b98cff; }
+.effect-invuln { color: #7ef0b0; }
+
+/* The last second of an effect blinks, so it never just vanishes. */
+.effect.expiring { animation: effect-blink 380ms steps(2, start) infinite; }
+
+@keyframes effect-blink { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .effect.expiring { animation: none; opacity: 0.6; }
+}
+
 #countdown {
   position: absolute;
   left: 50%;

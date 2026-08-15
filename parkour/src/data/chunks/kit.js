@@ -70,6 +70,16 @@ function coin(x, y, z) {
   return { x, y, z, type: 'coin' };
 }
 
+/** A rarer collectible, worth placing where it costs something to reach. */
+function shard(x, y, z) {
+  return { x, y, z, type: 'shard' };
+}
+
+/** `kind` is a POWERUPS key: speed, shield, magnet, slowmo, airboost, invuln. */
+function powerup(x, y, z, kind) {
+  return { x, y, z, type: kind };
+}
+
 /**
  * @typedef {object} Chunk
  * @property {string} id
@@ -93,6 +103,24 @@ export const CHUNKS = [
     mirrorable: false,
     boxes: [floor(0, 20), ...rails(0, 20)],
     pickups: [coin(0, 1.2, 6), coin(0, 1.2, 10), coin(0, 1.2, 14)],
+    gaps: [],
+  },
+  {
+    id: 'run-powerup',
+    tags: ['rest', 'powerup'],
+    difficulty: 0,
+    length: 22,
+    entry: { lanes: ALL_LANES, y: 0, minSpeed: 0 },
+    exit: { lanes: ALL_LANES, y: 0 },
+    mirrorable: false,
+    boxes: [floor(0, 22), ...rails(0, 22)],
+    // The pickup sits off the racing line, so taking it costs a moment.
+    pickups: [
+      coin(0, 1.2, 5), coin(0, 1.2, 7),
+      powerup(-2.4, 1.3, 12, 'shield'),
+      powerup(2.4, 1.3, 12, 'magnet'),
+      coin(0, 1.2, 18),
+    ],
     gaps: [],
   },
   {
@@ -191,7 +219,7 @@ export const CHUNKS = [
     exit: { lanes: ALL_LANES, y: 0 },
     mirrorable: false,
     boxes: [floor(0, 9), floor(15, 22), floor(28, 34), ...rails(0, 34)],
-    pickups: [coin(0, 2.4, 12), coin(0, 2.4, 25)],
+    pickups: [coin(0, 2.4, 12), shard(0, 2.6, 25), powerup(0, 2.4, 19, 'slowmo')],
     gaps: [{ z0: 9, z1: 15 }, { z0: 22, z1: 28 }],
   },
 
@@ -213,7 +241,10 @@ export const CHUNKS = [
       { x0: -HALF, y0: -1, z0: 10, x1: HALF, y1: 0, z1: 16, kind: KIND.TRIGGER, flags: FLAG.HAZARD },
       runWall(-1, 7, 19),
     ],
-    pickups: [coin(-2.2, 2.6, 11), coin(-2.2, 2.6, 13), coin(-2.2, 2.6, 15)],
+    pickups: [
+      coin(-2.2, 2.6, 11), coin(-2.2, 2.6, 13), coin(-2.2, 2.6, 15),
+      shard(-2.2, 2.6, 14),
+    ],
     gaps: [{ z0: 10, z1: 16, mode: 'wallrun' }],
   },
 
@@ -269,7 +300,10 @@ export const CHUNKS = [
     ],
     // Crossed on the pad's arc, not the runner's own jump - so it is checked
     // against launch reach.
-    pickups: [coin(0, 2.6, 11.5), coin(0, 2.8, 13)],
+    pickups: [
+      coin(0, 2.6, 11.5), coin(0, 2.8, 13),
+      powerup(0, 2.9, 12.2, 'airboost'),
+    ],
     gaps: [{ z0: 10, z1: 15.5, mode: 'launch' }],
   },
   {
@@ -298,7 +332,7 @@ export const CHUNKS = [
     exit: { lanes: ALL_LANES, y: 0 },
     mirrorable: false,
     boxes: [floor(0, 32), ...rails(0, 32), vault(8, 0.9), bar(18, 0.98, 1.6), vault(26, 0.8)],
-    pickups: [coin(0, 1.7, 9), coin(0, 0.5, 19), coin(0, 1.6, 27)],
+    pickups: [coin(0, 1.7, 9), coin(0, 0.5, 19), coin(0, 1.6, 27), powerup(0, 1.3, 14, 'speed')],
     gaps: [],
   },
 ];

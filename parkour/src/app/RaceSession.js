@@ -15,6 +15,7 @@ import { createStepper, advance } from '../sim/core/fixedloop.js';
 import { makeRacer, placeRacer, makeIntent } from '../sim/player/PlayerController.js';
 import { RaceManager, PHASE } from '../sim/race/RaceManager.js';
 import { makeCamera, stepCamera, resetCamera, addShake, setAspectMode } from '../sim/camera/CameraController.js';
+import { activeEffects } from '../sim/systems/PowerUpSystem.js';
 import { SceneBuilder } from '../render/SceneBuilder.js';
 import { CharacterView } from '../render/character/CharacterView.js';
 
@@ -209,6 +210,8 @@ export class RaceSession {
       countdown: this.race.countdown,
       finished: p.finished,
       deaths: p.deaths,
+      shards: p.shards,
+      effects: activeEffects(p),
     };
   }
 

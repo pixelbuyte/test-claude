@@ -101,10 +101,18 @@ export function assembleLevel(def) {
   };
 
   // A lead-in so the runner is up to speed before being asked anything.
+  //
+  // The authored intro advances the same state the tail selection reads. Without
+  // this the tail is chosen as though the intro never happened: it would not know
+  // which chunk it is following, and - worse - would not know what height the
+  // intro left the runner at.
   const sequence = [];
   for (const id of def.intro || []) {
     const c = CHUNKS_BY_ID[id];
-    if (c) sequence.push(c);
+    if (c) {
+      sequence.push(c);
+      advanceState(state, c);
+    }
   }
 
   const tailCount = def.tailChunks ?? 0;
@@ -129,7 +137,7 @@ export function assembleLevel(def) {
 
     // If nothing qualifies, the fallback always does. Generation cannot fail.
     const pickIndex = candidates.length > 0 ? rng.pickWeightedIndex(weights) : -1;
-    const chosen = pickIndex >= 0 ? candidates[pickIndex] : FALLBACK_CHUNK;
+    const chosen = pickIndex >= 0 ? candidates[pickIndex] : fallbackFor(state);
 
     sequence.push(chosen);
     advanceState(state, chosen);
@@ -137,7 +145,9 @@ export function assembleLevel(def) {
 
   for (const id of def.outro || []) {
     const c = CHUNKS_BY_ID[id];
-    if (c && isAdmissible(c, state)) {
+    // Skip an outro chunk the tail already happens to have ended on: a calm
+    // run-out is authored intent, and doing it twice just pads the course.
+    if (c && isAdmissible(c, state) && c.id !== state.lastId) {
       sequence.push(c);
       advanceState(state, c);
     }
@@ -178,6 +188,23 @@ export function assembleLevel(def) {
   level.seed = def.seed ?? 1;
   level.chunkSequence = sequence.map((c) => c.id);
   return level;
+}
+
+/**
+ * The chunk to place when nothing else qualifies.
+ *
+ * Normally the declared fallback, but never the chunk we just placed - a
+ * doubled chunk reads as a glitch. Any other chunk that asks nothing of the
+ * runner will do, and the kit validator proves at least one exists.
+ */
+function fallbackFor(state) {
+  if (FALLBACK_CHUNK.id !== state.lastId) return FALLBACK_CHUNK;
+  const alternate = CHUNKS.find((c) => c.id !== state.lastId
+    && c.entry.minSpeed === 0
+    && c.entry.y === state.exitY
+    && c.exit.y === c.entry.y
+    && c.entry.lanes.length >= 3);
+  return alternate || FALLBACK_CHUNK;
 }
 
 function advanceState(state, chunk) {
