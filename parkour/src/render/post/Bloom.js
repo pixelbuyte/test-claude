@@ -100,18 +100,32 @@ const COMPOSITE_FRAG = /* glsl */`
   }
 `;
 
-function makeTarget(w, h) {
-  const t = new THREE.WebGLRenderTarget(Math.max(1, w), Math.max(1, h), {
+/**
+ * Can this device actually render into a half-float target?
+ *
+ * Not every mobile GPU can. Where it cannot, the framebuffer comes back
+ * incomplete and the game renders a black screen - which on a phone is
+ * indistinguishable from "I pressed start and nothing happened". A renderer for
+ * a game whose whole premise is that it runs in a mobile browser has to ask
+ * rather than assume.
+ */
+function canRenderHalfFloat(renderer) {
+  const gl = renderer.getContext();
+  const isWebGL2 = typeof WebGL2RenderingContext !== 'undefined'
+    && gl instanceof WebGL2RenderingContext;
+  const ext = renderer.extensions;
+  if (isWebGL2) return !!ext.get('EXT_color_buffer_half_float') || !!ext.get('EXT_color_buffer_float');
+  return !!ext.get('EXT_color_buffer_half_float');
+}
+
+function makeTarget(w, h, type) {
+  return new THREE.WebGLRenderTarget(Math.max(1, w), Math.max(1, h), {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
-    // Half-float so a surface can be brighter than white and still bloom by how
-    // much it overshoots. In an 8-bit target everything above 1 clamps flat and
-    // the brightest things in the scene all glow identically.
-    type: THREE.HalfFloatType,
+    type,
     depthBuffer: true,
     stencilBuffer: false,
   });
-  return t;
 }
 
 export class Bloom {
@@ -136,14 +150,22 @@ export class Bloom {
     /** Blur reach, in half-res texels. */
     this.radius = opts.radius ?? 1.6;
 
+    // Half-float lets a surface be brighter than white and bloom by how much it
+    // overshoots. In an 8-bit target everything above 1 clamps flat, so the
+    // brightest things all glow identically - degraded, but a picture. A device
+    // that cannot render half-float at all gets that degraded version rather
+    // than an incomplete framebuffer and a black screen.
+    this.hdr = canRenderHalfFloat(renderer);
+    const type = this.hdr ? THREE.HalfFloatType : THREE.UnsignedByteType;
+
     // Every target stays in linear light. Bloom is a simulation of light
     // spilling, and light adds linearly - blurring display-encoded values
     // spreads the wrong amount of it. The single conversion to sRGB happens in
     // the composite shader, on the last write before the canvas.
-    this.sceneTarget = makeTarget(1, 1);
-    this.brightTarget = makeTarget(1, 1);
-    this.blurA = makeTarget(1, 1);
-    this.blurB = makeTarget(1, 1);
+    this.sceneTarget = makeTarget(1, 1, type);
+    this.brightTarget = makeTarget(1, 1, type);
+    this.blurA = makeTarget(1, 1, type);
+    this.blurB = makeTarget(1, 1, type);
 
     this.brightMaterial = new THREE.ShaderMaterial({
       uniforms: {
