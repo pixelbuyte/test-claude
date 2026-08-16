@@ -153,6 +153,21 @@ export const CAMERA = {
   lookAheadPerSpeed: 0.35,
   fovLandscape: 62,
   fovPortrait: 74,
+  /**
+   * Portrait framing.
+   *
+   * Rotating the phone used to change nothing but the field of view, so a tall
+   * screen got the landscape framing stretched over it: the runner sat large and
+   * low with a third of the frame given to empty sky, and no more of the course
+   * was visible than in landscape - which is backwards, since a tall screen is
+   * exactly where there is room to see further ahead.
+   *
+   * Lifting the camera pitches it down toward the same look point, which raises
+   * the horizon in frame and trades that dead sky for track. The extra boom
+   * keeps the runner from growing to fill the taller viewport.
+   */
+  portraitHeightBonus: 0.9,
+  portraitBoomScale: 1.1,
   fovSpeedKick: 12,
   /** Critically-damped follow frequency. */
   followOmega: 9,

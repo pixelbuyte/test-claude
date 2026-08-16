@@ -73,10 +73,12 @@ export function stepCamera(cam, p, world) {
 
   // --- Where the camera wants to be ---------------------------------------
   cam.boomTarget = lerp(CAMERA.boomNear, CAMERA.boomFar, speedT);
+  if (cam.portrait) cam.boomTarget *= CAMERA.portraitBoomScale;
   const boom = antiClip(cam, p, world);
 
   const wantX = p.pos.x * 0.75;
-  const wantY = p.pos.y + CAMERA.height;
+  const height = CAMERA.height + (cam.portrait ? CAMERA.portraitHeightBonus : 0);
+  const wantY = p.pos.y + height;
   const wantZ = p.pos.z - boom;
 
   cam.pos.x = damp(cam.pos.x, wantX, CAMERA.followOmega, STEP);

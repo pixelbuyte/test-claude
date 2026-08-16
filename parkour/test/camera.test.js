@@ -185,3 +185,26 @@ test('the camera never resolves inside the level it is following through', () =>
   assert.equal(insideSlab, false, `camera resolved inside the blocker at z=${cam.pos.z}`);
   assert.ok(cam.boom >= 1.2, 'the boom never collapses past its floor');
 });
+
+test('portrait shows more of the course, not just a wider lens', () => {
+  // Rotating the phone used to change nothing but FOV, so a tall screen got the
+  // landscape framing stretched over it - a third of the frame was empty sky
+  // and no more of the course was visible than in landscape.
+  const world = emptyWorld();
+  const p = racer({ speed: 14 });
+
+  const tall = makeCamera();
+  resetCamera(tall, p);
+  setAspectMode(tall, 400, 900);
+  for (let i = 0; i < 300; i++) stepCamera(tall, p, world);
+
+  const wide = makeCamera();
+  resetCamera(wide, p);
+  setAspectMode(wide, 900, 400);
+  for (let i = 0; i < 300; i++) stepCamera(wide, p, world);
+
+  assert.ok(tall.pos.y > wide.pos.y,
+    `portrait sits higher so it pitches down onto the track (${tall.pos.y} vs ${wide.pos.y})`);
+  assert.ok(tall.pos.z < wide.pos.z,
+    'portrait pulls further back, so the runner does not swell to fill a taller viewport');
+});
