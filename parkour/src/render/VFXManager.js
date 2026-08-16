@@ -25,6 +25,10 @@ const PRESETS = {
   boost: { count: 16, life: 0.5, size: 0.16, speed: 5.5, gravity: -1, spread: 1.2, color: 0x6fd0ff, drag: 2.2 },
   wall: { count: 6, life: 0.4, size: 0.13, speed: 2.6, gravity: -5, spread: 0.7, color: 0xbcc6dd, drag: 2.8 },
   speedline: { count: 3, life: 0.28, size: 0.1, speed: 0.4, gravity: 0, spread: 3.2, color: 0xffffff, drag: 0.2 },
+  /** One soft white ball per footfall, left hanging where the foot planted. */
+  puff: { count: 2, life: 0.55, size: 0.3, speed: 0.9, gravity: 0.3, spread: 0.35, color: 0xffffff, drag: 4.5 },
+  /** The comet tail: emitted at the runner, coloured by the runner. */
+  trail: { count: 2, life: 0.34, size: 0.17, speed: 2.2, gravity: 0, spread: 0.5, color: 0xff5a24, drag: 2.2 },
 };
 
 /**
@@ -72,8 +76,6 @@ export class VFXManager {
     this.positions = new Float32Array(n * 3);
     this.velocities = new Float32Array(n * 3);
     this.colors = new Float32Array(n * 3);
-    /** The colour a particle was emitted with; `colors` is that times its fade. */
-    this.baseColors = new Float32Array(n * 3);
     this.sizes = new Float32Array(n);
     this.baseSizes = new Float32Array(n);
     this.life = new Float32Array(n);
@@ -101,9 +103,13 @@ export class VFXManager {
       alphaTest: 0.01,
       vertexColors: true,
       transparent: true,
-      opacity: 0.95,
+      opacity: 0.92,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      // Normal, not additive: the daylight themes run over near-white ground,
+      // and additive blending can only ever brighten - a white footstep puff
+      // over a white rooftop simply vanished. Dying particles shrink to zero
+      // in update() instead of darkening, which needs no per-particle alpha.
+      blending: THREE.NormalBlending,
       sizeAttenuation: true,
     });
 
@@ -156,9 +162,6 @@ export class VFXManager {
       this.velocities[o + 1] = (this._rand() * 0.8 + 0.2 + (opts.dirY ?? 0)) * sp;
       this.velocities[o + 2] = ((this._rand() - 0.5) * p.spread + (opts.dirZ ?? 0)) * sp;
 
-      this.baseColors[o] = this._color.r;
-      this.baseColors[o + 1] = this._color.g;
-      this.baseColors[o + 2] = this._color.b;
       this.colors[o] = this._color.r;
       this.colors[o + 1] = this._color.g;
       this.colors[o + 2] = this._color.b;
@@ -170,6 +173,8 @@ export class VFXManager {
       this.drag[slot] = p.drag;
       this.gravity[slot] = p.gravity;
     }
+    // Colours are written only here, so this is the one place they upload.
+    this.geometry.attributes.color.needsUpdate = true;
   }
 
   /**
@@ -189,12 +194,27 @@ export class VFXManager {
     }
   }
 
+  /**
+   * The comet tail: runner-coloured particles shed continuously at speed, so a
+   * fast runner visibly *burns*. Rate-limited by an accumulator exactly like
+   * speedLines, and coloured per call so every racer can shed its own colour.
+   */
+  runnerTrail(at, speed, dt, color) {
+    if (!this.enabled || speed < 12) return;
+    this._trailAccum = (this._trailAccum || 0) + dt * (speed - 10) * 2.2;
+    while (this._trailAccum >= 1) {
+      this._trailAccum -= 1;
+      this.emit('trail', {
+        x: at.x, y: at.y + 0.5 + this._rand() * 0.7, z: at.z,
+      }, { scale: 1, color, dirZ: -1.4 });
+    }
+  }
+
   /** Integrates every live particle. One flat loop, no allocation. */
   update(dt) {
     if (this.alive === 0) return;
     const pos = this.positions;
     const vel = this.velocities;
-    const col = this.colors;
 
     let alive = 0;
     for (let i = 0; i < this.budget; i++) {
@@ -223,21 +243,16 @@ export class VFXManager {
       pos[o + 1] += vel[o + 1] * dt;
       pos[o + 2] += vel[o + 2] * dt;
 
-      // Fade by scaling the emitted colour toward black. Under additive
-      // blending that *is* a fade-out, and it costs no per-particle opacity
-      // attribute. Scaling from the stored base each frame rather than
-      // multiplying in place keeps it framerate-independent and reversible.
+      // Fade by shrinking to nothing rather than darkening. Under normal
+      // blending a colour scaled toward black is a *black particle*, not a
+      // faded one - dying dust would read as soot on a white rooftop. A size
+      // ramp needs no per-particle alpha and works over any background.
       const t = next / this.maxLife[i];
-      const fade = t * t;
-      col[o] = this.baseColors[o] * fade;
-      col[o + 1] = this.baseColors[o + 1] * fade;
-      col[o + 2] = this.baseColors[o + 2] * fade;
-      this.sizes[i] = this.baseSizes[i] * (0.55 + t * 0.45);
+      this.sizes[i] = this.baseSizes[i] * (t * (2 - t));
     }
 
     this.alive = alive;
     this.geometry.attributes.position.needsUpdate = true;
-    this.geometry.attributes.color.needsUpdate = true;
     this.geometry.attributes.size.needsUpdate = true;
   }
 

@@ -96,6 +96,8 @@ export class RaceSession {
 
     this.intent = input ? input.intent : makeIntent();
     this.onEvent = null;
+    /** What the comet tail sheds - the player's own colour. */
+    this.trailColor = (opts.character && opts.character.primary) || 0xff5a24;
 
     resetCamera(this.camera, player);
     this._syncAspect();
@@ -273,10 +275,18 @@ export class RaceSession {
     this.scene.updatePickups(this.world, this.race.time);
 
     this.vfx.speedLines(focus, this.player.speed, dtSeconds);
-    this.vfx.update(dtSeconds);
+    this.vfx.runnerTrail(focus, this.player.speed, dtSeconds, this.trailColor);
     // The player's rig emitted these while posing; footsteps land on the frame
-    // the foot planted rather than on a timer's best guess.
-    if (this.audio) this.audio.playAnimationEvents(me.view.events, this.player);
+    // the foot planted rather than on a timer's best guess. The same events
+    // drive the dust: one white puff exactly where the foot went down.
+    const animEvents = me.view.events;
+    if (this.vfx.enabled && this.player.grounded && this.player.speed > 4) {
+      for (let i = 0; i < animEvents.length; i++) {
+        if (animEvents[i] === 'footstep') this.vfx.emit('puff', focus, { scale: 1 });
+      }
+    }
+    this.vfx.update(dtSeconds);
+    if (this.audio) this.audio.playAnimationEvents(animEvents, this.player);
 
     this.renderer.render();
   }
