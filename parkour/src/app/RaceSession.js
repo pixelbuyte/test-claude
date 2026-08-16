@@ -179,12 +179,16 @@ export class RaceSession {
   }
 
   /**
-   * Turns an event into particles. Every racer gets these, not just the player -
-   * seeing an opponent crash ahead of you is information.
+   * Turns an event into particles. Movement effects fire for every racer -
+   * seeing an opponent crash ahead of you is information - but pickups only
+   * for the player: with a field of ten, rivals hoovering the same coin lines
+   * turned every race into a permanent yellow drizzle.
    */
   _spawnVFX(e) {
     const racer = this.race.racers[e.actor];
     if (!racer || !this.vfx.enabled) return;
+    if (e.actor !== this.player.index
+      && (e.type === EV.COIN || e.type === EV.SHARD || e.type === EV.POWERUP_PICKUP)) return;
     const at = racer.pos;
 
     switch (e.type) {
