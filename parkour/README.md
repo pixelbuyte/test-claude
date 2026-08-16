@@ -140,6 +140,17 @@ and additive lean. Because it is pure, "do crossfade weights stay sane" and
 Every particle in the game lives in one `THREE.Points` over a preallocated pool,
 so a new effect costs a table entry rather than a draw call.
 
+Two things carry most of the visual weight, and both are close to free. The sky
+is a gradient dome — one inverted sphere, vertex-coloured, one draw call — whose
+horizon band is set to the fog colour *exactly*, so what the fog swallows
+dissolves into the sky instead of stopping against a flat wall. And the running
+surfaces carry edge stripes and dashed lane dividers, merged into the section
+mesh they sit on, so they cost no draw calls at all: a featureless slab gives the
+eye nothing to measure motion against, and dashes streaming past make 20 m/s look
+different from 9 m/s without a single UI element. The dashes are phased off world
+Z rather than off each surface's own start, so they run through chunk seams
+instead of restarting at every boundary.
+
 ## Allocation
 
 The simulation is meant to produce no garbage per substep. `npm run allocs`

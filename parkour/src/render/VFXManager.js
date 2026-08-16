@@ -27,6 +27,32 @@ const PRESETS = {
   speedline: { count: 3, life: 0.28, size: 0.1, speed: 0.4, gravity: 0, spread: 3.2, color: 0xffffff, drag: 0.2 },
 };
 
+/**
+ * A soft round particle, drawn once into a canvas.
+ *
+ * 64px is plenty: these are never more than a few dozen pixels on screen, and a
+ * radial falloff is the whole difference between "spark" and "square".
+ */
+function makeSpriteTexture() {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.35, 'rgba(255,255,255,0.85)');
+  g.addColorStop(0.75, 'rgba(255,255,255,0.18)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 export class VFXManager {
   /**
    * @param {THREE.Scene} scene
@@ -68,6 +94,11 @@ export class VFXManager {
 
     const mat = new THREE.PointsMaterial({
       size: 0.18,
+      // Without a map every particle is a hard-edged square, which is why a
+      // crash read as confetti rather than debris. The sprite is drawn onto a
+      // canvas at construction - still no asset file, still fully procedural.
+      map: makeSpriteTexture(),
+      alphaTest: 0.01,
       vertexColors: true,
       transparent: true,
       opacity: 0.95,
@@ -243,6 +274,7 @@ export class VFXManager {
 
   dispose() {
     this.geometry.dispose();
+    if (this.material.map) this.material.map.dispose();
     this.material.dispose();
   }
 }

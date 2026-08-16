@@ -9,10 +9,91 @@
  * a distance window: no geometry is created or destroyed during a race.
  */
 import * as THREE from 'three';
-import { KIND, FLAG } from '../config.js';
+import { KIND, FLAG, MOVEMENT } from '../config.js';
 import { getTheme } from '../data/themes.js';
 import { mergeBoxes } from './geometry/boxMerge.js';
 import { buildDecor } from './geometry/decor.js';
+
+/** Track markings. Tuned to read at 20 m/s, not to survive close inspection. */
+const MARKS = {
+  /** Continuous stripe hugging each outer edge of the running surface. */
+  edgeWidth: 0.3,
+  /** Dashed lane dividers, world-aligned so they run through chunk seams. */
+  dashWidth: 0.16,
+  dashLength: 1.7,
+  dashSpacing: 5.5,
+  /** Sat on top of the surface, not sunk into it - z-fighting is worse than a lip. */
+  lift: 0.025,
+  thickness: 0.03,
+};
+
+/**
+ * Could this collider be a surface the runner runs along?
+ *
+ * Shape alone cannot settle it: an overhead bar is exactly as wide, as long and
+ * as solid as a floor, and painting lane dashes on top of one hangs a ladder in
+ * the sky. This is the shape half; `pushMarkings` is only called for candidates
+ * near the section's own base height, which is the half that rules bars out.
+ *
+ * `chunkRanges[].floorY` is deliberately not used here - it is the death plane,
+ * thirty metres below anything runnable, not the running floor.
+ */
+function isSurfaceCandidate(cs, i) {
+  if (cs.kind[i] !== KIND.SOLID) return false;
+  if ((cs.flags[i] & (FLAG.HAZARD | FLAG.BOOST)) !== 0) return false;
+  if (cs.maxX[i] - cs.minX[i] < 6) return false;
+  if (cs.maxZ[i] - cs.minZ[i] < 3) return false;
+  return cs.maxY[i] - cs.minY[i] >= 0.8;
+}
+
+/** How far above a section's lowest running surface still counts as one. */
+const MARK_STOREY = 3;
+
+/**
+ * Paints a running surface: two edge stripes and dashed lane dividers.
+ *
+ * These are the cheapest speed cue in the game. A featureless slab gives the eye
+ * nothing to measure motion against, so 20 m/s and 9 m/s look the same; dashes
+ * streaming past make the difference obvious without a single UI element.
+ *
+ * They cost no draw calls at all - the boxes merge into the section mesh the
+ * surface itself is in.
+ */
+function pushMarkings(out, cs, i, theme) {
+  const y = cs.maxY[i] + MARKS.lift;
+  const y1 = y + MARKS.thickness;
+  const z0 = cs.minZ[i];
+  const z1 = cs.maxZ[i];
+  const colour = theme.rail;
+
+  for (const x of [cs.minX[i], cs.maxX[i] - MARKS.edgeWidth]) {
+    out.push({
+      minX: x, maxX: x + MARKS.edgeWidth,
+      minY: y, maxY: y1,
+      minZ: z0, maxZ: z1,
+      color: colour, shade: 0.62,
+    });
+  }
+
+  // Lane dividers sit between adjacent lanes, so a three-lane track gets two.
+  const half = MOVEMENT.laneWidth * 0.5;
+  const centreX = (cs.minX[i] + cs.maxX[i]) * 0.5;
+  // Phase from world Z rather than from the surface's own start, so dashes stay
+  // in step across a seam instead of restarting at every chunk boundary.
+  const first = Math.ceil(z0 / MARKS.dashSpacing) * MARKS.dashSpacing;
+
+  for (const offset of [-half, half]) {
+    const x = centreX + offset - MARKS.dashWidth * 0.5;
+    for (let z = first; z + MARKS.dashLength <= z1; z += MARKS.dashSpacing) {
+      out.push({
+        minX: x, maxX: x + MARKS.dashWidth,
+        minY: y, maxY: y1,
+        minZ: z, maxZ: z + MARKS.dashLength,
+        color: colour, shade: 0.5,
+      });
+    }
+  }
+}
 
 /** Colour for one collider, from its kind, flags and surface. */
 function colorFor(cs, i, theme) {
@@ -61,6 +142,10 @@ export class SceneBuilder {
 
     // Bucket every drawable collider into the section that contains it.
     const buckets = chunkRanges.map(() => []);
+    /** Surface candidates per section, and the lowest top face among them. */
+    const candidates = chunkRanges.map(() => []);
+    const baseY = chunkRanges.map(() => Infinity);
+
     for (let i = 0; i < cs.count; i++) {
       if (cs.kind[i] === KIND.TRIGGER) continue;   // triggers are invisible
       if (moverIndices.has(i)) continue;           // drawn per-mover instead
@@ -75,11 +160,29 @@ export class SceneBuilder {
         color: colorFor(cs, i, theme),
         shade: shadeFor(cs, i),
       });
+
+      if (isSurfaceCandidate(cs, i)) {
+        candidates[s].push(i);
+        if (cs.maxY[i] < baseY[s]) baseY[s] = cs.maxY[i];
+      }
+    }
+
+    // Now that each section's base height is known, the candidates near it are
+    // the running surfaces and everything a storey or more above is overhead.
+    for (let s = 0; s < candidates.length; s++) {
+      for (const i of candidates[s]) {
+        if (cs.maxY[i] <= baseY[s] + MARK_STOREY) pushMarkings(buckets[s], cs, i, theme);
+      }
     }
 
     for (let s = 0; s < buckets.length; s++) {
       if (buckets[s].length === 0) continue;
       const mesh = new THREE.Mesh(mergeBoxes(buckets[s]), this.material);
+      // The shadow system was fully configured and no mesh opted in, so it
+      // rendered nothing at all. Level geometry both casts and receives: a crate
+      // needs to drop a shadow onto the floor beside it, not just catch one.
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       mesh.name = `section-${s}`;
       mesh.matrixAutoUpdate = false;
       mesh.userData.z0 = chunkRanges[s].z0;
@@ -108,6 +211,8 @@ export class SceneBuilder {
         color: this.theme.surfaces[cs.surface[i]] ?? this.theme.surfaces[1],
       }]);
       const mesh = new THREE.Mesh(geo, this.material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       mesh.name = `mover-${i}`;
       this.group.add(mesh);
       this.moverMeshes.push({ mesh, index: i });

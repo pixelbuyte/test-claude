@@ -46,7 +46,11 @@ export class CharacterView {
         geo.translate(0, -def.size[1] / 2, 0);
         const mat = new THREE.MeshLambertMaterial({ color: palette[def.part] ?? palette.primary });
         this.materials.push(mat);
-        group.add(new THREE.Mesh(geo, mat));
+        const mesh = new THREE.Mesh(geo, mat);
+        // Casts but does not receive: self-shadowing across fifteen touching
+        // boxes is noise, and the runner is lit from one side anyway.
+        mesh.castShadow = true;
+        group.add(mesh);
       }
 
       this.bones[i] = group;

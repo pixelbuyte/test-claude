@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import { CAMERA, QUALITY } from '../config.js';
 import { getTheme } from '../data/themes.js';
+import { buildSky } from './geometry/sky.js';
 
 export class Renderer {
   /**
@@ -50,6 +51,9 @@ export class Renderer {
     this.scene.add(this.sun);
     // The sun follows the runner, so its target has to be in the scene too.
     this.scene.add(this.sun.target);
+
+    this.sky = buildSky();
+    this.scene.add(this.sky.mesh);
 
     this._size = { width: 0, height: 0 };
     this.resize();
@@ -96,7 +100,11 @@ export class Renderer {
 
   applyTheme(themeId) {
     const t = getTheme(themeId);
-    this.scene.background = new THREE.Color(t.sky);
+    // The dome covers every direction, so the clear colour is only ever seen if
+    // something goes wrong with it. Setting it to the fog colour means that
+    // failure looks like the old flat sky rather than like a black screen.
+    this.scene.background = new THREE.Color(t.fog);
+    this.sky.applyTheme(t);
     this.scene.fog = new THREE.Fog(t.fog, t.fogNear, t.fogFar);
     this.hemi.color.setHex(t.hemiSky);
     this.hemi.groundColor.setHex(t.hemiGround);
@@ -113,6 +121,7 @@ export class Renderer {
       cam.pos.z,
     );
     this.camera.lookAt(cam.look.x, cam.look.y, cam.look.z);
+    this.sky.follow(this.camera.position.x, this.camera.position.y, this.camera.position.z);
     if (this.camera.fov !== cam.fov) {
       this.camera.fov = cam.fov;
       this.camera.updateProjectionMatrix();
@@ -154,6 +163,7 @@ export class Renderer {
   }
 
   dispose() {
+    this.sky.dispose();
     this.renderer.dispose();
   }
 }

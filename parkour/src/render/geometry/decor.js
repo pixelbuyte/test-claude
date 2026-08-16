@@ -72,6 +72,9 @@ export function buildDecor(level) {
     const mesh = new THREE.InstancedMesh(geo, material, tier.count);
     mesh.name = `decor-${tier.name}`;
     mesh.frustumCulled = false;
+    // Only the near tier casts: the far tier is beyond the shadow frustum, so
+    // including it would cost fill rate for shadows nobody can see.
+    mesh.castShadow = tier.depth === 0;
     mesh.instanceColor = new THREE.InstancedBufferAttribute(
       new Float32Array(tier.count * 3), 3,
     );
