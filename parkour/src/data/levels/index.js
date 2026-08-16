@@ -94,7 +94,7 @@ export const LEVELS = [
     tailChunks: 7, outro: ['run-neutral'],
     difficultyCurve: CURVES.standard,
     speedCurve: { start: 10, base: 14, max: 17, accelPerSec: 0.24 },
-    targets: { gold: 23.6, silver: 27.2, bronze: 31.9 }, // reference 23.62 s
+    targets: { gold: 23.2, silver: 26.6, bronze: 31.3 }, // reference 23.17 s
     roster: ROSTERS.mixed, unlockAt: 2,
   },
   {
@@ -103,7 +103,7 @@ export const LEVELS = [
     tailChunks: 7, outro: ['run-neutral'],
     difficultyCurve: CURVES.standard,
     speedCurve: { start: 10, base: 14, max: 18, accelPerSec: 0.24 },
-    targets: { gold: 20.5, silver: 23.6, bronze: 27.7 }, // reference 20.48 s
+    targets: { gold: 19.7, silver: 22.6, bronze: 26.6 }, // reference 19.67 s
     roster: ROSTERS.mixed, unlockAt: 3,
   },
   {
@@ -112,7 +112,7 @@ export const LEVELS = [
     tailChunks: 8, outro: ['run-neutral'],
     difficultyCurve: CURVES.standard,
     speedCurve: { start: 10, base: 15, max: 18, accelPerSec: 0.25 },
-    targets: { gold: 20.3, silver: 23.4, bronze: 27.5 }, // reference 20.33 s
+    targets: { gold: 19.8, silver: 22.8, bronze: 26.8 }, // reference 19.82 s
     roster: ROSTERS.mixed, unlockAt: 5,
   },
   {
@@ -139,7 +139,7 @@ export const LEVELS = [
     tailChunks: 9, outro: ['run-neutral'],
     difficultyCurve: CURVES.steep,
     speedCurve: { start: 12, base: 16, max: 20, accelPerSec: 0.28 },
-    targets: { gold: 20.9, silver: 24.1, bronze: 28.2 }, // reference 20.92 s
+    targets: { gold: 20.8, silver: 23.9, bronze: 28.1 }, // reference 20.82 s
     roster: ROSTERS.tough, unlockAt: 11,
   },
   {
@@ -166,7 +166,7 @@ export const LEVELS = [
     tailChunks: 11, outro: ['run-neutral'],
     difficultyCurve: CURVES.brutal,
     speedCurve: { start: 13, base: 18, max: 21, accelPerSec: 0.3 },
-    targets: { gold: 26.9, silver: 30.9, bronze: 36.3 }, // reference 26.87 s
+    targets: { gold: 26.1, silver: 30.0, bronze: 35.3 }, // reference 26.12 s
     roster: ROSTERS.tough, unlockAt: 18,
   },
   {
