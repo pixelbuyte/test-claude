@@ -23,7 +23,7 @@ export class RankLabels {
    * @param {HTMLElement} container  the #rank-labels layer
    * @param {number} max             pool size; opponents beyond it go untagged
    */
-  constructor(container, max = 7) {
+  constructor(container, max = 9) {
     this.tags = [];
     for (let i = 0; i < max; i++) {
       const el = document.createElement('div');

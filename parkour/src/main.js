@@ -33,7 +33,12 @@ const COURSES = [
   {
     id: 'practice', name: 'Practice', theme: 'rooftops', seed: 7,
     build: buildPracticeLevel,
-    roster: [{ name: 'Juno', skill: 'normal' }, { name: 'Pike', skill: 'easy' }],
+    roster: [
+      { name: 'Juno', skill: 'normal' },
+      { name: 'Pike', skill: 'easy' },
+      { name: 'Moss', skill: 'easy' },
+      { name: 'Brix', skill: 'easy' },
+    ],
   },
   ...LEVELS.map((def) => ({
     id: def.id, name: def.name, theme: def.theme, seed: def.seed,
@@ -75,6 +80,7 @@ function boot() {
     countdown: el('countdown'),
     effects: el('effects'),
     results: el('results'),
+    resultsPlace: el('results-place'),
     resultsBody: el('results-body'),
     resultsNotes: el('results-notes'),
     wallet: el('wallet'),
@@ -401,6 +407,10 @@ function boot() {
       deaths: session.player.deaths,
       distance: session.player.pos.z,
     }, targets);
+
+    hud.resultsPlace.innerHTML = me.dnf
+      ? 'DNF'
+      : `${ordinal(me.placement)}<span class="place-word">place</span>`;
 
     hud.resultsBody.innerHTML = results.map((r) => `
       <tr class="${r.isPlayer ? 'me' : ''}">

@@ -329,11 +329,27 @@ html, body {
 
 #results.hidden { display: none; }
 
-#results h2 {
+/* The headline is the placement itself, as big as the logo. */
+.results-place {
   margin: 0 0 14px;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-size: clamp(40px, 12vw, 64px);
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+  transform: rotate(-2deg);
+  background: linear-gradient(180deg, #ffd23e 25%, #ff8a2a 70%, #ff4d7a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 3px 0 rgba(180, 40, 90, 0.4));
+}
+
+.results-place .place-word {
+  display: block;
+  font-size: 0.42em;
+  letter-spacing: 0.3em;
 }
 
 .results-table {

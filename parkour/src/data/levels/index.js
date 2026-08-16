@@ -22,24 +22,39 @@ const CURVES = {
   brutal: (t) => 2.2 + t * 1.8,
 };
 
+/**
+ * Rosters are big on purpose: a field of eight to ten is what makes the start
+ * line read as a *crowd* and every overtake feel like it moved you through
+ * traffic. Rendering stays bounded - the quality tier caps how many are drawn -
+ * but the whole field is simulated, so the rank you see is always real.
+ */
 const ROSTERS = {
   easy: [
     { name: 'Sable', skill: 'easy' },
     { name: 'Pike', skill: 'easy' },
+    { name: 'Brix', skill: 'easy' },
+    { name: 'Moss', skill: 'easy' },
     { name: 'Juno', skill: 'normal' },
   ],
   mixed: [
     { name: 'Vex', skill: 'normal' },
     { name: 'Juno', skill: 'normal' },
+    { name: 'Koa', skill: 'normal' },
     { name: 'Pike', skill: 'easy' },
     { name: 'Sable', skill: 'easy' },
+    { name: 'Wren', skill: 'easy' },
+    { name: 'Moss', skill: 'easy' },
   ],
   tough: [
     { name: 'Vex', skill: 'hard' },
     { name: 'Rell', skill: 'hard' },
+    { name: 'Nova', skill: 'hard' },
     { name: 'Juno', skill: 'normal' },
     { name: 'Pike', skill: 'normal' },
+    { name: 'Koa', skill: 'normal' },
+    { name: 'Brix', skill: 'normal' },
     { name: 'Sable', skill: 'easy' },
+    { name: 'Wren', skill: 'easy' },
   ],
 };
 
