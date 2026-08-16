@@ -246,11 +246,73 @@ export class SceneBuilder {
 
     this._buildMovers();
     this._buildPickups();
+    this._buildFinishGate();
 
     // The world beyond the track. Instanced, so the whole skyline is two draw
     // calls however many buildings are in it.
     this.decor = buildDecor(this.level);
     this.group.add(this.decor.group);
+  }
+
+  /**
+   * A checkered gate over the finish line, plus a checkered strip on the
+   * ground under it. Purely visual - the finish itself is the invisible
+   * trigger the builder placed - but a race needs somewhere to *see* itself
+   * end, and one merged mesh costs a single draw call.
+   */
+  _buildFinishGate() {
+    const cs = this.level.colliders;
+    let trigger = -1;
+    for (let i = 0; i < cs.count; i++) {
+      if ((cs.flags[i] & FLAG.FINISH) !== 0) { trigger = i; break; }
+    }
+    if (trigger < 0) return;
+
+    // The builder makes the finish volume span [ground - 2, ground + 8].
+    const ground = cs.minY[trigger] + 2;
+    const z = cs.minZ[trigger];
+    const dark = 0x20293a;
+    const light = 0xffffff;
+    const boxes = [];
+
+    for (const side of [-1, 1]) {
+      boxes.push({
+        minX: side * 7.4 - 0.35, maxX: side * 7.4 + 0.35,
+        minY: ground, maxY: ground + 5.2,
+        minZ: z - 0.35, maxZ: z + 0.35,
+        color: light, shade: 1,
+      });
+    }
+
+    // The beam is the checkers themselves: two rows of alternating cells.
+    const cell = 0.775;
+    for (let row = 0; row < 2; row++) {
+      for (let c = 0; c < 20; c++) {
+        boxes.push({
+          minX: -7.75 + c * cell, maxX: -7.75 + (c + 1) * cell,
+          minY: ground + 5.2 + row * cell, maxY: ground + 5.2 + (row + 1) * cell,
+          minZ: z - 0.28, maxZ: z + 0.28,
+          color: (c + row) % 2 === 0 ? dark : light, shade: 1,
+        });
+      }
+    }
+
+    // And painted on the ground, where the runner actually crosses it.
+    for (let row = 0; row < 2; row++) {
+      for (let c = 0; c < 20; c++) {
+        boxes.push({
+          minX: -7.75 + c * cell, maxX: -7.75 + (c + 1) * cell,
+          minY: ground + 0.02, maxY: ground + 0.05,
+          minZ: z - 1.6 + row * cell, maxZ: z - 1.6 + (row + 1) * cell,
+          color: (c + row) % 2 === 0 ? dark : light, shade: 1,
+        });
+      }
+    }
+
+    const mesh = new THREE.Mesh(mergeBoxes(boxes), this.material);
+    mesh.name = 'finish-gate';
+    this.group.add(mesh);
+    this.finishGate = mesh;
   }
 
   _buildMovers() {
@@ -351,6 +413,7 @@ export class SceneBuilder {
 
   dispose() {
     if (this.decor) this.decor.dispose();
+    if (this.finishGate) this.finishGate.geometry.dispose();
     for (const mesh of this.sectionMeshes) mesh.geometry.dispose();
     for (const { mesh } of this.moverMeshes) mesh.geometry.dispose();
     if (this.pickupMesh) {

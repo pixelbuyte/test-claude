@@ -79,7 +79,11 @@ export class RankLabels {
           tag.nameText = v.racer.name;
           tag.name.textContent = v.racer.name;
         }
-        tag.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -100%)`;
+        // Far runners get small tags: a pack forty metres ahead collapses to a
+        // few pixels of screen, and full-size labels there pile into a blur.
+        const dz = v.render.pos.z - views[0].render.pos.z;
+        const shrink = Math.max(0.5, Math.min(1, 1 - (dz - 12) / 90));
+        tag.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -100%) scale(${shrink.toFixed(3)})`;
         if (!tag.visible) {
           tag.visible = true;
           tag.el.style.display = '';
