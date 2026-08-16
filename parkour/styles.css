@@ -259,10 +259,16 @@ html, body {
 #toast {
   position: absolute;
   left: 50%;
-  top: 34%;
+  top: 26%;
   transform: translate(-50%, -8px);
+  /* Bounded and centred: a long tutorial line used to wrap to four lines and
+     sit directly over the runner, which is the one thing it must not hide. */
+  max-width: min(76%, 340px);
+  text-align: center;
+  text-wrap: balance;
   padding: 8px 20px;
-  font-size: 20px;
+  font-size: clamp(15px, 4.2vw, 20px);
+  line-height: 1.25;
   font-weight: 700;
   letter-spacing: 0.02em;
   border-radius: 999px;

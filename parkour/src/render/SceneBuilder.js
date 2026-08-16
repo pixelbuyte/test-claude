@@ -12,6 +12,7 @@ import * as THREE from 'three';
 import { KIND, FLAG } from '../config.js';
 import { getTheme } from '../data/themes.js';
 import { mergeBoxes } from './geometry/boxMerge.js';
+import { buildDecor } from './geometry/decor.js';
 
 /** Colour for one collider, from its kind, flags and surface. */
 function colorFor(cs, i, theme) {
@@ -89,6 +90,11 @@ export class SceneBuilder {
 
     this._buildMovers();
     this._buildPickups();
+
+    // The world beyond the track. Instanced, so the whole skyline is two draw
+    // calls however many buildings are in it.
+    this.decor = buildDecor(this.level);
+    this.group.add(this.decor.group);
   }
 
   _buildMovers() {
@@ -177,7 +183,13 @@ export class SceneBuilder {
     }
   }
 
+  /** Drops the far skyline tier on the low quality tier. */
+  setDetail(tier) {
+    if (this.decor) this.decor.setDetail(tier);
+  }
+
   dispose() {
+    if (this.decor) this.decor.dispose();
     for (const mesh of this.sectionMeshes) mesh.geometry.dispose();
     for (const { mesh } of this.moverMeshes) mesh.geometry.dispose();
     if (this.pickupMesh) {
