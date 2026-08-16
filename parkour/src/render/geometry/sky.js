@@ -11,7 +11,7 @@
  * Colours are derived from the theme rather than authored, so a new theme gets a
  * matching sky for free and the two can never drift apart.
  */
-import * as THREE from 'three';
+import * as THREE from '../../../vendor/three/three.module.min.js';
 
 /** Radius: comfortably inside CAMERA.far (320) with room for the boom. */
 const RADIUS = 290;

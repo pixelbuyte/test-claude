@@ -22,7 +22,7 @@
  * Costs three half-res fullscreen passes plus one full-res composite, which is
  * why it belongs to the high tier only.
  */
-import * as THREE from 'three';
+import * as THREE from '../../../vendor/three/three.module.min.js';
 
 /** Blurring at half resolution: the result is blurred, so detail is not lost. */
 const DOWNSCALE = 2;

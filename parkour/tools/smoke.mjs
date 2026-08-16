@@ -136,7 +136,23 @@ const software = !gpu || /swiftshader|llvmpipe|software|mesa offscreen/i.test(gp
 await page.screenshot({ path: join(shots, '01-menu.png') });
 
 // --- Drive a run ------------------------------------------------------------
-await page.evaluate(() => window.__vertigo.start());
+// Tap the real button with a real touch, rather than calling start() directly.
+// Calling it directly was the hole that let a dead Start button ship: the whole
+// menu is static markup, so a page whose module never ran still looked perfect
+// and every control did nothing - and every check here passed, because they all
+// reached past the UI into window.__vertigo.
+await page.tap('#start-button');
+await page.waitForTimeout(300);
+const started = await page.evaluate(() => ({
+  overlayHidden: document.getElementById('overlay').classList.contains('hidden'),
+  hasSession: !!window.__vertigo.session,
+}));
+if (started.overlayHidden && started.hasSession) {
+  pass('tapping the Start button actually starts a race');
+} else {
+  fail(`tapping Start did nothing: overlayHidden=${started.overlayHidden} `
+    + `session=${started.hasSession}`);
+}
 await page.waitForTimeout(400);
 
 const box = await page.locator('#game').boundingBox();

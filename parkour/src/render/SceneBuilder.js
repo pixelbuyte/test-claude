@@ -8,7 +8,7 @@
  * Everything is merged per section, so streaming is `mesh.visible` toggling over
  * a distance window: no geometry is created or destroyed during a race.
  */
-import * as THREE from 'three';
+import * as THREE from '../../vendor/three/three.module.min.js';
 import { KIND, FLAG, MOVEMENT } from '../config.js';
 import { getTheme } from '../data/themes.js';
 import { mergeBoxes } from './geometry/boxMerge.js';

@@ -9,15 +9,50 @@
   <link rel="stylesheet" href="./styles.css">
   <!--
     three.js is vendored, not fetched: the game has no build step and no network
-    dependency. The import map is what lets sim code use relative specifiers
-    (so Node can run it headlessly) while view code imports "three" by name.
+    dependency.
+
+    There is deliberately no import map. There used to be one, mapping "three"
+    to the vendored file, and it made the game silently dead on any browser that
+    does not support import maps - Safari before 16.4, among others. The menu is
+    static markup, so the page still rendered and every button did nothing,
+    which is indistinguishable from the game ignoring you.
+
+    Relative specifiers need no browser feature at all, and cost one longer
+    import line in eight view files.
   -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "./vendor/three/three.module.min.js"
-      }
-    }
+  <script>
+    /*
+      A classic script on purpose. If the module graph fails to load at all -
+      unsupported syntax, a missing file, a browser too old for something it
+      uses - nothing inside a type="module" block can ever run to report it, and
+      the failure is completely silent to the player.
+
+      This watchdog is outside the module system, so it survives that.
+    */
+    (function () {
+      var failed = null;
+      window.addEventListener('error', function (e) {
+        // Only care about failures to fetch/parse a script or module.
+        if (e && e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+          failed = 'could not load ' + (e.target.src || e.target.href);
+        } else if (e && e.message && !failed) {
+          failed = e.message;
+        }
+      }, true);
+
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (window.__vertigo) return;          // booted fine
+          var box = document.getElementById('boot-error');
+          if (!box) return;
+          box.textContent = 'This browser could not start the game'
+            + (failed ? ' (' + failed + ')' : '')
+            + '. It needs a browser with WebGL and ES modules - try updating, '
+            + 'or open it in another browser.';
+          box.hidden = false;
+        }, 5000);
+      });
+    }());
   </script>
 </head>
 <body>
@@ -139,6 +174,8 @@
       -->
       <p class="hint" id="tutorial-status"></p>
       <button type="button" class="start" id="start-button">Start race</button>
+      <!-- Filled in by the boot watchdog in <head> when the module never runs. -->
+      <p id="boot-error" class="boot-error" hidden></p>
       <p class="hint">Vaults and mantles fire on their own at speed. Slides and
         wall&#8209;jumps are yours to time &mdash; but a press is remembered for
         0.15&nbsp;s, so early and late both land.

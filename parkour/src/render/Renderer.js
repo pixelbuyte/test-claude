@@ -5,7 +5,7 @@
  * knows how to draw a world it is handed, never how that world got that way.
  * All framing decisions come from sim/camera/CameraController as plain numbers.
  */
-import * as THREE from 'three';
+import * as THREE from '../../vendor/three/three.module.min.js';
 import { CAMERA, QUALITY } from '../config.js';
 import { getTheme } from '../data/themes.js';
 import { buildSky } from './geometry/sky.js';

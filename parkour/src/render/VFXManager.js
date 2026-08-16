@@ -10,7 +10,7 @@
  * when the pool is full, which is the right failure mode: the newest effect is
  * the one the player is looking at.
  */
-import * as THREE from 'three';
+import * as THREE from '../../vendor/three/three.module.min.js';
 import { QUALITY } from '../config.js';
 
 /** Preset id → behaviour. Tuned by feel, then left alone. */

@@ -11,7 +11,7 @@
  * buildings are in it. Placement is deterministic from the level seed, so a
  * course looks the same every time it is raced.
  */
-import * as THREE from 'three';
+import * as THREE from '../../../vendor/three/three.module.min.js';
 import { getTheme } from '../../data/themes.js';
 
 /** Per-theme silhouette. Shapes the world without needing new geometry. */

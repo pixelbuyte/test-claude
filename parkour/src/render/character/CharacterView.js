@@ -9,7 +9,7 @@
  * angles; deciding what those angles should be is `sim/anim`'s job, which is why
  * the blend tree can be tested without a browser.
  */
-import * as THREE from 'three';
+import * as THREE from '../../../vendor/three/three.module.min.js';
 import { BODY } from '../../config.js';
 import { BONES, BONE, BONE_COUNT } from '../../data/anim/rig.js';
 import { makeAnimator, stepAnimator } from '../../sim/anim/AnimationController.js';
