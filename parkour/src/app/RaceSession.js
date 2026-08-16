@@ -225,7 +225,7 @@ export class RaceSession {
         this.vfx.emit('crash', at, { scale: 1.1, dirZ: -0.7 });
         break;
       case EV.DEATH:
-        this.vfx.emit('crash', at, { scale: 1.8 });
+        this.vfx.emit('crash', at, { scale: 1.2 });
         break;
       default:
         break;

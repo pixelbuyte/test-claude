@@ -18,7 +18,7 @@ const PRESETS = {
   dust: { count: 5, life: 0.5, size: 0.16, speed: 1.6, gravity: -2, spread: 0.5, color: 0xcfd8ee, drag: 3 },
   land: { count: 10, life: 0.45, size: 0.2, speed: 3.0, gravity: -7, spread: 0.9, color: 0xdfe6f5, drag: 3.4 },
   spark: { count: 14, life: 0.5, size: 0.13, speed: 6.5, gravity: -14, spread: 1.4, color: 0xffb26b, drag: 1.6 },
-  crash: { count: 22, life: 0.7, size: 0.19, speed: 7.5, gravity: -16, spread: 2.0, color: 0xff5a4a, drag: 1.4 },
+  crash: { count: 12, life: 0.5, size: 0.17, speed: 5.5, gravity: -16, spread: 1.3, color: 0xff5a4a, drag: 2.2 },
   coin: { count: 8, life: 0.42, size: 0.15, speed: 3.4, gravity: -3, spread: 1.1, color: 0xffd85e, drag: 2.4 },
   shard: { count: 16, life: 0.6, size: 0.17, speed: 4.4, gravity: -3, spread: 1.3, color: 0x8fe6ff, drag: 2.0 },
   power: { count: 20, life: 0.65, size: 0.18, speed: 4.8, gravity: -1.5, spread: 1.6, color: 0x9d7bff, drag: 2.0 },
