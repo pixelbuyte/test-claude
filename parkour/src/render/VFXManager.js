@@ -89,13 +89,19 @@ export class VFXManager {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
-    geo.setAttribute('size', new THREE.BufferAttribute(this.sizes, 1));
+    // 'aScale', not 'size': PointsMaterial's shader has a `size` *uniform*, so
+    // an attribute by that name is silently ignored - which is exactly what
+    // happened, and why no particle ever actually shrank. The material patch
+    // below injects this attribute into the stock shader under its own name.
+    geo.setAttribute('aScale', new THREE.BufferAttribute(this.sizes, 1));
     // Never culled: the bounding sphere would have to be recomputed every frame,
     // and the particles are always near the camera anyway.
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
 
     const mat = new THREE.PointsMaterial({
-      size: 0.18,
+      // The uniform becomes a plain multiplier: per-particle size lives in the
+      // aScale attribute, which carries absolute world sizes from the presets.
+      size: 1,
       // Without a map every particle is a hard-edged square, which is why a
       // crash read as confetti rather than debris. The sprite is drawn onto a
       // canvas at construction - still no asset file, still fully procedural.
@@ -112,6 +118,17 @@ export class VFXManager {
       blending: THREE.NormalBlending,
       sizeAttenuation: true,
     });
+
+    // Stock PointsMaterial has no per-particle size at all: its vertex shader
+    // is `gl_PointSize = size;` with `size` a uniform. Patch the two lines so
+    // the aScale attribute participates - this is the entire difference
+    // between particles that genuinely shrink to nothing and particles that
+    // hold full size for their whole life and then pop out in one frame.
+    mat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader
+        .replace('uniform float size;', 'uniform float size;\nattribute float aScale;')
+        .replace('gl_PointSize = size;', 'gl_PointSize = size * aScale;');
+    };
 
     this.points = new THREE.Points(geo, mat);
     this.points.frustumCulled = false;
@@ -255,7 +272,7 @@ export class VFXManager {
 
     this.alive = alive;
     this.geometry.attributes.position.needsUpdate = true;
-    this.geometry.attributes.size.needsUpdate = true;
+    this.geometry.attributes.aScale.needsUpdate = true;
   }
 
   setEnabled(on) {
