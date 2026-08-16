@@ -156,6 +156,21 @@ export const CAMERA = {
   fovSpeedKick: 12,
   /** Critically-damped follow frequency. */
   followOmega: 9,
+  /**
+   * Vertical follow while airborne, and how far the camera may trail below.
+   *
+   * The camera used to damp Y at `followOmega`, the same rate as X, so it
+   * tracked a jump almost perfectly - the runner stayed pinned at the same
+   * height in frame and the whole world dropped instead. That is precisely why
+   * jumps read flat: you never see the runner rise.
+   *
+   * Following slowly through the air lets the body climb within the frame,
+   * which is where the sense of height comes from. The trail is clamped so a
+   * long fall can never push the runner off the top of the screen - lag is a
+   * feel device, not a licence to lose the player.
+   */
+  followOmegaAir: 3.2,
+  maxVerticalTrail: 1.7,
   lookOmega: 7,
   fovOmega: 4,
   /** Camera pulls in fast when blocked, eases back out slowly. */
