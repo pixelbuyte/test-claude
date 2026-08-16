@@ -136,7 +136,23 @@ const software = !gpu || /swiftshader|llvmpipe|software|mesa offscreen/i.test(gp
 await page.screenshot({ path: join(shots, '01-menu.png') });
 
 // --- Drive a run ------------------------------------------------------------
-await page.evaluate(() => window.__vertigo.start());
+// Tap the real button with a real touch, rather than calling start() directly.
+// Calling it directly was the hole that let a dead Start button ship: the whole
+// menu is static markup, so a page whose module never ran still looked perfect
+// and every control did nothing - and every check here passed, because they all
+// reached past the UI into window.__vertigo.
+await page.tap('#start-button');
+await page.waitForTimeout(300);
+const started = await page.evaluate(() => ({
+  overlayHidden: document.getElementById('overlay').classList.contains('hidden'),
+  hasSession: !!window.__vertigo.session,
+}));
+if (started.overlayHidden && started.hasSession) {
+  pass('tapping the Start button actually starts a race');
+} else {
+  fail(`tapping Start did nothing: overlayHidden=${started.overlayHidden} `
+    + `session=${started.hasSession}`);
+}
 await page.waitForTimeout(400);
 
 const box = await page.locator('#game').boundingBox();
@@ -310,6 +326,48 @@ else fail(`${result.draws} draw calls exceeds the 120 budget`);
 
 if (result.tris <= 60000) pass(`${(result.tris / 1000).toFixed(1)}k triangles (budget 60k)`);
 else fail(`${result.tris} triangles exceeds the 60k budget`);
+
+// --- The high tier, measured on its own ---------------------------------------
+// Everything above ran at whatever tier the governor settled on, which under
+// software rasterisation is always "low" - where shadows and bloom are both off.
+// So the budget just checked is the budget for the cheapest tier, and the most
+// expensive one went entirely unmeasured. It was hiding a real overrun: six
+// racers with every rig casting shadows drew 190 calls against this same 120.
+//
+// Pin high, draw one frame, and hold that frame to the same budget.
+const heavy = await page.evaluate(() => {
+  const v = window.__vertigo;
+  const wasPinned = v.governor.userPinned;
+  v.governor.pin('high');
+  v.applyTier('high', false);
+  v.session.render(1 / 60);
+  const out = {
+    tier: v.tier,
+    bloom: !!(v.renderer.bloom && v.renderer.bloom.enabled),
+    shadows: v.renderer.renderer.shadowMap.enabled,
+    draws: v.renderer.drawCalls,
+    tris: v.renderer.triangles,
+    racers: v.session.views.length,
+  };
+  if (!wasPinned) v.governor.pin(null);
+  return out;
+});
+
+if (heavy.bloom && heavy.shadows) {
+  pass(`high tier draws a frame with bloom and shadows both live`);
+} else {
+  fail(`high tier missing effects: bloom=${heavy.bloom} shadows=${heavy.shadows}`);
+}
+if (heavy.draws <= 120) {
+  pass(`${heavy.draws} draw calls at the high tier with ${heavy.racers} racers (budget 120)`);
+} else {
+  fail(`${heavy.draws} draw calls at the high tier exceeds the 120 budget`);
+}
+if (heavy.tris <= 60000) {
+  pass(`${(heavy.tris / 1000).toFixed(1)}k triangles at the high tier (budget 60k)`);
+} else {
+  fail(`${heavy.tris} triangles at the high tier exceeds the 60k budget`);
+}
 
 // --- Tutorial -----------------------------------------------------------------
 // The director is unit-tested against synthetic affordances; what only a real

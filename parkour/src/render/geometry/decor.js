@@ -11,7 +11,7 @@
  * buildings are in it. Placement is deterministic from the level seed, so a
  * course looks the same every time it is raced.
  */
-import * as THREE from 'three';
+import * as THREE from '../../../vendor/three/three.module.min.js';
 import { getTheme } from '../../data/themes.js';
 
 /** Per-theme silhouette. Shapes the world without needing new geometry. */
@@ -68,10 +68,15 @@ export function buildDecor(level) {
     { name: 'near', count: Math.round(profile.count * 0.55), depth: 0, fade: 0.0 },
     { name: 'far', count: Math.round(profile.count * 0.45), depth: 1, fade: 0.45 },
   ]) {
+    // Deliberately left Lambert: the skyline is a silhouette twenty metres out,
+    // where a specular highlight is noise rather than information.
     const material = new THREE.MeshLambertMaterial({ vertexColors: false, color: 0xffffff });
     const mesh = new THREE.InstancedMesh(geo, material, tier.count);
     mesh.name = `decor-${tier.name}`;
     mesh.frustumCulled = false;
+    // Only the near tier casts: the far tier is beyond the shadow frustum, so
+    // including it would cost fill rate for shadows nobody can see.
+    mesh.castShadow = tier.depth === 0;
     mesh.instanceColor = new THREE.InstancedBufferAttribute(
       new Float32Array(tier.count * 3), 3,
     );

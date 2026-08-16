@@ -140,6 +140,40 @@ and additive lean. Because it is pure, "do crossfade weights stay sane" and
 Every particle in the game lives in one `THREE.Points` over a preallocated pool,
 so a new effect costs a table entry rather than a draw call.
 
+Bloom is hand-written (`render/post/Bloom.js`) rather than vendored: the addon
+route is EffectComposer + RenderPass + UnrealBloomPass + CopyShader, four files
+of chain plumbing for a chain that will only ever have one link. Scene into a
+half-float target, soft-knee bright pass, separable gaussian at half resolution,
+composite. Two decisions in it are load-bearing:
+
+- **The threshold is exactly white, in linear light.** Bloom is defined as what
+  happens to values the display cannot represent, so only surfaces deliberately
+  pushed past 1 glow. Set anywhere below 1 it looked good on the two night
+  themes and destroyed the two daylight ones — a 0.9-white sky crossed the line
+  and the whole horizon bloomed into haze.
+- **The whole chain is linear and sRGB is applied once, in the composite.** three
+  injects the output colour-space conversion into its own materials' shaders,
+  not into a `ShaderMaterial`, so a custom pass drawing to the canvas hands the
+  display linear values it reads as sRGB — the entire frame comes out far too
+  dark. Linear is also simply what blurring light wants.
+
+Surfaces become light sources through the vertex colour they already carried,
+scaled past 1 — not through a second emissive material, because `emissive` is a
+uniform and cannot vary per box inside a merge, so that route would have doubled
+the draw calls to say the same thing. How far past 1 is a per-theme `glow`
+number: neon belongs to a city at dusk, not to a snowfield at noon.
+
+Two more things carry most of the visual weight, and both are close to free. The sky
+is a gradient dome — one inverted sphere, vertex-coloured, one draw call — whose
+horizon band is set to the fog colour *exactly*, so what the fog swallows
+dissolves into the sky instead of stopping against a flat wall. And the running
+surfaces carry edge stripes and dashed lane dividers, merged into the section
+mesh they sit on, so they cost no draw calls at all: a featureless slab gives the
+eye nothing to measure motion against, and dashes streaming past make 20 m/s look
+different from 9 m/s without a single UI element. The dashes are phased off world
+Z rather than off each surface's own start, so they run through chunk seams
+instead of restarting at every boundary.
+
 ## Allocation
 
 The simulation is meant to produce no garbage per substep. `npm run allocs`

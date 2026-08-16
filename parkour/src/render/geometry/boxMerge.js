@@ -10,7 +10,7 @@
  * Geometry is non-indexed on purpose: faces need their own normals to read as
  * flat-shaded facets, and sharing vertices between faces would smooth them.
  */
-import * as THREE from 'three';
+import * as THREE from '../../../vendor/three/three.module.min.js';
 
 /** Unit-cube face definition: 4 corners (as ±0.5 offsets) plus a normal. */
 const FACES = [

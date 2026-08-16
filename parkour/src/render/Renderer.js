@@ -5,9 +5,11 @@
  * knows how to draw a world it is handed, never how that world got that way.
  * All framing decisions come from sim/camera/CameraController as plain numbers.
  */
-import * as THREE from 'three';
+import * as THREE from '../../vendor/three/three.module.min.js';
 import { CAMERA, QUALITY } from '../config.js';
 import { getTheme } from '../data/themes.js';
+import { buildSky } from './geometry/sky.js';
+import { Bloom } from './post/Bloom.js';
 
 export class Renderer {
   /**
@@ -28,6 +30,12 @@ export class Renderer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q.pixelRatioCap));
     this.renderer.shadowMap.enabled = q.shadows;
     if (q.shadows) this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // three resets its counters on every `render()` call, and bloom makes five
+    // of those per frame - so the automatic reset would leave `drawCalls`
+    // reporting the final composite quad alone, a budget of 1 that can never be
+    // exceeded. Reset once per frame instead, and the number covers the whole
+    // frame including the post passes, which is what a budget should measure.
+    this.renderer.info.autoReset = false;
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
@@ -50,6 +58,15 @@ export class Renderer {
     this.scene.add(this.sun);
     // The sun follows the runner, so its target has to be in the scene too.
     this.scene.add(this.sun.target);
+
+    this.sky = buildSky();
+    this.scene.add(this.sky.mesh);
+
+    // Built on every tier, enabled only where it is affordable: constructing it
+    // lazily would mean allocating four render targets mid-race the first time
+    // somebody turns quality up.
+    this.bloom = new Bloom(this.renderer);
+    this.bloom.enabled = !!q.bloom;
 
     this._size = { width: 0, height: 0 };
     this.resize();
@@ -76,6 +93,10 @@ export class Renderer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q.pixelRatioCap));
     this.renderer.shadowMap.enabled = q.shadows;
     this.sun.castShadow = q.shadows;
+    this.bloom.enabled = !!q.bloom;
+    // Pixel ratio moved, so the targets are the wrong size for the new one.
+    this.bloom.setSize(0, 0);
+    this.bloom.setSize(this._size.width, this._size.height);
 
     // three.js compiles shadow sampling into the shader program, so a material
     // built while shadows were on keeps sampling a map nobody is drawing any
@@ -96,7 +117,11 @@ export class Renderer {
 
   applyTheme(themeId) {
     const t = getTheme(themeId);
-    this.scene.background = new THREE.Color(t.sky);
+    // The dome covers every direction, so the clear colour is only ever seen if
+    // something goes wrong with it. Setting it to the fog colour means that
+    // failure looks like the old flat sky rather than like a black screen.
+    this.scene.background = new THREE.Color(t.fog);
+    this.sky.applyTheme(t);
     this.scene.fog = new THREE.Fog(t.fog, t.fogNear, t.fogFar);
     this.hemi.color.setHex(t.hemiSky);
     this.hemi.groundColor.setHex(t.hemiGround);
@@ -113,6 +138,7 @@ export class Renderer {
       cam.pos.z,
     );
     this.camera.lookAt(cam.look.x, cam.look.y, cam.look.z);
+    this.sky.follow(this.camera.position.x, this.camera.position.y, this.camera.position.z);
     if (this.camera.fov !== cam.fov) {
       this.camera.fov = cam.fov;
       this.camera.updateProjectionMatrix();
@@ -133,6 +159,7 @@ export class Renderer {
     this._size.width = w;
     this._size.height = h;
     this.renderer.setSize(w, h, false);
+    this.bloom.setSize(w, h);
     this.camera.aspect = w / Math.max(1, h);
     this.camera.updateProjectionMatrix();
     return true;
@@ -142,7 +169,10 @@ export class Renderer {
   get height() { return this._size.height; }
 
   render() {
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.info.reset();
+    // Bloom owns the render target when it is on, and falls through to a plain
+    // draw when it is off, so this stays one call either way.
+    this.bloom.render(this.scene, this.camera);
   }
 
   get drawCalls() {
@@ -154,6 +184,8 @@ export class Renderer {
   }
 
   dispose() {
+    this.bloom.dispose();
+    this.sky.dispose();
     this.renderer.dispose();
   }
 }

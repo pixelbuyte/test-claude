@@ -586,3 +586,19 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   #toast, #overlay, #hud-progress-fill { transition: none; }
 }
+
+/*
+ * Shown only when the game fails to boot at all. Styled like a warning rather
+ * than like chrome, because if it is ever visible something is actually wrong.
+ */
+.boot-error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 90, 110, 0.5);
+  border-radius: 10px;
+  background: rgba(255, 60, 82, 0.12);
+  color: #ffb4be;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+}

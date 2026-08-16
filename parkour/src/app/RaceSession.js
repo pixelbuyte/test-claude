@@ -66,10 +66,11 @@ export class RaceSession {
     const me = opts.character;
     this.views = this.race.racers.map((r, i) => {
       const view = new CharacterView(r.isPlayer && me ? {
-        color: me.primary, accent: me.accent, skin: me.skin,
+        color: me.primary, accent: me.accent, skin: me.skin, castShadow: true,
       } : {
         color: r.isPlayer ? 0xff7a3d : OPPONENT_COLORS[(i - 1) % OPPONENT_COLORS.length],
         accent: r.isPlayer ? 0x2b3350 : 0x1e2438,
+        castShadow: r.isPlayer,
       });
       renderer.scene.add(view.root);
       return {
