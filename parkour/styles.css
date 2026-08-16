@@ -247,8 +247,6 @@ html, body {
   color: rgba(207, 216, 238, 0.75);
 }
 
-.stat-rank .stat-value { color: var(--accent); }
-
 .effects {
   display: flex;
   gap: 6px;
@@ -708,16 +706,7 @@ html, body {
   .panel h1 { font-size: 28px; }
   .tagline { margin-bottom: 12px; }
   .hint { display: none; }
-  .hud-row { max-width: 460px; }
-  .stat { padding: 5px 10px; }
-  .stat-value { font-size: 16px; }
   #countdown { font-size: 64px; top: 44%; }
-}
-
-/* Below this the four stats stop being legible however they are sized, so speed
-   - the one the player can read off the world - is the first to go. */
-@media (max-width: 330px) {
-  .stat-speed { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
