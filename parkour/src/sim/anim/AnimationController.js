@@ -101,7 +101,12 @@ export function stepAnimator(a, p, dt) {
   a.pose.set(loco);
 
   // --- Layer 1: the action -------------------------------------------------
-  const wanted = STATE_CLIP[p.state] || null;
+  let wanted = STATE_CLIP[p.state] || null;
+
+  // A double jump is a flip. `canDoubleJump` is already exactly the signal -
+  // true for the whole of a normal jump, false only once the air jump has been
+  // spent - so this needs no new state, just a read of the one that exists.
+  if (wanted === 'jumpUp' && p.canDoubleJump === false) wanted = 'flip';
 
   if (wanted !== a.actionId) {
     a.actionId = wanted;

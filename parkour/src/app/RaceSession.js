@@ -78,7 +78,7 @@ export class RaceSession {
         racer: r,
         prev: { x: r.pos.x, y: r.pos.y, z: r.pos.z },
         curr: { x: r.pos.x, y: r.pos.y, z: r.pos.z },
-        render: { pos: { x: 0, y: 0, z: 0 }, vel: { x: 0, y: 0, z: 0 }, state: 0, grounded: false, speed: 0 },
+        render: { pos: { x: 0, y: 0, z: 0 }, vel: { x: 0, y: 0, z: 0 }, state: 0, grounded: false, speed: 0, canDoubleJump: true },
       };
     });
 
@@ -239,6 +239,11 @@ export class RaceSession {
       r.state = v.racer.state;
       r.grounded = v.racer.grounded;
       r.speed = v.racer.speed;
+      // Carried so the animator can tell an air jump from a ground jump and
+      // play the somersault. The proxy is the only thing the animator sees, so
+      // anything it needs to reason about has to be copied across here - a
+      // field left off is silently `undefined` rather than an error.
+      r.canDoubleJump = v.racer.canDoubleJump;
 
       // Opponents far away, behind, or beyond the tier's budget are simply not
       // drawn. Culling them is the single biggest draw-call saving available.
