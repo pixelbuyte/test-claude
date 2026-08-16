@@ -214,6 +214,23 @@ export class SceneBuilder {
         shade: shadeFor(cs, i) * glowFor(cs, i, theme),
       });
 
+      // A wall you can run along says so: an accent stripe at hand height down
+      // both faces. This is affordance paint, not decoration - it is how the
+      // player learns which grey slab is a route.
+      if (cs.kind[i] === KIND.WALLRUNNABLE && cs.maxY[i] - cs.minY[i] >= 1.6) {
+        const g = theme.glow ?? 1;
+        const y0 = cs.minY[i] + 1.55;
+        const y1 = Math.min(cs.maxY[i], y0 + 0.3);
+        for (const face of [cs.minX[i], cs.maxX[i]]) {
+          buckets[s].push({
+            minX: face - 0.035, maxX: face + 0.035,
+            minY: y0, maxY: y1,
+            minZ: cs.minZ[i], maxZ: cs.maxZ[i],
+            color: theme.accent, shade: 1 + 0.6 * g,
+          });
+        }
+      }
+
       if (isSurfaceCandidate(cs, i)) {
         candidates[s].push(i);
         if (cs.maxY[i] < baseY[s]) baseY[s] = cs.maxY[i];
