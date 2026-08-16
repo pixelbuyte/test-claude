@@ -9,7 +9,7 @@
  * a distance window: no geometry is created or destroyed during a race.
  */
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { KIND, FLAG, MOVEMENT } from '../config.js';
+import { KIND, FLAG } from '../config.js';
 import { getTheme } from '../data/themes.js';
 import { mergeBoxes } from './geometry/boxMerge.js';
 import { buildDecor } from './geometry/decor.js';
@@ -18,6 +18,9 @@ import { buildDecor } from './geometry/decor.js';
 const MARKS = {
   /** Continuous stripe hugging each outer edge of the running surface. */
   edgeWidth: 0.3,
+  /** Centre guide dots - the breadcrumb trail that says "the route goes here". */
+  dotSize: 0.5,
+  dotSpacing: 2.6,
   /** Dashed lane dividers, world-aligned so they run through chunk seams. */
   dashWidth: 0.16,
   dashLength: 1.7,
@@ -81,7 +84,7 @@ function pushMarkings(out, cs, i, theme) {
   const y1 = y + MARKS.thickness;
   const z0 = cs.minZ[i];
   const z1 = cs.maxZ[i];
-  const colour = theme.rail;
+  const colour = theme.mark ?? theme.rail;
 
   for (const x of [cs.minX[i], cs.maxX[i] - MARKS.edgeWidth]) {
     out.push({
@@ -92,23 +95,21 @@ function pushMarkings(out, cs, i, theme) {
     });
   }
 
-  // Lane dividers sit between adjacent lanes, so a three-lane track gets two.
-  const half = MOVEMENT.laneWidth * 0.5;
+  // A single breadcrumb trail of dots down the centre, not lane dividers: the
+  // trail reads as "the route goes this way" at any speed, and dots streaming
+  // underfoot are the speed cue the dashes used to be.
   const centreX = (cs.minX[i] + cs.maxX[i]) * 0.5;
-  // Phase from world Z rather than from the surface's own start, so dashes stay
-  // in step across a seam instead of restarting at every chunk boundary.
-  const first = Math.ceil(z0 / MARKS.dashSpacing) * MARKS.dashSpacing;
-
-  for (const offset of [-half, half]) {
-    const x = centreX + offset - MARKS.dashWidth * 0.5;
-    for (let z = first; z + MARKS.dashLength <= z1; z += MARKS.dashSpacing) {
-      out.push({
-        minX: x, maxX: x + MARKS.dashWidth,
-        minY: y, maxY: y1,
-        minZ: z, maxZ: z + MARKS.dashLength,
-        color: colour, shade: lit(MARKS.dashGlow),
-      });
-    }
+  const x = centreX - MARKS.dotSize * 0.5;
+  // Phase from world Z rather than from the surface's own start, so the trail
+  // stays in step across a seam instead of restarting at every chunk boundary.
+  const first = Math.ceil(z0 / MARKS.dotSpacing) * MARKS.dotSpacing;
+  for (let z = first; z + MARKS.dotSize <= z1; z += MARKS.dotSpacing) {
+    out.push({
+      minX: x, maxX: x + MARKS.dotSize,
+      minY: y, maxY: y1,
+      minZ: z, maxZ: z + MARKS.dotSize,
+      color: colour, shade: lit(MARKS.dashGlow),
+    });
   }
 }
 

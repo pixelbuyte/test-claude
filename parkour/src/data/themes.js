@@ -14,24 +14,27 @@
 export const THEMES = {
   rooftops: {
     name: 'Rooftops',
-    /** Scales every emissive surface: dusk over a city - the reference look for the glow. */
-    glow: 1.0,
-    sky: 0x1b2a4a,
-    fog: 0x24334f,
-    fogNear: 70,
-    fogFar: 280,
-    hemiSky: 0x9fb8ff,
-    hemiGround: 0x2a2438,
-    sunColor: 0xfff0d8,
-    sunIntensity: 1.15,
+    /** Scales every emissive surface: bright noon - paint should read as paint, not neon. */
+    glow: 0.18,
+    sky: 0x5fb8ea,
+    fog: 0x8ed0f2,
+    fogNear: 90,
+    fogFar: 320,
+    hemiSky: 0xeaf6ff,
+    hemiGround: 0x9db6c8,
+    sunColor: 0xfff6e8,
+    sunIntensity: 1.25,
     /** Indexed by SURFACE: concrete, metal, wood, glass, grate. */
-    surfaces: [0x59627a, 0x8a93a8, 0x7a6046, 0x6fa6c4, 0x4d5568],
-    accent: 0xff7a3d,
-    hazard: 0xff3b52,
-    vault: 0xf0a54a,
-    wall: 0x424c69,
-    rail: 0xc8d2ff,
-    decor: [0x38415c, 0x2c3348, 0x46527a],
+    surfaces: [0xf0f2f5, 0xdde4ea, 0xe6cba6, 0xc2e4f4, 0xd6dde4],
+    accent: 0xff8c2a,
+    hazard: 0xff5038,
+    vault: 0xff7a30,
+    wall: 0xe9edf1,
+    rail: 0xff8c3a,
+    /** Track markings - edge stripes and the centre dot trail. */
+    mark: 0xffffff,
+    /** Flat mid-blue skyline silhouette against the saturated sky. */
+    decor: [0x4795cc, 0x3f88be, 0x54a4d8],
   },
 
   undercity: {
@@ -52,6 +55,7 @@ export const THEMES = {
     vault: 0x9d6cff,
     wall: 0x2b2440,
     rail: 0x38e8c8,
+    mark: 0x5ff0d8,
     decor: [0x241d36, 0x1c1729, 0x3a3054],
   },
 
@@ -73,6 +77,7 @@ export const THEMES = {
     vault: 0x3f8ae0,
     wall: 0xb08a5e,
     rail: 0xfff0d0,
+    mark: 0xfff6e0,
     decor: [0xb5905f, 0x9a7748, 0xd0aa78],
   },
 
@@ -94,6 +99,7 @@ export const THEMES = {
     vault: 0x2f9ad8,
     wall: 0x8fa6b8,
     rail: 0xffffff,
+    mark: 0xffffff,
     decor: [0x93aabc, 0x7e94a6, 0xb4c8d6],
   },
 };

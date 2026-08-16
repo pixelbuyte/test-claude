@@ -20,47 +20,52 @@
  * @property {number} cost       coins; 0 means owned from the start
  * @property {number} unlockAt   player level required before it can be bought
  */
+/**
+ * Each runner is one saturated colour head to toe - accent is a darker shade of
+ * the same hue for depth, and the head matches the body. A figure in a single
+ * loud colour is readable at any distance, which is the whole costume design.
+ */
 export const CHARACTERS = [
   {
     id: 'runner-ember',
     name: 'Ember',
     blurb: 'The one you start with.',
-    primary: 0xff7a3d, accent: 0x2b3350, skin: 0xf0c8a0,
+    primary: 0xff5a24, accent: 0xdd4414, skin: 0xff5a24,
     cost: 0, unlockAt: 0,
   },
   {
     id: 'runner-ash',
     name: 'Ash',
     blurb: 'Quiet colours, loud lines.',
-    primary: 0x4a5468, accent: 0x1b2030, skin: 0xd9a978,
+    primary: 0x5a6478, accent: 0x454e60, skin: 0x5a6478,
     cost: 250, unlockAt: 0,
   },
   {
     id: 'runner-vale',
     name: 'Vale',
     blurb: 'Built for the undercity.',
-    primary: 0x38e8c8, accent: 0x14323a, skin: 0xe8c49a,
+    primary: 0x2ee2c2, accent: 0x1cc2a4, skin: 0x2ee2c2,
     cost: 500, unlockAt: 3,
   },
   {
     id: 'runner-kite',
     name: 'Kite',
     blurb: 'Bright enough to be seen falling.',
-    primary: 0xffd85e, accent: 0x3a2f10, skin: 0xf2d3b0,
+    primary: 0xffce2e, accent: 0xefb314, skin: 0xffce2e,
     cost: 750, unlockAt: 6,
   },
   {
     id: 'runner-onyx',
     name: 'Onyx',
     blurb: 'No reflections, no tells.',
-    primary: 0x21242e, accent: 0x9d7bff, skin: 0xc79a72,
+    primary: 0x262a36, accent: 0x191d28, skin: 0x262a36,
     cost: 1200, unlockAt: 10,
   },
   {
     id: 'runner-flare',
     name: 'Flare',
     blurb: 'For the frostline, out of spite.',
-    primary: 0xff3b6b, accent: 0xffe0e8, skin: 0xf5d5b8,
+    primary: 0xff3b6b, accent: 0xe22553, skin: 0xff3b6b,
     cost: 1800, unlockAt: 15,
   },
 ];

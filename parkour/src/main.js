@@ -21,6 +21,7 @@ import { TutorialDirector } from './app/tutorial.js';
 import { HINT_SECONDS } from './data/tutorial.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { CHARACTERS, character, purchaseState } from './data/characters.js';
+import { RankLabels } from './app/rankLabels.js';
 
 /**
  * Every course the player can pick, practice track first.
@@ -60,11 +61,12 @@ function boot() {
   const el = (id) => document.getElementById(id);
   const hud = {
     time: el('hud-time'),
-    rank: el('hud-rank'),
+    rankBig: el('rank-big'),
+    badge: el('race-badge'),
     coins: el('hud-coins'),
-    speed: el('hud-speed'),
     state: el('hud-state'),
     progress: el('hud-progress-fill'),
+    progressRunner: el('hud-progress-runner'),
     toast: el('toast'),
     overlay: el('overlay'),
     tagline: el('overlay-tagline'),
@@ -101,6 +103,8 @@ function boot() {
 
   const tutorial = new TutorialDirector(save.data.tutorialSeen);
   tutorial.enabled = save.data.settings.tutorialHints !== false;
+
+  const rankLabels = new RankLabels(el('rank-labels'));
 
   let course = COURSES[0];
   let session = null;
@@ -158,7 +162,12 @@ function boot() {
       case EV.CHECKPOINT: toast('Checkpoint'); break;
       case EV.CRASH: toast('Crash'); break;
       case EV.DEATH: toast('Respawning'); break;
-      case EV.RANK_CHANGE: toast(ordinal(e.a)); break;
+      case EV.RANK_CHANGE:
+        // The big readout carries the news itself - a toast would say it twice.
+        hud.rankBig.classList.remove('bump');
+        void hud.rankBig.offsetWidth;
+        hud.rankBig.classList.add('bump');
+        break;
       case EV.COUNTDOWN_TICK:
         hud.countdown.textContent = e.a > 0 ? String(e.a) : 'GO';
         hud.countdown.classList.remove('pulse');
@@ -177,6 +186,8 @@ function boot() {
   /** Tears down the previous race and builds one for the selected course. */
   function buildSession() {
     if (session) session.dispose();
+    const stage = COURSES.indexOf(course);
+    hud.badge.textContent = stage <= 0 ? 'P' : String(stage);
     const level = course.build();
     session = new RaceSession(level, renderer, input, {
       roster: course.roster, seed: course.seed, tier, audio,
@@ -440,11 +451,15 @@ function boot() {
 
     const s = session.hudState();
     hud.time.textContent = formatClock(s.time);
-    hud.rank.textContent = `${s.rank}/${s.fieldSize}`;
     hud.coins.textContent = String(s.coins);
-    hud.speed.textContent = s.speed.toFixed(1);
     hud.state.textContent = stateName(s.state);
-    hud.progress.style.width = `${(s.progress * 100).toFixed(1)}%`;
+    const pct = `${(s.progress * 100).toFixed(1)}%`;
+    hud.progress.style.width = pct;
+    hud.progressRunner.style.left = pct;
+    // Written only on change: this string is compared sixty times a second.
+    const place = ordinal(s.rank);
+    if (hud.rankBig.textContent !== place) hud.rankBig.textContent = place;
+    rankLabels.update(session.running || s.phase === PHASE.FINISHED ? session : null, renderer);
     renderEffects(s.effects);
 
     // Teaching happens only while the race is actually live - during the

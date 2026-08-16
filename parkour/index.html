@@ -59,28 +59,25 @@
   <canvas id="game" aria-label="Vertigo Rush game view" role="img"></canvas>
 
   <div id="hud" aria-live="polite">
-    <div class="hud-row hud-top">
-      <div class="stat stat-rank">
-        <span class="stat-label">Rank</span>
-        <span class="stat-value" id="hud-rank">1/5</span>
+    <!-- The whole top of the screen is one instrument: badge, track, flag. -->
+    <div id="race-bar">
+      <div id="race-badge" aria-label="Stage">1</div>
+      <div id="hud-progress" role="progressbar" aria-label="Course progress">
+        <div id="hud-progress-fill"></div>
+        <div id="hud-progress-runner"></div>
       </div>
-      <div class="stat">
-        <span class="stat-label">Time</span>
-        <span class="stat-value" id="hud-time">0:00.00</span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">Coins</span>
-        <span class="stat-value" id="hud-coins">0</span>
-      </div>
-      <div class="stat stat-speed">
-        <span class="stat-label">Speed m/s</span>
-        <span class="stat-value" id="hud-speed">0.0</span>
-      </div>
+      <div id="race-flag" aria-hidden="true"></div>
     </div>
 
-    <div id="hud-progress" role="progressbar" aria-label="Course progress">
-      <div id="hud-progress-fill"></div>
+    <div id="rank-big" aria-label="Race position"></div>
+
+    <div class="hud-pills">
+      <span class="pill" id="hud-time">0:00.00</span>
+      <span class="pill pill-coins"><span class="coin-dot"></span><span id="hud-coins">0</span></span>
     </div>
+
+    <!-- Floating "5TH · NAME" tags projected over each opponent. -->
+    <div id="rank-labels" aria-hidden="true"></div>
 
     <div id="effects" class="effects" aria-live="polite"></div>
     <div id="countdown" aria-live="assertive"></div>

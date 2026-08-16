@@ -20,8 +20,18 @@ import { SceneBuilder } from '../render/SceneBuilder.js';
 import { VFXManager } from '../render/VFXManager.js';
 import { CharacterView } from '../render/character/CharacterView.js';
 
-/** Opponent palette - distinct enough to tell apart at speed. */
-const OPPONENT_COLORS = [0x4fc3f7, 0xba68c8, 0x81c784, 0xffd54f, 0xff8a65, 0x90a4ae];
+/**
+ * Opponent palette: the field is shades of blue, so "orange = me, blue = them"
+ * is readable in half a second. Each entry is [body, darker accent] of one hue.
+ */
+const OPPONENT_COLORS = [
+  [0x35a8f0, 0x2490d8],
+  [0x5cc4f7, 0x3fa8e2],
+  [0x2b8ede, 0x1c76c2],
+  [0x6ad2fa, 0x4ab6e6],
+  [0x3fb4ec, 0x2c98d4],
+  [0x2481c8, 0x186aae],
+];
 
 export class RaceSession {
   /**
@@ -65,11 +75,13 @@ export class RaceSession {
     // never reads a half-stepped body.
     const me = opts.character;
     this.views = this.race.racers.map((r, i) => {
+      const blue = OPPONENT_COLORS[(i - 1 + OPPONENT_COLORS.length) % OPPONENT_COLORS.length];
       const view = new CharacterView(r.isPlayer && me ? {
         color: me.primary, accent: me.accent, skin: me.skin, castShadow: true,
       } : {
-        color: r.isPlayer ? 0xff7a3d : OPPONENT_COLORS[(i - 1) % OPPONENT_COLORS.length],
-        accent: r.isPlayer ? 0x2b3350 : 0x1e2438,
+        color: r.isPlayer ? 0xff5a24 : blue[0],
+        accent: r.isPlayer ? 0xdd4414 : blue[1],
+        skin: r.isPlayer ? 0xff5a24 : blue[0],
         castShadow: r.isPlayer,
       });
       renderer.scene.add(view.root);
