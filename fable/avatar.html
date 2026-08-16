@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blocky Avatar</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  body {
+    /* Same deep blue as the canvas so the page fills the viewport seamlessly */
+    background: radial-gradient(120% 90% at 50% 42%, #3a6ae0 0%, #2a51bd 34%, #16307f 66%, #081437 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .stage {
+    height: 100vh;
+    max-height: 100vh;
+    max-width: 100vw;
+    aspect-ratio: 386 / 630;
+    display: block;
+  }
+  svg { display: block; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<svg class="stage" viewBox="0 0 386 630" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Blocky orange avatar character on a royal blue sunburst background">
+  <defs>
+    <!-- ======== background ======== -->
+    <radialGradient id="bg" cx="50%" cy="42%" r="80%">
+      <stop offset="0%"  stop-color="#3d6de4"/>
+      <stop offset="35%" stop-color="#2a52c0"/>
+      <stop offset="68%" stop-color="#173182"/>
+      <stop offset="100%" stop-color="#081437"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#cfe2ff" stop-opacity="0.55"/>
+      <stop offset="45%" stop-color="#8fb4f5" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#8fb4f5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="46%" r="75%">
+      <stop offset="0%"   stop-color="#000000" stop-opacity="0"/>
+      <stop offset="70%"  stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#020818" stop-opacity="0.55"/>
+    </radialGradient>
+
+    <!-- ======== character gradients ======== -->
+    <!-- head: sphere-ish, highlight upper-left -->
+    <radialGradient id="headGrad" cx="38%" cy="30%" r="90%">
+      <stop offset="0%"  stop-color="#ffc986"/>
+      <stop offset="45%" stop-color="#fca648"/>
+      <stop offset="80%" stop-color="#ef8c2f"/>
+      <stop offset="100%" stop-color="#d97a22"/>
+    </radialGradient>
+    <!-- orange body parts: lit left, shaded right -->
+    <linearGradient id="orangeGrad" x1="0" y1="0" x2="1" y2="0.25">
+      <stop offset="0%"  stop-color="#ffb35e"/>
+      <stop offset="55%" stop-color="#f79a3c"/>
+      <stop offset="100%" stop-color="#dd7f26"/>
+    </linearGradient>
+    <linearGradient id="orangeGradR" x1="0" y1="0" x2="1" y2="0.25">
+      <stop offset="0%"  stop-color="#f9a044"/>
+      <stop offset="60%" stop-color="#ec8c30"/>
+      <stop offset="100%" stop-color="#d47722"/>
+    </linearGradient>
+    <!-- red parts -->
+    <linearGradient id="redGrad" x1="0" y1="0" x2="1" y2="0.25">
+      <stop offset="0%"  stop-color="#ef6b50"/>
+      <stop offset="55%" stop-color="#dd4d36"/>
+      <stop offset="100%" stop-color="#bd3a26"/>
+    </linearGradient>
+    <linearGradient id="redGradR" x1="0" y1="0" x2="1" y2="0.25">
+      <stop offset="0%"  stop-color="#e55a41"/>
+      <stop offset="60%" stop-color="#d1452f"/>
+      <stop offset="100%" stop-color="#b23522"/>
+    </linearGradient>
+    <!-- subtle top-sheen for plastic look -->
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bottomShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#5a2405" stop-opacity="0.30"/>
+    </linearGradient>
+
+    <!-- ======== filters ======== -->
+    <filter id="softBlur" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+    <filter id="rayBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <filter id="tinyBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+  </defs>
+
+  <!-- ================= BACKGROUND ================= -->
+  <rect x="0" y="0" width="386" height="630" fill="url(#bg)"/>
+
+  <!-- sunburst rays radiating from behind the character -->
+  <g filter="url(#rayBlur)" opacity="0.9">
+    <g transform="translate(193 265)">
+      <g fill="#dceaff">
+        <polygon points="0,0 -34,-430 34,-430" opacity="0.10" transform="rotate(0)"/>
+        <polygon points="0,0 -30,-430 30,-430" opacity="0.07" transform="rotate(30)"/>
+        <polygon points="0,0 -36,-430 36,-430" opacity="0.09" transform="rotate(62)"/>
+        <polygon points="0,0 -28,-430 28,-430" opacity="0.06" transform="rotate(95)"/>
+        <polygon points="0,0 -34,-430 34,-430" opacity="0.08" transform="rotate(128)"/>
+        <polygon points="0,0 -30,-430 30,-430" opacity="0.06" transform="rotate(160)"/>
+        <polygon points="0,0 -36,-430 36,-430" opacity="0.09" transform="rotate(196)"/>
+        <polygon points="0,0 -28,-430 28,-430" opacity="0.06" transform="rotate(228)"/>
+        <polygon points="0,0 -34,-430 34,-430" opacity="0.08" transform="rotate(262)"/>
+        <polygon points="0,0 -30,-430 30,-430" opacity="0.07" transform="rotate(295)"/>
+        <polygon points="0,0 -36,-430 36,-430" opacity="0.10" transform="rotate(327)"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- central glow behind character -->
+  <ellipse cx="193" cy="265" rx="230" ry="250" fill="url(#glow)"/>
+
+  <!-- ================= CHARACTER ================= -->
+  <!-- ground drop shadow -->
+  <ellipse cx="193" cy="540" rx="112" ry="17" fill="#02102e" opacity="0.55" filter="url(#softBlur)"/>
+
+  <g>
+    <!-- ===== arms (behind torso) ===== -->
+    <!-- left arm -->
+    <g>
+      <rect x="84"  y="252" width="34" height="102" rx="9" fill="url(#orangeGrad)"/>
+      <rect x="84"  y="348" width="34" height="18"  rx="6" fill="url(#redGrad)"/>          <!-- cuff -->
+      <rect x="82"  y="362" width="38" height="40"  rx="11" fill="url(#redGrad)"/>         <!-- hand -->
+      <rect x="82"  y="362" width="38" height="12"  rx="6" fill="url(#sheen)" opacity="0.4"/>
+    </g>
+    <!-- right arm -->
+    <g>
+      <rect x="268" y="252" width="34" height="102" rx="9" fill="url(#orangeGradR)"/>
+      <rect x="268" y="348" width="34" height="18"  rx="6" fill="url(#redGradR)"/>
+      <rect x="266" y="362" width="38" height="40"  rx="11" fill="url(#redGradR)"/>
+      <rect x="266" y="362" width="38" height="12"  rx="6" fill="url(#sheen)" opacity="0.3"/>
+    </g>
+
+    <!-- ===== legs ===== -->
+    <!-- dark backing so gaps between legs/shorts read as shadow, not background -->
+    <rect x="134" y="352" width="118" height="122" rx="10" fill="#7c2413"/>
+    <!-- thighs -->
+    <rect x="136" y="396" width="56" height="76" rx="8" fill="url(#orangeGrad)"/>
+    <rect x="194" y="396" width="56" height="76" rx="8" fill="url(#orangeGradR)"/>
+    <!-- boots -->
+    <rect x="130" y="462" width="64" height="62" rx="11" fill="url(#redGrad)"/>
+    <rect x="192" y="462" width="64" height="62" rx="11" fill="url(#redGradR)"/>
+    <rect x="130" y="510" width="64" height="14" rx="7" fill="#8f2a18" opacity="0.45"/>   <!-- sole shade -->
+    <rect x="192" y="510" width="64" height="14" rx="7" fill="#8f2a18" opacity="0.5"/>
+    <rect x="130" y="462" width="64" height="12" rx="6" fill="url(#sheen)" opacity="0.35"/>
+    <rect x="192" y="462" width="64" height="12" rx="6" fill="url(#sheen)" opacity="0.25"/>
+
+    <!-- shorts over hips -->
+    <path d="M128 342
+             h130
+             v52
+             a10 10 0 0 1 -10 10
+             h-44 v-16 a11 11 0 0 0 -22 0 v16 h-44
+             a10 10 0 0 1 -10 -10
+             z" fill="url(#redGrad)"/>
+    <rect x="128" y="342" width="130" height="14" fill="url(#sheen)" opacity="0.25"/>
+
+    <!-- ===== torso / t-shirt ===== -->
+    <path d="M132 216
+             h122
+             a12 12 0 0 1 12 12
+             v104
+             a12 12 0 0 1 -12 12
+             h-122
+             a12 12 0 0 1 -12 -12
+             v-104
+             a12 12 0 0 1 12 -12 z" fill="url(#orangeGrad)"/>
+    <!-- shoulder sleeves, slightly wider than torso -->
+    <rect x="78"  y="214" width="48" height="56" rx="11" fill="url(#orangeGrad)"/>
+    <rect x="260" y="214" width="48" height="56" rx="11" fill="url(#orangeGradR)"/>
+    <!-- sleeve hem shading so the arm reads as a separate part -->
+    <rect x="80"  y="258" width="44" height="10" rx="5" fill="#b0621a" opacity="0.45"/>
+    <rect x="262" y="258" width="44" height="10" rx="5" fill="#b0621a" opacity="0.5"/>
+    <!-- shirt top sheen + bottom shade -->
+    <rect x="120" y="216" width="146" height="26" rx="12" fill="url(#sheen)" opacity="0.35"/>
+    <rect x="120" y="300" width="146" height="44" rx="12" fill="url(#bottomShade)"/>
+    <!-- soft body-side shadows cast on torso by arms -->
+    <rect x="120" y="222" width="10" height="118" rx="5" fill="#8a4a10" opacity="0.20" filter="url(#tinyBlur)"/>
+    <rect x="256" y="222" width="10" height="118" rx="5" fill="#8a4a10" opacity="0.28" filter="url(#tinyBlur)"/>
+
+    <!-- ===== head (blank, no face) ===== -->
+    <!-- soft shadow the head casts on the shoulders -->
+    <ellipse cx="193" cy="222" rx="72" ry="14" fill="#7a3c08" opacity="0.35" filter="url(#tinyBlur)"/>
+    <rect x="117" y="78" width="152" height="134" rx="54" fill="url(#headGrad)"/>
+    <!-- plastic highlight -->
+    <ellipse cx="163" cy="112" rx="40" ry="26" fill="#ffffff" opacity="0.22" filter="url(#tinyBlur)"/>
+    <!-- lower-right form shadow on head -->
+    <path d="M269 145
+             a76 67 0 0 1 -76 67
+             a96 84 0 0 0 76 -67 z" fill="#b5641a" opacity="0.35" filter="url(#tinyBlur)"/>
+  </g>
+
+  <!-- corner vignette on top of everything -->
+  <rect x="0" y="0" width="386" height="630" fill="url(#vignette)"/>
+</svg>
+</body>
+</html>
