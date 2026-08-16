@@ -5,7 +5,7 @@
  * is the only file in the project that talks to requestAnimationFrame or reads
  * the clock - everything below it advances in fixed STEP-sized slices.
  */
-import { formatTime, ordinal } from './sim/math/scalar.js';
+import { formatTime, formatClock, ordinal } from './sim/math/scalar.js';
 import { EV } from './sim/core/events.js';
 import { stateName } from './sim/player/states.js';
 import { buildPracticeLevel } from './data/levels/practice.js';
@@ -16,6 +16,11 @@ import { InputManager } from './input/InputManager.js';
 import { RaceSession, PHASE } from './app/RaceSession.js';
 import { SaveManager, targetsFor } from './sim/save/SaveManager.js';
 import { bestAvailableAdapter } from './app/storage.js';
+import { QualityGovernor } from './app/quality.js';
+import { TutorialDirector } from './app/tutorial.js';
+import { HINT_SECONDS } from './data/tutorial.js';
+import { AudioManager } from './audio/AudioManager.js';
+import { CHARACTERS, character, purchaseState } from './data/characters.js';
 
 /**
  * Every course the player can pick, practice track first.
@@ -31,6 +36,10 @@ const COURSES = [
   },
   ...LEVELS.map((def) => ({
     id: def.id, name: def.name, theme: def.theme, seed: def.seed,
+    // The definition itself, not just the fields copied out of it: the level
+    // grid needs `unlockAt` to gate a chip and the results screen needs
+    // `targets` to award a medal, and both were silently reading `undefined`.
+    def,
     build: () => assembleLevel(def),
     roster: def.roster,
   })),
@@ -62,32 +71,76 @@ function boot() {
     grid: el('level-grid'),
     startButton: el('start-button'),
     countdown: el('countdown'),
+    effects: el('effects'),
     results: el('results'),
     resultsBody: el('results-body'),
     resultsNotes: el('results-notes'),
     wallet: el('wallet'),
     stats: el('debug-stats'),
+    charGrid: el('character-grid'),
+    pauseButton: el('pause-button'),
+    pause: el('pause'),
+    pauseDetail: el('pause-detail'),
+    tutorialStatus: el('tutorial-status'),
   };
 
   const storage = bestAvailableAdapter();
   const save = new SaveManager(storage.adapter);
   save.load();
 
-  const tier = save.data.settings.qualityTier || detectTier();
+  // A saved tier is the player's own choice and outranks the probe; with no
+  // saved tier the probe only picks a starting point and the governor takes it
+  // from there, because what a device claims about itself and what it can
+  // actually sustain are different questions.
+  const pinnedTier = save.data.settings.qualityTier || null;
+  let tier = pinnedTier || detectTier();
   const renderer = new Renderer(canvas, { tier });
+  const governor = new QualityGovernor(tier, { userPinned: !!pinnedTier });
   const input = new InputManager().attach(canvas);
+  const audio = new AudioManager({ enabled: save.data.settings.audio !== false });
+
+  const tutorial = new TutorialDirector(save.data.tutorialSeen);
+  tutorial.enabled = save.data.settings.tutorialHints !== false;
 
   let course = COURSES[0];
   let session = null;
   let resultsShown = false;
   let toastTimer = 0;
+  let toastLock = 0;
   let fps = 0;
 
-  const toast = (text) => {
+  /**
+   * @param {number} [seconds] how long it stays up
+   * @param {boolean} [hold]   whether it may be interrupted before then
+   */
+  const toast = (text, seconds = 1.2, hold = false) => {
+    // A tutorial hint holds the toast against the move it is describing. The
+    // vault hint fires as the crate comes into range and the VAULT event lands
+    // a few frames later; without this the player would see "Vault" and never
+    // the sentence explaining that they did not have to do anything.
+    if (toastLock > 0 && !hold) return;
     hud.toast.textContent = text;
     hud.toast.classList.add('show');
-    toastTimer = 1.2;
+    toastTimer = seconds;
+    if (hold) toastLock = seconds;
   };
+
+  /**
+   * Carries out a tier change - the governor's verdict, or the player's choice.
+   *
+   * Told rather than asked: an automatic downgrade says so, because a player who
+   * sees shadows vanish mid-race deserves to know the game did it on purpose.
+   */
+  function applyTier(next, automatic) {
+    if (next === tier) return;
+    tier = next;
+    renderer.setTier(next);
+    if (session) session.setTier(next);
+    // A change from anywhere but the governor has to be reported back to it, or
+    // its next verdict would be one step below a tier that is no longer running.
+    if (!automatic) governor.adopt(next);
+    toast(automatic ? `Quality lowered to ${next}` : `Quality: ${next}`);
+  }
 
   function handleEvent(e) {
     if (!session) return;
@@ -126,12 +179,24 @@ function boot() {
     if (session) session.dispose();
     const level = course.build();
     session = new RaceSession(level, renderer, input, {
-      roster: course.roster, seed: course.seed, tier,
+      roster: course.roster, seed: course.seed, tier, audio,
+      character: character(save.data.characterId),
+      reducedMotion: save.data.settings.reducedMotion === true ? true : undefined,
     });
     session.onEvent = handleEvent;
     resultsShown = false;
     hud.results.classList.add('hidden');
     return session;
+  }
+
+  /** The one line on the menu that survived the control list. */
+  function renderTutorialStatus() {
+    const left = tutorial.remaining.length;
+    hud.tutorialStatus.textContent = !tutorial.enabled
+      ? 'Tutorial hints are off. Turn them on in Settings to see them again.'
+      : left === 0
+        ? 'Every move learned. Toggle tutorial hints in Settings to replay them.'
+        : `Moves are taught in the run, as you meet them - ${left} to go.`;
   }
 
   // --- Level select --------------------------------------------------------
@@ -166,6 +231,142 @@ function boot() {
     }
   }
 
+  // --- Runners -------------------------------------------------------------
+  function renderCharacters() {
+    hud.charGrid.innerHTML = '';
+    for (const def of CHARACTERS) {
+      const state = purchaseState(def, save);
+      const selected = save.data.characterId === def.id;
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `level-chip${selected ? ' selected' : ''}`
+        + `${state.owned ? ' owned' : ''}${state.locked ? ' locked' : ''}`;
+      button.disabled = !!state.locked;
+
+      const swatch = `linear-gradient(90deg, #${def.primary.toString(16).padStart(6, '0')}, `
+        + `#${def.accent.toString(16).padStart(6, '0')})`;
+      button.innerHTML = `<span class="char-swatch" style="background:${swatch}"></span>`
+        + `<span class="level-name">${def.name}</span>`
+        + `<span class="level-theme">${state.owned ? (selected ? 'wearing' : 'owned') : state.reason}</span>`;
+
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Recomputed here, not captured from render: the player's wallet changes
+        // every race, and a chip rendered when they were broke must not stay
+        // unbuyable once they are not.
+        const now = purchaseState(def, save);
+        if (now.locked) return;
+        if (!now.owned && !save.unlockCharacter(def.id, def.cost)) return;
+
+        save.data.characterId = def.id;
+        save.save();
+        renderCharacters();
+        renderGrid();
+      });
+      hud.charGrid.appendChild(button);
+    }
+  }
+
+  // --- Settings ------------------------------------------------------------
+  function bindSettings() {
+    const audioBox = el('set-audio');
+    const hapticsBox = el('set-haptics');
+    const motionBox = el('set-motion');
+    const tutorialBox = el('set-tutorial');
+    const quality = el('set-quality');
+
+    audioBox.checked = save.data.settings.audio !== false;
+    hapticsBox.checked = save.data.settings.haptics !== false;
+    motionBox.checked = save.data.settings.reducedMotion === true;
+    tutorialBox.checked = save.data.settings.tutorialHints !== false;
+    quality.value = save.data.settings.qualityTier || '';
+
+    audioBox.addEventListener('change', () => {
+      save.setSetting('audio', audioBox.checked);
+      audio.setEnabled(audioBox.checked);
+    });
+    hapticsBox.addEventListener('change', () => {
+      save.setSetting('haptics', hapticsBox.checked);
+    });
+    motionBox.addEventListener('change', () => {
+      save.setSetting('reducedMotion', motionBox.checked);
+      if (session) session.setReducedMotion(motionBox.checked);
+    });
+    tutorialBox.addEventListener('change', () => {
+      save.setSetting('tutorialHints', tutorialBox.checked);
+      tutorial.enabled = tutorialBox.checked;
+      // Switching them back on is how a player asks to be taught again, so it
+      // clears the set rather than resuming a half-finished one. Off then on is
+      // the replay, which is why this is a toggle and not a button.
+      if (tutorialBox.checked) {
+        tutorial.replay();
+        save.save();
+      }
+      renderTutorialStatus();
+    });
+
+    quality.addEventListener('change', () => {
+      const chosen = quality.value || null;
+      save.setSetting('qualityTier', chosen);
+      // A named tier pins it and switches the adaptive governor off for good;
+      // "Auto" hands control back and lets it start measuring again.
+      governor.pin(chosen);
+      if (chosen) applyTier(chosen, false);
+    });
+
+    el('set-reset').addEventListener('click', () => {
+      save.reset();
+      // `reset` swaps in a whole new save object, so the director would
+      // otherwise keep writing into the map belonging to the profile that was
+      // just thrown away - and the player would never see the hints again.
+      tutorial.rebind(save.data.tutorialSeen);
+      tutorial.enabled = save.data.settings.tutorialHints !== false;
+      renderGrid();
+      renderCharacters();
+      renderTutorialStatus();
+      bindSettings();
+      toast('Progress reset');
+    });
+  }
+
+  // --- Tabs ----------------------------------------------------------------
+  function bindTabs() {
+    const tabs = [...document.querySelectorAll('.tab')];
+    for (const tab of tabs) {
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        for (const other of tabs) other.classList.toggle('selected', other === tab);
+        for (const name of ['courses', 'runners', 'settings']) {
+          el(`tab-${name}`).classList.toggle('hidden', name !== tab.dataset.tab);
+        }
+      });
+    }
+  }
+
+  /**
+   * Draws the active power-up chips. Rebuilt only when the set actually changes,
+   * so this is not touching the DOM sixty times a second during a race.
+   */
+  let effectsKey = '';
+  function renderEffects(effects) {
+    const shown = [];
+    if (effects.shield > 0) shown.push(['shield', `${effects.shield}`, false]);
+    if (effects.speed > 0) shown.push(['speed', effects.speed.toFixed(0), effects.speed < 1]);
+    if (effects.magnet > 0) shown.push(['magnet', effects.magnet.toFixed(0), effects.magnet < 1]);
+    if (effects.slowmo > 0) shown.push(['slowmo', effects.slowmo.toFixed(0), effects.slowmo < 1]);
+    if (effects.invuln > 0) shown.push(['invuln', effects.invuln.toFixed(0), effects.invuln < 1]);
+
+    const key = shown.map((e) => e.join(':')).join('|');
+    if (key === effectsKey) return;
+    effectsKey = key;
+
+    hud.effects.innerHTML = shown.map(([name, value, expiring]) => `
+      <span class="effect effect-${name}${expiring ? ' expiring' : ''}">
+        <span class="effect-dot"></span>${name} ${value}
+      </span>`).join('');
+  }
+
   const showResults = () => {
     if (resultsShown) return;
     resultsShown = true;
@@ -174,9 +375,13 @@ function boot() {
     const me = results.find((r) => r.isPlayer);
     const previousBest = save.bestTime(course.id);
 
-    // Targets are derived from the player's own best rather than an authored
-    // number, so a first finish always earns something and the bar then rises.
-    const targets = previousBest ? targetsFor(previousBest) : null;
+    // Authored targets first. They come from actually racing the course
+    // headlessly (tools/tune.mjs), so every player on a level is chasing the
+    // same number - which is the whole point of a medal. The player's own best
+    // is only the fallback for a course nobody has measured, the practice
+    // track: there, a first finish still earns something and the bar rises.
+    const targets = (course.def && course.def.targets)
+      || (previousBest ? targetsFor(previousBest) : null);
     const summary = save.recordRace(course.id, {
       placement: me.placement,
       time: me.time,
@@ -197,6 +402,15 @@ function boot() {
     const notes = [];
     if (summary.improvedTime) notes.push('New best time');
     if (summary.improvedMedal) notes.push(`${summary.medal} medal`);
+    // Name the next rung rather than only the one just earned - a target the
+    // player cannot see is not a target they can chase.
+    if (targets && summary.finished) {
+      const next = summary.medal === 'gold' ? null
+        : summary.medal === 'silver' ? ['gold', targets.gold]
+          : summary.medal === 'bronze' ? ['silver', targets.silver]
+            : ['bronze', targets.bronze];
+      if (next) notes.push(`${next[0]} at ${formatTime(next[1])}`);
+    }
     if (summary.levelledUp) notes.push(`Level ${summary.levelAfter}`);
     notes.push(`+${summary.coinsEarned} coins`, `+${summary.xpEarned} XP`);
     if (!summary.persisted) notes.push('progress not saved - storage unavailable');
@@ -217,16 +431,35 @@ function boot() {
 
     if (renderer.resize()) session.onResize();
 
+    // Sampled before the work, on the delta the previous frame actually took.
+    const downgrade = governor.sample(dt);
+    if (downgrade) applyTier(downgrade, true);
+
     session.update(dt);
     session.render(dt);
 
     const s = session.hudState();
-    hud.time.textContent = formatTime(s.time);
+    hud.time.textContent = formatClock(s.time);
     hud.rank.textContent = `${s.rank}/${s.fieldSize}`;
     hud.coins.textContent = String(s.coins);
     hud.speed.textContent = s.speed.toFixed(1);
     hud.state.textContent = stateName(s.state);
     hud.progress.style.width = `${(s.progress * 100).toFixed(1)}%`;
+    renderEffects(s.effects);
+
+    // Teaching happens only while the race is actually live - during the
+    // countdown nobody is stepping, and after the finish there is nothing left
+    // to teach. Read after `update`, so the affordances describe this frame.
+    if (session.running && s.phase === PHASE.RUNNING) {
+      const hint = tutorial.update(session.player.affordances, session.player, dt);
+      if (hint) {
+        toast(hint.text, HINT_SECONDS, true);
+        // Persisted the moment it is shown rather than at the finish: a player
+        // who quits mid-race has still been taught, and being taught the same
+        // thing twice is exactly what this is meant to avoid.
+        save.save();
+      }
+    }
 
     if (s.phase === PHASE.FINISHED) showResults();
 
@@ -234,6 +467,7 @@ function boot() {
       toastTimer -= dt;
       if (toastTimer <= 0) hud.toast.classList.remove('show');
     }
+    if (toastLock > 0) toastLock -= dt;
 
     fpsAccum += dt;
     fpsFrames++;
@@ -251,10 +485,52 @@ function boot() {
   // --- Lifecycle -----------------------------------------------------------
   const startRace = () => {
     hud.overlay.classList.add('hidden');
+    // Browsers only hand out a usable AudioContext from inside a gesture, so
+    // this is the first and only place it can be created.
+    if (audio.start()) audio.playMusic(course.theme);
+    else { audio.resume(); audio.playMusic(course.theme); }
+    hud.pauseButton.classList.remove('hidden');
     buildSession();
     session.start();
     last = performance.now();
   };
+
+  const showPause = () => {
+    if (!session || !session.running) return;
+    session.pause();
+    audio.suspend();
+    const s = session.hudState();
+    hud.pauseDetail.textContent = `${course.name} · ${ordinal(s.rank)} of ${s.fieldSize} `
+      + `· ${(s.progress * 100).toFixed(0)}% · ${formatClock(s.time)}`;
+    hud.pause.classList.remove('hidden');
+  };
+
+  const hidePause = () => {
+    hud.pause.classList.add('hidden');
+    if (!session) return;
+    session.resume();
+    audio.resume();
+    last = performance.now();
+  };
+
+  const toMenu = () => {
+    hud.pause.classList.add('hidden');
+    hud.results.classList.add('hidden');
+    hud.pauseButton.classList.add('hidden');
+    if (session) session.pause();
+    audio.stopMusic();
+    hud.overlay.classList.remove('hidden');
+    renderGrid();
+    renderCharacters();
+    renderTutorialStatus();
+  };
+
+  hud.pauseButton.addEventListener('click', (e) => { e.stopPropagation(); showPause(); });
+  el('pause-resume').addEventListener('click', (e) => { e.stopPropagation(); hidePause(); });
+  el('pause-restart').addEventListener('click', (e) => { e.stopPropagation(); hud.pause.classList.add('hidden'); startRace(); });
+  el('pause-quit').addEventListener('click', (e) => { e.stopPropagation(); toMenu(); });
+  el('results-again').addEventListener('click', (e) => { e.stopPropagation(); startRace(); });
+  el('results-menu').addEventListener('click', (e) => { e.stopPropagation(); toMenu(); });
 
   hud.startButton.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -262,16 +538,30 @@ function boot() {
   });
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (!session || !session.running)) startRace();
+    if (e.key === 'Escape' || e.key === 'p') {
+      if (hud.pause.classList.contains('hidden')) showPause();
+      else hidePause();
+    }
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && session) session.pause();
+    if (document.hidden) {
+      if (session) session.pause();
+      audio.suspend();
+    } else {
+      audio.resume();
+    }
   });
-  window.addEventListener('blur', () => { if (session) session.pause(); });
+  window.addEventListener('blur', () => {
+    if (session) session.pause();
+    audio.suspend();
+  });
 
   // A handle for the smoke test to drive and inspect.
   window.__vertigo = {
-    renderer, input, start: startRace,
+    renderer, input, audio, save, governor, tutorial, start: startRace,
+    get tier() { return tier; },
+    applyTier,
     get session() { return session; },
     get level() { return session ? session.level : null; },
     get course() { return course; },
@@ -285,6 +575,11 @@ function boot() {
   };
 
   renderGrid();
+  renderCharacters();
+  renderTutorialStatus();
+  bindSettings();
+  bindTabs();
+  hud.pauseButton.classList.add('hidden');
   // Build one immediately so there is something behind the menu to look at.
   buildSession();
   requestAnimationFrame(frame);

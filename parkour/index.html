@@ -47,10 +47,23 @@
       <div id="hud-progress-fill"></div>
     </div>
 
+    <div id="effects" class="effects" aria-live="polite"></div>
     <div id="countdown" aria-live="assertive"></div>
     <div id="toast" aria-live="assertive"></div>
     <div id="hud-state" class="hud-state"></div>
     <div id="debug-stats"></div>
+  </div>
+
+  <button type="button" id="pause-button" aria-label="Pause">II</button>
+
+  <div id="pause" class="hidden">
+    <div class="panel">
+      <h2>Paused</h2>
+      <p class="hint" id="pause-detail"></p>
+      <button type="button" class="start" id="pause-resume">Resume</button>
+      <button type="button" class="ghost" id="pause-restart">Restart</button>
+      <button type="button" class="ghost" id="pause-quit">Back to menu</button>
+    </div>
   </div>
 
   <div id="results" class="hidden">
@@ -63,7 +76,8 @@
         <tbody id="results-body"></tbody>
       </table>
       <p class="results-notes" id="results-notes"></p>
-      <button type="button" class="start" onclick="location.reload()">Race again</button>
+      <button type="button" class="start" id="results-again">Race again</button>
+      <button type="button" class="ghost" id="results-menu">Back to menu</button>
     </div>
   </div>
 
@@ -73,18 +87,62 @@
       <p class="tagline" id="overlay-tagline">Choose a course</p>
       <p class="wallet" id="wallet"></p>
 
-      <div id="level-grid" class="level-grid"></div>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab selected" data-tab="courses" role="tab">Courses</button>
+        <button type="button" class="tab" data-tab="runners" role="tab">Runners</button>
+        <button type="button" class="tab" data-tab="settings" role="tab">Settings</button>
+      </div>
 
-      <ul class="controls">
-        <li><b>Swipe up</b> or <b>tap</b> &mdash; jump, vault, wall&#8209;jump</li>
-        <li><b>Swipe down</b> &mdash; slide</li>
-        <li><b>Drag</b> left / right &mdash; steer</li>
-        <li class="keys"><b>Keyboard</b> &mdash; arrows or WASD, space to jump</li>
-      </ul>
+      <div id="tab-courses" class="tab-panel">
+        <div id="level-grid" class="level-grid"></div>
+      </div>
+
+      <div id="tab-runners" class="tab-panel hidden">
+        <div id="character-grid" class="level-grid"></div>
+      </div>
+
+      <div id="tab-settings" class="tab-panel hidden">
+        <div class="settings">
+          <label class="setting">
+            <span>Sound</span>
+            <input type="checkbox" id="set-audio" checked>
+          </label>
+          <label class="setting">
+            <span>Haptics</span>
+            <input type="checkbox" id="set-haptics" checked>
+          </label>
+          <label class="setting">
+            <span>Reduced motion</span>
+            <input type="checkbox" id="set-motion">
+          </label>
+          <label class="setting">
+            <span>Tutorial hints</span>
+            <input type="checkbox" id="set-tutorial" checked>
+          </label>
+          <label class="setting">
+            <span>Quality</span>
+            <select id="set-quality">
+              <option value="">Auto</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <button type="button" class="ghost" id="set-reset">Reset all progress</button>
+        </div>
+      </div>
+
+      <!--
+        The control list that used to sit here was read once, by someone who had
+        not yet seen a wall to run along. The moves are taught in the run now,
+        the first time each one comes up; this line only says how much is left.
+      -->
+      <p class="hint" id="tutorial-status"></p>
       <button type="button" class="start" id="start-button">Start race</button>
       <p class="hint">Vaults and mantles fire on their own at speed. Slides and
         wall&#8209;jumps are yours to time &mdash; but a press is remembered for
-        0.15&nbsp;s, so early and late both land.</p>
+        0.15&nbsp;s, so early and late both land.
+        <span class="keys">Keyboard: arrows or WASD, space to jump.</span></p>
     </div>
   </div>
 

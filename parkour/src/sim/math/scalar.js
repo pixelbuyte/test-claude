@@ -77,6 +77,21 @@ export function formatTime(seconds) {
   return `${m}:${String(s).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
 }
 
+/**
+ * Formats seconds as m:ss.cc - the live race clock.
+ *
+ * Two decimals rather than three: a running clock does not need millisecond
+ * precision, and the extra digit is wide enough to overflow a stat tile on a
+ * narrow phone. Records still use the full formatTime.
+ */
+export function formatClock(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '--:--.--';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  const cs = Math.floor((seconds % 1) * 100);
+  return `${m}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+}
+
 /** 1st / 2nd / 3rd / 4th ... */
 export function ordinal(n) {
   const mod100 = n % 100;

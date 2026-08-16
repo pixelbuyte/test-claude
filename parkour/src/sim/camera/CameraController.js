@@ -92,7 +92,11 @@ export function stepCamera(cam, p, world) {
   // the obstacle is on screen while there is still time to react to it.
   const a = p.affordances;
   if (a) {
-    if (a.gapDistance > 0 && a.gapDistance < lookAhead) {
+    // `gapValid`, not `gapDistance > 0`: the probe reports its own range when
+    // it finds nothing, so the old test was true below about 15 m/s whatever
+    // the floor looked like - the anticipation tilt was permanently on and
+    // therefore said nothing.
+    if (a.gapValid && a.gapDistance < lookAhead) {
       lookY -= CAMERA.anticipationStrength * 0.25;
     }
     if (a.vaultValid || a.ledgeValid) {

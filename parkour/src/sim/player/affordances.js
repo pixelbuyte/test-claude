@@ -70,8 +70,17 @@ export function makeAffordanceSet() {
     ledgeIndex: -1,
     ledgeY: 0,
 
-    // Distance to the next hole in the floor, capped at the probe range.
+    /**
+     * Distance to the next hole in the floor, capped at the probe range.
+     *
+     * Note what this is *not*: when there is no hole at all, the probe runs out
+     * and reports its own range, so `gapDistance` is a large positive number on
+     * perfectly solid ground. It is a distance, never a predicate - ask
+     * `gapValid` whether there is a gap, and only then what `gapDistance` says.
+     */
     gapDistance: 0,
+    /** Whether a hole was actually found inside the probe range. */
+    gapValid: false,
 
     railValid: false,
     railIndex: -1,
@@ -101,7 +110,7 @@ export function clearAffordances(a) {
   a.railValid = false; a.railIndex = -1;
   a.launchValid = false; a.launchIndex = -1;
   a.hazardTouch = false; a.hazardIndex = -1;
-  a.gapDistance = 0;
+  a.gapDistance = 0; a.gapValid = false;
 }
 
 /**
@@ -255,6 +264,10 @@ export function sense(a, world, x, y, z, speed, height) {
   // --- Gap ahead -----------------------------------------------------------
   const look = Math.max(3, speed * 0.65);
   a.gapDistance = gapAhead(x, y, z, look, hx, cs, candidates, n);
+  // `gapAhead` returns its own range when it finds nothing, so "found a hole"
+  // is "stopped short of the range". A hole sitting exactly on the range reads
+  // as not-found, which is the safe way round: the next substep is closer to it.
+  a.gapValid = a.gapDistance < look;
 
   // --- Rails ---------------------------------------------------------------
   setBoxAABB(probe, x - hx, y - 0.6, z + hz, x + hx, y + 1.0, z + hz + PARKOUR.railEntryDistance);

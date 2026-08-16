@@ -7,6 +7,8 @@
   "scripts": {
     "test": "node --test",
     "serve": "npx http-server . -p 8080 -c-1",
-    "smoke": "node tools/smoke.mjs"
+    "smoke": "node tools/smoke.mjs",
+    "tune": "node tools/tune.mjs",
+    "allocs": "node --expose-gc --max-semi-space-size=4 tools/allocs.mjs"
   }
 }

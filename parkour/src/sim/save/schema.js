@@ -9,6 +9,7 @@
  * Pure: no storage, no clock. The adapter is injected by SaveManager.
  */
 import { PROGRESSION } from '../../config.js';
+import { TUTORIAL_IDS } from '../../data/tutorial.js';
 
 export const SAVE_VERSION = 1;
 export const SAVE_KEY = 'vertigo-rush.save.v1';
@@ -29,7 +30,16 @@ export function defaultSave() {
       audio: true,
       reducedMotion: false,
       qualityTier: null,
+      tutorialHints: true,
     },
+    /**
+     * Which first-run hints have been shown, keyed by hint id.
+     *
+     * A map rather than a count or a bitfield: hints get added and reworded
+     * over a game's life, and a player who has seen four of five should not be
+     * shown the four again because a fifth was written.
+     */
+    tutorialSeen: {},
     stats: {
       races: 0,
       finishes: 0,
@@ -97,6 +107,12 @@ export function migrate(raw) {
       : base.unlockedCharacters,
     settings: { ...base.settings, ...objectOr(raw.settings) },
     stats: { ...base.stats, ...numericFields(raw.stats, base.stats) },
+    // A save written before the tutorial existed has no `tutorialSeen` at all,
+    // and `seenFlags` turns that into an empty map - so an existing player is
+    // shown the hints once, rather than never. That is the right way round:
+    // being taught a move you already know costs two seconds, and never being
+    // taught one costs the race.
+    tutorialSeen: seenFlags(raw.tutorialSeen),
     levels: {},
   };
 
@@ -116,6 +132,20 @@ export function migrate(raw) {
 
   // Derived rather than trusted: a hand-edited file cannot grant a level.
   out.playerLevel = levelForXp(out.xp);
+  return out;
+}
+
+/**
+ * Keeps only known hint ids, and only where the value is exactly `true`.
+ *
+ * Filtering against the current id list means a hint removed from the game
+ * stops taking up room in every save file that mentions it, and a hand-edited
+ * file cannot grow the map without bound.
+ */
+function seenFlags(raw) {
+  const src = objectOr(raw);
+  const out = {};
+  for (const id of TUTORIAL_IDS) if (src[id] === true) out[id] = true;
   return out;
 }
 

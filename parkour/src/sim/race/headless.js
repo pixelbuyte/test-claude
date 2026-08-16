@@ -27,7 +27,7 @@ export function autoPlayer(intent, p) {
   intent.slidePressed = false;
 
   const onWall = p.state === STATE.WALLRUN;
-  const gapClose = a.gapDistance > 0 && a.gapDistance < Math.max(1.5, p.speed * 0.2);
+  const gapClose = a.gapValid && a.gapDistance < Math.max(1.5, p.speed * 0.2);
   const needsHop = a.blockerValid && !a.vaultValid && p.grounded;
   // Crucially not while already wall-running: pressing jump on the wall is a
   // wall-jump, which throws the runner straight back off it. Ride it, then leave
@@ -37,7 +37,7 @@ export function autoPlayer(intent, p) {
 
   // A gap with a wall beside it is a wall-run, not a jump - and it has to be
   // approached before it can be latched onto.
-  const wallRoute = (a.wallNearLeft || a.wallNearRight) && a.gapDistance > 0
+  const wallRoute = (a.wallNearLeft || a.wallNearRight) && a.gapValid
     && a.gapDistance < 16;
 
   if ((gapClose && p.grounded) || needsHop || wallAvailable || leavingWall) {

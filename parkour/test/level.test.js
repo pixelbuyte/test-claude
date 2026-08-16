@@ -129,6 +129,42 @@ test('every level can actually be finished', () => {
   }
 });
 
+test('every level has authored medal targets', () => {
+  for (const def of LEVELS) {
+    const t = def.targets;
+    assert.ok(t, `${def.id} has no authored targets - run tools/tune.mjs`);
+    for (const medal of ['gold', 'silver', 'bronze']) {
+      assert.ok(Number.isFinite(t[medal]) && t[medal] > 0,
+        `${def.id} has a nonsense ${medal} target: ${t[medal]}`);
+    }
+    assert.ok(t.gold < t.silver && t.silver < t.bronze,
+      `${def.id} targets are not ordered: ${JSON.stringify(t)}`);
+  }
+});
+
+test('authored targets still match what the course actually measures', () => {
+  // The targets in levels/index.js are measured numbers, and a physics retune
+  // moves what a course measures. This is the test that notices: it re-runs the
+  // reference driver and checks the authored gold is still the time it set,
+  // rather than a number that made sense three tuning passes ago.
+  //
+  // Gold is the reference run itself, so the reference must earn gold - just.
+  for (const def of LEVELS) {
+    const level = assembleLevel(def);
+    const out = runHeadlessRace(level, { roster: def.roster, seed: 101 });
+    const me = out.results.find((r) => r.isPlayer);
+    assert.ok(me && !me.dnf, `${def.id} did not finish`);
+
+    // A tenth of slack: the authored numbers are rounded to 0.1 s.
+    assert.ok(me.time <= def.targets.gold + 0.1,
+      `${def.id}: the reference driver runs ${me.time.toFixed(2)}s but gold is `
+      + `${def.targets.gold}s - re-run tools/tune.mjs`);
+    assert.ok(me.time > def.targets.gold - 1.5,
+      `${def.id}: gold (${def.targets.gold}s) is far looser than the measured `
+      + `${me.time.toFixed(2)}s - re-run tools/tune.mjs`);
+  }
+});
+
 test('every level runs a full field without anyone breaking', () => {
   for (const def of LEVELS.slice(0, 4)) {
     const level = assembleLevel(def);

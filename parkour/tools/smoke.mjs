@@ -92,7 +92,12 @@ const port = 8123;
 const server = await serve(port);
 mkdirSync(shots, { recursive: true });
 
-const browser = await chromium.launch({ headless: !headed });
+// Audio needs the gesture policy relaxed, or the context stays suspended and
+// there is nothing to assert about it.
+const browser = await chromium.launch({
+  headless: !headed,
+  args: ['--autoplay-policy=no-user-gesture-required'],
+});
 // A phone-shaped portrait viewport, because that is the target device.
 const context = await browser.newContext({
   viewport: { width: 412, height: 892 },
@@ -148,16 +153,29 @@ const swipe = async (dx, dy) => {
 
 const deadline = Date.now() + seconds * 1000;
 let gestures = 0;
+let hintShot = false;
 while (Date.now() < deadline) {
   const st = await page.evaluate(() => {
     const s = window.__vertigo.session;
+    const toastEl = document.getElementById('toast');
     return {
       slide: s.player.affordances.slideNeeded,
       gap: s.player.affordances.gapDistance,
       grounded: s.player.grounded,
       wall: s.player.affordances.wallLeftValid,
+      // A hint is on screen when the toast is showing something the tutorial
+      // wrote rather than something an event wrote.
+      hint: toastEl.classList.contains('show')
+        && /swipe|steer|vault|launch/i.test(toastEl.textContent)
+        ? toastEl.textContent.trim() : null,
     };
   });
+
+  if (st.hint && !hintShot) {
+    hintShot = true;
+    await page.screenshot({ path: join(shots, '04-tutorial.png') });
+    pass(`caught a tutorial hint on screen: "${st.hint}"`);
+  }
 
   if (st.slide) await swipe(0, 70);
   else if (st.gap > 0 && st.gap < 3) await swipe(0, -70);
@@ -204,6 +222,37 @@ if (result.z > 40) pass(`runner reached z=${result.z.toFixed(1)} (${(result.prog
 else fail(`runner barely moved: z=${result.z.toFixed(1)}`);
 
 if (result.finite) pass('body position finite'); else fail('body position went NaN');
+
+// --- Audio and VFX -----------------------------------------------------------
+const av = await page.evaluate(() => {
+  const v = window.__vertigo;
+  const s = v.session;
+  const before = s.vfx.alive;
+  s.vfx.emit('crash', s.player.pos, { scale: 2 });
+  return {
+    audioStarted: v.audio.started,
+    audioFailed: v.audio.failed,
+    audioState: v.audio.ctx ? v.audio.ctx.state : 'none',
+    music: !!v.audio.music,
+    vfxBefore: before,
+    vfxAfter: s.vfx.alive,
+    vfxBudget: s.vfx.budget,
+  };
+});
+
+if (av.audioStarted && av.audioState === 'running') {
+  pass(`audio running${av.music ? ' with a music bed' : ''}`);
+} else if (av.audioFailed) {
+  fail('audio failed to start');
+} else {
+  console.log(`  info  audio context is "${av.audioState}" - browser policy, not a defect`);
+}
+
+if (av.vfxAfter > av.vfxBefore) {
+  pass(`particles alive after an emit (${av.vfxAfter}/${av.vfxBudget})`);
+} else {
+  fail(`emitting produced no particles (${av.vfxBefore} -> ${av.vfxAfter})`);
+}
 
 if (result.hudTime !== '0:00.00') pass(`HUD clock advanced to ${result.hudTime}`);
 else fail('HUD clock never moved');
@@ -261,6 +310,84 @@ else fail(`${result.draws} draw calls exceeds the 120 budget`);
 
 if (result.tris <= 60000) pass(`${(result.tris / 1000).toFixed(1)}k triangles (budget 60k)`);
 else fail(`${result.tris} triangles exceeds the 60k budget`);
+
+// --- Tutorial -----------------------------------------------------------------
+// The director is unit-tested against synthetic affordances; what only a real
+// race proves is that a real course actually produces those affordances, in a
+// browser, with the toast wired up. A tutorial nobody is ever shown is the
+// failure mode a unit test cannot see.
+const tut = await page.evaluate(() => {
+  const v = window.__vertigo;
+  return {
+    remaining: v.tutorial.remaining,
+    seen: Object.keys(v.save.data.tutorialSeen),
+    enabled: v.tutorial.enabled,
+    persisted: Object.keys(JSON.parse(
+      window.localStorage.getItem('vertigo-rush.save.v1') || '{}',
+    ).tutorialSeen || {}),
+  };
+});
+
+if (tut.seen.length > 0) {
+  pass(`tutorial taught ${tut.seen.length} move(s) during the run `
+    + `(${tut.seen.join(', ')}; ${tut.remaining.length} left)`);
+} else {
+  fail('no tutorial hint fired in a whole race');
+}
+if (tut.persisted.length === tut.seen.length) {
+  pass(`hints persisted to storage (${tut.persisted.join(', ')})`);
+} else {
+  fail(`hints shown but not persisted: ${tut.seen} vs saved ${tut.persisted}`);
+}
+
+// --- Adaptive quality ---------------------------------------------------------
+// The governor's arithmetic is unit-tested; what only a browser can prove is
+// that carrying out its verdict on a live renderer - swapping pixel ratio and
+// recompiling every material for the shadow change - does not throw or blank the
+// scene. Frame times are fed in directly rather than waited for, because a
+// software rasteriser would take the real path for the wrong reason.
+const quality = await page.evaluate(() => {
+  const v = window.__vertigo;
+  // Whatever the governor did during the real drive is its own business; reset
+  // the budget so this check starts from a known place either way.
+  const duringRun = { tier: v.tier, downgrades: v.governor.downgrades };
+  v.governor.pin(null);
+  v.applyTier('high', false);
+  const before = { tier: v.tier, pixelRatio: v.renderer.renderer.getPixelRatio() };
+
+  // Two seconds of 40 ms frames, straight into the governor.
+  const verdicts = [];
+  for (let i = 0; i < 400; i++) {
+    const next = v.governor.sample(0.040);
+    if (next) { verdicts.push(next); v.applyTier(next, true); }
+  }
+  v.session.render(1 / 60);
+  return {
+    duringRun,
+    before,
+    verdicts,
+    tier: v.tier,
+    rendererTier: v.renderer.tier,
+    sessionTier: v.session.tier,
+    pixelRatio: v.renderer.renderer.getPixelRatio(),
+    particleBudget: v.session.vfx.budget,
+    capacity: v.session.vfx.capacity,
+    draws: v.renderer.drawCalls,
+  };
+});
+
+if (quality.verdicts.length > 0 && quality.tier === quality.rendererTier
+    && quality.tier === quality.sessionTier) {
+  pass(`adaptive downgrade high -> ${quality.verdicts.join(' -> ')} applied everywhere `
+    + `(pixel ratio ${quality.before.pixelRatio} -> ${quality.pixelRatio}, `
+    + `particles ${quality.particleBudget}/${quality.capacity})`);
+} else {
+  fail(`adaptive downgrade did not apply cleanly: ${JSON.stringify(quality)}`);
+}
+if (quality.draws > 0) pass(`still drawing after the tier change (${quality.draws} calls)`);
+else fail('the scene stopped drawing after a tier change');
+console.log(`  info  during the live run the governor made ${quality.duringRun.downgrades} `
+  + `downgrade(s), ending at tier "${quality.duringRun.tier}"`);
 
 // --- Landscape ---------------------------------------------------------------
 await page.setViewportSize({ width: 892, height: 412 });

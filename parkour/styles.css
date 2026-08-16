@@ -142,6 +142,48 @@ html, body {
 
 .stat-rank .stat-value { color: var(--accent); }
 
+.effects {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.effect {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  background: rgba(14, 20, 36, 0.7);
+  border: 1px solid var(--edge);
+  backdrop-filter: blur(4px);
+}
+
+.effect-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.effect-shield { color: #6fd0ff; }
+.effect-speed { color: #ffb26b; }
+.effect-magnet { color: #ffd85e; }
+.effect-slowmo { color: #b98cff; }
+.effect-invuln { color: #7ef0b0; }
+
+/* The last second of an effect blinks, so it never just vanishes. */
+.effect.expiring { animation: effect-blink 380ms steps(2, start) infinite; }
+
+@keyframes effect-blink { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .effect.expiring { animation: none; opacity: 0.6; }
+}
+
 #countdown {
   position: absolute;
   left: 50%;
@@ -217,10 +259,16 @@ html, body {
 #toast {
   position: absolute;
   left: 50%;
-  top: 34%;
+  top: 26%;
   transform: translate(-50%, -8px);
+  /* Bounded and centred: a long tutorial line used to wrap to four lines and
+     sit directly over the runner, which is the one thing it must not hide. */
+  max-width: min(76%, 340px);
+  text-align: center;
+  text-wrap: balance;
   padding: 8px 20px;
-  font-size: 20px;
+  font-size: clamp(15px, 4.2vw, 20px);
+  line-height: 1.25;
   font-weight: 700;
   letter-spacing: 0.02em;
   border-radius: 999px;
@@ -234,6 +282,141 @@ html, body {
   opacity: 1;
   transform: translate(-50%, 0);
 }
+
+/* --- Pause ---------------------------------------------------------------- */
+
+#pause-button {
+  position: fixed;
+  top: calc(var(--safe-top) + 84px);
+  right: calc(var(--safe-right) + 14px);
+  width: 44px;
+  height: 44px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  background: rgba(14, 20, 36, 0.7);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  z-index: 5;
+}
+
+#pause-button.hidden { display: none; }
+
+#pause {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 11, 20, 0.82);
+  backdrop-filter: blur(4px);
+  z-index: 6;
+}
+
+#pause.hidden { display: none; }
+
+#pause h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.ghost {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 11px 20px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.ghost:active { transform: translateY(1px); }
+
+/* --- Tabs and settings ---------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.tab {
+  flex: 1 1 0;
+  min-height: 36px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink-dim);
+  background: transparent;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.tab.selected {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tab-panel.hidden { display: none; }
+
+.settings {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 2px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+}
+
+.setting input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.setting select {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--edge);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+/* Character chips reuse the level grid, plus a colour swatch. */
+.char-swatch {
+  width: 100%;
+  height: 6px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+}
+
+.level-chip.owned { border-color: rgba(255, 255, 255, 0.3); }
 
 /* --- Start overlay -------------------------------------------------------- */
 
@@ -352,18 +535,12 @@ html, body {
   color: var(--ink-dim);
 }
 
-.controls {
-  margin: 0 0 20px;
-  padding: 0;
-  list-style: none;
-  text-align: left;
-  font-size: 14px;
-  line-height: 1.6;
+/* The menu's control list is gone - the moves are taught in the run now, by
+   data/tutorial.js, so the only thing left here is the one-line status. */
+#tutorial-status {
+  margin: 0 0 16px;
   color: #d6ddf2;
 }
-
-.controls li + li { margin-top: 4px; }
-.controls b { color: var(--ink); }
 
 .start {
   width: 100%;
@@ -393,8 +570,6 @@ html, body {
   .panel { padding: 18px 20px; }
   .panel h1 { font-size: 28px; }
   .tagline { margin-bottom: 12px; }
-  .controls { font-size: 13px; }
-  .controls .keys { display: none; }
   .hint { display: none; }
   .hud-row { max-width: 460px; }
   .stat { padding: 5px 10px; }

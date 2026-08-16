@@ -13,6 +13,7 @@ import { STEP, RACE } from '../../config.js';
 import { EV } from '../core/events.js';
 import { stepRacer, placeRacer, consumeEdges, saveCheckpoint, applyBoost } from '../player/PlayerController.js';
 import { thinkAI, makeField } from '../ai/AIController.js';
+import { stepPowerUps, collectPowerup } from '../systems/PowerUpSystem.js';
 import { STATE } from '../player/states.js';
 
 export const PHASE = {
@@ -48,6 +49,18 @@ export class RaceManager {
     this.placements = new Array(this.racers.length).fill(0);
     this.finishOrder = [];
     this.leaderFinishTime = -1;
+
+    /**
+     * Bound once, not per substep.
+     *
+     * `ev.peek(e => ...)` reads better inline, but an arrow function that
+     * captures `this` is an object, and one allocated sixty times a second for
+     * the length of a race is exactly the garbage the fixed-step loop is
+     * supposed not to produce. The event being resolved is passed through a
+     * field for the same reason.
+     */
+    this._events = null;
+    this._resolveEvent = (e) => this._resolve(e);
 
     this._placeField();
   }
@@ -101,6 +114,10 @@ export class RaceManager {
       stepRacer(ai.racer, intent, this.world, ev);
     }
 
+    // After everyone has moved: magnet range and slow-mo both depend on where
+    // the field actually ended up this substep.
+    stepPowerUps(this.racers, this.player, this.world, ev);
+
     this._resolveEvents(ev);
     this._updateOrder(ev);
     this._checkRaceEnd(ev);
@@ -115,32 +132,42 @@ export class RaceManager {
    */
   _resolveEvents(ev) {
     // Peek, not drain: the view layer needs to see these same events afterwards.
-    ev.peek((e) => {
-      const r = this.racers[e.actor];
-      if (!r) return;
+    ev.peek(this._resolveEvent);
+  }
 
-      switch (e.type) {
-        case EV.CHECKPOINT: {
-          const cp = this.world.checkpoints[e.a];
-          if (cp) saveCheckpoint(r, cp.index, cp.x, cp.y, cp.z);
-          break;
-        }
-        case EV.COIN:
-          r.coins += e.c || 1;
-          break;
-        case EV.SHARD:
-          r.shards += e.c || 1;
-          break;
-        case EV.BOOST_PAD:
-          applyBoost(r);
-          break;
-        case EV.FINISH:
-          this._finish(r);
-          break;
-        default:
-          break;
+  /** One event's race-level consequence. Called through `_resolveEvent`. */
+  _resolve(e) {
+    const r = this.racers[e.actor];
+    if (!r) return;
+
+    switch (e.type) {
+      case EV.CHECKPOINT: {
+        const cp = this.world.checkpoints[e.a];
+        if (cp) saveCheckpoint(r, cp.index, cp.x, cp.y, cp.z);
+        break;
       }
-    });
+      case EV.COIN:
+        r.coins += e.c || 1;
+        break;
+      case EV.SHARD:
+        r.shards += e.c || 1;
+        break;
+      case EV.BOOST_PAD:
+        applyBoost(r);
+        break;
+      case EV.POWERUP_PICKUP:
+        // The world reported *which pickup* was touched; the system decides
+        // what it means and writes the kind back into the same record, so the
+        // view drains one event that says both. No second event, no
+        // double-count.
+        e.b = collectPowerup(r, this.world, e.a);
+        break;
+      case EV.FINISH:
+        this._finish(r);
+        break;
+      default:
+        break;
+    }
   }
 
   /**
@@ -165,22 +192,43 @@ export class RaceManager {
    * along the course, which is exactly `progress` - the reason Z is required to
    * be monotonic.
    */
-  _updateOrder(ev) {
-    const racers = this.racers;
-    this.order.sort((ia, ib) => {
-      const a = racers[ia];
-      const b = racers[ib];
-      if (a.finished && b.finished) return a.placement - b.placement;
-      if (a.finished) return -1;
-      if (b.finished) return 1;
-      if (b.progress !== a.progress) return b.progress - a.progress;
-      // Stable tiebreak, so equal progress never produces a flickering rank.
-      return ia - ib;
-    });
+  /**
+   * Rank comparison between two racer indices. Negative means `ia` is ahead.
+   *
+   * A method rather than a closure passed to `sort`, because both the closure
+   * and the work array `Array.prototype.sort` builds are per-substep garbage.
+   */
+  _compare(ia, ib) {
+    const a = this.racers[ia];
+    const b = this.racers[ib];
+    if (a.finished && b.finished) return a.placement - b.placement;
+    if (a.finished) return -1;
+    if (b.finished) return 1;
+    if (b.progress !== a.progress) return b.progress - a.progress;
+    // Total tiebreak, so equal progress never produces a flickering rank - and
+    // so no two entries ever compare equal, which is what lets the insertion
+    // sort below ignore stability.
+    return ia - ib;
+  }
 
-    for (let rank = 0; rank < this.order.length; rank++) {
-      const idx = this.order[rank];
-      const r = racers[idx];
+  _updateOrder(ev) {
+    // Insertion sort in place. The field is at most a handful of racers and is
+    // already almost sorted from the previous substep, which is the case
+    // insertion sort is best at - and unlike `sort` it allocates nothing.
+    const order = this.order;
+    for (let i = 1; i < order.length; i++) {
+      const v = order[i];
+      let j = i - 1;
+      while (j >= 0 && this._compare(order[j], v) > 0) {
+        order[j + 1] = order[j];
+        j--;
+      }
+      order[j + 1] = v;
+    }
+
+    for (let rank = 0; rank < order.length; rank++) {
+      const idx = order[rank];
+      const r = this.racers[idx];
       const next = rank + 1;
       if (r.placement !== next && !r.finished) {
         if (r.placement !== 0 && r.index === this.player.index) {

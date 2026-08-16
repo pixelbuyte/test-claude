@@ -14,6 +14,7 @@ import { parkourStep, stepScripted, setState } from './ParkourController.js';
 import { makeAABB } from '../world/colliderSet.js';
 import { makeSweepResult, makeGroundResult } from '../world/sweep.js';
 import { EV } from '../core/events.js';
+import { clearPowerUps } from '../systems/PowerUpSystem.js';
 import { clamp } from '../math/scalar.js';
 
 /** What one racer wants to do this substep. Filled by input or by the AI. */
@@ -263,6 +264,9 @@ export function respawn(p, world, ev) {
   p.jumpBuffer = 0;
   p.slideBuffer = 0;
   p.canDoubleJump = true;
+  // Dying costs the power-ups you were holding - otherwise a shield would make
+  // a death cheaper than a crash.
+  clearPowerUps(p);
   p.invulnTimer = RACE.respawnInvulnSeconds;
   setState(p, STATE.FALL);
   ev.push(EV.RESPAWN, p.index, p.checkpointIndex);
