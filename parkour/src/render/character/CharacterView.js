@@ -23,6 +23,32 @@ const SKIN = 0xf0c8a0;
 const PIVOT_Y = 0.95;
 
 /**
+ * Squash and stretch.
+ *
+ * A jump with none of this is a translation, not a leap - the body keeps the
+ * exact same shape going up, coming down and hitting the ground, so nothing
+ * carries any sense of weight. Stretching along the direction of travel while
+ * airborne and compressing on impact is the oldest trick in animation and it is
+ * most of what separates a runner that feels good from one that merely moves.
+ *
+ * Deliberately kept in the view rather than in a clip. It is a continuous
+ * function of velocity, not a keyframed pose, and putting it in `sim/` would
+ * mean the simulation carrying a number that changes nothing it can decide.
+ */
+const SQUASH = {
+  /** Vertical speed that produces the full stretch, in m/s. */
+  refSpeed: 12,
+  /** How far the body lengthens at that speed. */
+  maxStretch: 0.16,
+  /** How hard a landing compresses it. */
+  landSquash: 0.22,
+  /** Seconds for a landing compression to spring back out. */
+  recover: 0.26,
+  /** Approach rate for the airborne stretch, so it eases rather than snaps. */
+  ease: 12,
+};
+
+/**
  * Low segment counts on purpose. These are read at three to thirty metres on a
  * phone, where the difference between eight radial segments and sixteen is
  * invisible and the difference in triangle count is not.
@@ -168,6 +194,12 @@ export class CharacterView {
     // stands with its feet at the simulation's position.
     this.bones[BONE.ROOT].position.y = -PIVOT_Y;
 
+    /** Current stretch, positive = lengthened. Eased toward its target. */
+    this._stretch = 0;
+    /** Landing compression, decaying to zero. */
+    this._impact = 0;
+    this._wasAirborne = false;
+
     this.animator = makeAnimator();
     /** Drained by whoever wants footstep audio. */
     this.events = this.animator.events;
@@ -200,9 +232,59 @@ export class CharacterView {
     // into the runner sweeping a huge arc through the floor, and it made the
     // ordinary running lean pivot from the wrong place too.
     const rootRot = this.bones[BONE.ROOT].rotation;
-    this.root.position.set(p.pos.x, p.pos.y + PIVOT_Y, p.pos.z);
     this.root.rotation.set(rootRot.x, rootRot.y, rootRot.z);
     rootRot.set(0, 0, 0);
+
+    const sy = this._squash(p, dt);
+    // Uniform in the two horizontal axes, and opposite in sign to the vertical
+    // one, so the body appears to conserve its volume: a stretched runner is
+    // narrower, a squashed one is wider. Scaling only Y reads as the model
+    // being resized rather than as the body absorbing something.
+    const sxz = 1 / Math.sqrt(sy);
+    this.root.scale.set(sxz, sy, sxz);
+
+    // The pivot scales with the body, so the offset the skeleton hangs by has
+    // to scale with it too - otherwise a squashed runner's feet lift off the
+    // ground and a stretched one sinks through it.
+    this.root.position.set(p.pos.x, p.pos.y + PIVOT_Y * sy, p.pos.z);
+  }
+
+  /**
+   * The vertical scale for this frame.
+   *
+   * @param {object} p   racer or render proxy
+   * @param {number} dt  seconds since the last frame
+   * @returns {number} vertical scale, 1 meaning unchanged
+   */
+  _squash(p, dt) {
+    const airborne = !p.grounded;
+
+    // Landing is detected as the airborne-to-grounded edge rather than from the
+    // LAND clip, because the clip is a pose and this needs the impact speed:
+    // dropping from a kerb and dropping from a rooftop should not compress the
+    // body by the same amount.
+    if (this._wasAirborne && !airborne) {
+      const speed = Math.min(1, Math.abs(p.vel.y) / SQUASH.refSpeed);
+      this._impact = Math.max(this._impact, speed);
+    }
+    this._wasAirborne = airborne;
+
+    if (this._impact > 0) {
+      this._impact = Math.max(0, this._impact - dt / SQUASH.recover);
+    }
+
+    // Stretch follows vertical velocity in either direction: rising and falling
+    // both lengthen the body along its travel. Only contact squashes it.
+    const target = airborne
+      ? Math.max(-1, Math.min(1, p.vel.y / SQUASH.refSpeed)) * SQUASH.maxStretch
+      : 0;
+    const k = Math.min(1, dt * SQUASH.ease);
+    this._stretch += (target - this._stretch) * k;
+
+    // A landing compression overrides whatever stretch was left over, and eases
+    // out on a sine so it settles rather than stopping dead.
+    const settle = Math.sin(this._impact * Math.PI * 0.5);
+    return 1 + Math.abs(this._stretch) - settle * SQUASH.landSquash;
   }
 
   get height() {
