@@ -18,9 +18,20 @@ const SKIN = 0xf0c8a0;
 
 export class CharacterView {
   /**
-   * @param {object} opts { color, accent, skin }
+   * @param {object} opts { color, accent, skin, castShadow }
    */
   constructor(opts = {}) {
+    /**
+     * Only the player casts by default.
+     *
+     * A rig is fifteen separate meshes, so six racers is ninety draw calls -
+     * and the shadow pass draws every caster a second time. Letting the whole
+     * field cast took a six-racer level to 190 draws against a budget of 120,
+     * to buy shadows under opponents who are mostly ahead of the camera and
+     * often past the impostor distance anyway. The player's own shadow is the
+     * one that matters: it is how you read your height over the ground.
+     */
+    const castShadow = opts.castShadow ?? false;
     const palette = {
       primary: opts.color ?? 0xff7a3d,
       accent: opts.accent ?? 0x2b3350,
@@ -44,12 +55,17 @@ export class CharacterView {
         // Boxes hang downward from their joint, so rotating the joint swings the
         // limb rather than spinning it about its middle.
         geo.translate(0, -def.size[1] / 2, 0);
-        const mat = new THREE.MeshLambertMaterial({ color: palette[def.part] ?? palette.primary });
+        // Phong, matching the level: a runner lit only diffusely reads as felt
+        // against surfaces that now catch a highlight.
+        const mat = new THREE.MeshPhongMaterial({
+          color: palette[def.part] ?? palette.primary,
+          specular: 0x2a2f3d, shininess: 18,
+        });
         this.materials.push(mat);
         const mesh = new THREE.Mesh(geo, mat);
         // Casts but does not receive: self-shadowing across fifteen touching
         // boxes is noise, and the runner is lit from one side anyway.
-        mesh.castShadow = true;
+        mesh.castShadow = castShadow;
         group.add(mesh);
       }
 

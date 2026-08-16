@@ -311,6 +311,48 @@ else fail(`${result.draws} draw calls exceeds the 120 budget`);
 if (result.tris <= 60000) pass(`${(result.tris / 1000).toFixed(1)}k triangles (budget 60k)`);
 else fail(`${result.tris} triangles exceeds the 60k budget`);
 
+// --- The high tier, measured on its own ---------------------------------------
+// Everything above ran at whatever tier the governor settled on, which under
+// software rasterisation is always "low" - where shadows and bloom are both off.
+// So the budget just checked is the budget for the cheapest tier, and the most
+// expensive one went entirely unmeasured. It was hiding a real overrun: six
+// racers with every rig casting shadows drew 190 calls against this same 120.
+//
+// Pin high, draw one frame, and hold that frame to the same budget.
+const heavy = await page.evaluate(() => {
+  const v = window.__vertigo;
+  const wasPinned = v.governor.userPinned;
+  v.governor.pin('high');
+  v.applyTier('high', false);
+  v.session.render(1 / 60);
+  const out = {
+    tier: v.tier,
+    bloom: !!(v.renderer.bloom && v.renderer.bloom.enabled),
+    shadows: v.renderer.renderer.shadowMap.enabled,
+    draws: v.renderer.drawCalls,
+    tris: v.renderer.triangles,
+    racers: v.session.views.length,
+  };
+  if (!wasPinned) v.governor.pin(null);
+  return out;
+});
+
+if (heavy.bloom && heavy.shadows) {
+  pass(`high tier draws a frame with bloom and shadows both live`);
+} else {
+  fail(`high tier missing effects: bloom=${heavy.bloom} shadows=${heavy.shadows}`);
+}
+if (heavy.draws <= 120) {
+  pass(`${heavy.draws} draw calls at the high tier with ${heavy.racers} racers (budget 120)`);
+} else {
+  fail(`${heavy.draws} draw calls at the high tier exceeds the 120 budget`);
+}
+if (heavy.tris <= 60000) {
+  pass(`${(heavy.tris / 1000).toFixed(1)}k triangles at the high tier (budget 60k)`);
+} else {
+  fail(`${heavy.tris} triangles at the high tier exceeds the 60k budget`);
+}
+
 // --- Tutorial -----------------------------------------------------------------
 // The director is unit-tested against synthetic affordances; what only a real
 // race proves is that a real course actually produces those affordances, in a

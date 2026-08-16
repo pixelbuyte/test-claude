@@ -68,6 +68,8 @@ export function buildDecor(level) {
     { name: 'near', count: Math.round(profile.count * 0.55), depth: 0, fade: 0.0 },
     { name: 'far', count: Math.round(profile.count * 0.45), depth: 1, fade: 0.45 },
   ]) {
+    // Deliberately left Lambert: the skyline is a silhouette twenty metres out,
+    // where a specular highlight is noise rather than information.
     const material = new THREE.MeshLambertMaterial({ vertexColors: false, color: 0xffffff });
     const mesh = new THREE.InstancedMesh(geo, material, tier.count);
     mesh.name = `decor-${tier.name}`;

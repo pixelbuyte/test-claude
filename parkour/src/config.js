@@ -216,17 +216,17 @@ export const LEVEL = {
 
 export const QUALITY = {
   low: {
-    pixelRatioCap: 1.0, antialias: false, shadows: false,
+    pixelRatioCap: 1.0, antialias: false, shadows: false, bloom: false,
     particleBudget: 300, streamAhead: 100, decorBand: 40, trailSegments: 8,
     maxOpponentsRendered: 3,
   },
   medium: {
-    pixelRatioCap: 1.5, antialias: true, shadows: false,
+    pixelRatioCap: 1.5, antialias: true, shadows: false, bloom: false,
     particleBudget: 900, streamAhead: 140, decorBand: 70, trailSegments: 14,
     maxOpponentsRendered: 5,
   },
   high: {
-    pixelRatioCap: 2.0, antialias: true, shadows: true,
+    pixelRatioCap: 2.0, antialias: true, shadows: true, bloom: true,
     particleBudget: 2000, streamAhead: 180, decorBand: 100, trailSegments: 20,
     maxOpponentsRendered: 8,
   },

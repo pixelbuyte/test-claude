@@ -14,6 +14,8 @@
 export const THEMES = {
   rooftops: {
     name: 'Rooftops',
+    /** Scales every emissive surface: dusk over a city - the reference look for the glow. */
+    glow: 1.0,
     sky: 0x1b2a4a,
     fog: 0x24334f,
     fogNear: 70,
@@ -34,6 +36,8 @@ export const THEMES = {
 
   undercity: {
     name: 'Undercity',
+    /** Scales every emissive surface: underground and lit only by what glows. */
+    glow: 1.25,
     sky: 0x120e1c,
     fog: 0x1a1426,
     fogNear: 45,
@@ -53,6 +57,8 @@ export const THEMES = {
 
   solarworks: {
     name: 'Solarworks',
+    /** Scales every emissive surface: high sun; glowing paint would read as blown-out, not lit. */
+    glow: 0.3,
     sky: 0xf2b46a,
     fog: 0xe8a86a,
     fogNear: 80,
@@ -72,6 +78,8 @@ export const THEMES = {
 
   frostline: {
     name: 'Frostline',
+    /** Scales every emissive surface: snow at noon is already the brightest thing on screen. */
+    glow: 0.25,
     sky: 0xcfe6f5,
     fog: 0xdcecf7,
     fogNear: 60,

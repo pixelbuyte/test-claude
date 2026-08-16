@@ -25,6 +25,21 @@ const MARKS = {
   /** Sat on top of the surface, not sunk into it - z-fighting is worse than a lip. */
   lift: 0.025,
   thickness: 0.03,
+  /**
+   * Markings are pushed past white so the bloom pass treats them as light.
+   *
+   * This is the cheapest strong image in the game: two lit lines converging on
+   * the vanishing point through a dark city. It costs nothing at all - the
+   * boxes were already being merged, and this is a different number in the
+   * colour attribute they already carried.
+   *
+   * The edges glow harder than the dashes on purpose. The edges say where the
+   * track ends, which is safety information and should read at any distance;
+   * the dashes say how fast you are going, and want to stream past rather than
+   * smear into one continuous bright band.
+   */
+  edgeGlow: 3.0,
+  dashGlow: 1.9,
 };
 
 /**
@@ -60,6 +75,8 @@ const MARK_STOREY = 3;
  * surface itself is in.
  */
 function pushMarkings(out, cs, i, theme) {
+  const g = theme.glow ?? 1;
+  const lit = (x) => 1 + (x - 1) * g;
   const y = cs.maxY[i] + MARKS.lift;
   const y1 = y + MARKS.thickness;
   const z0 = cs.minZ[i];
@@ -71,7 +88,7 @@ function pushMarkings(out, cs, i, theme) {
       minX: x, maxX: x + MARKS.edgeWidth,
       minY: y, maxY: y1,
       minZ: z0, maxZ: z1,
-      color: colour, shade: 0.62,
+      color: colour, shade: lit(MARKS.edgeGlow),
     });
   }
 
@@ -89,7 +106,7 @@ function pushMarkings(out, cs, i, theme) {
         minX: x, maxX: x + MARKS.dashWidth,
         minY: y, maxY: y1,
         minZ: z, maxZ: z + MARKS.dashLength,
-        color: colour, shade: 0.5,
+        color: colour, shade: lit(MARKS.dashGlow),
       });
     }
   }
@@ -113,6 +130,28 @@ function shadeFor(cs, i) {
   return 0.92 + h * 0.16;
 }
 
+/**
+ * How much brighter than white a surface is meant to be.
+ *
+ * This is how a surface becomes a *light source* rather than a lit thing, and
+ * it costs nothing: the merged geometry already carries a per-box colour, the
+ * render target is half-float so values above 1 survive, and the bloom pass
+ * picks up whatever crosses its threshold. The alternative - a second emissive
+ * material per section - would have doubled the draw calls to say the same
+ * thing, because `emissive` is a uniform and cannot vary per box within a merge.
+ */
+function glowFor(cs, i, theme) {
+  const flags = cs.flags[i];
+  const g = theme.glow ?? 1;
+  // Scaled toward 1 rather than multiplied: at glow 0 a surface should be
+  // ordinary, not black.
+  const lit = (x) => 1 + (x - 1) * g;
+  if ((flags & FLAG.BOOST) !== 0) return lit(3.2);
+  if ((flags & FLAG.HAZARD) !== 0) return lit(2.0);
+  if (cs.kind[i] === KIND.RAIL) return lit(2.4);
+  return 1;
+}
+
 export class SceneBuilder {
   /**
    * @param {object} level assembled level data
@@ -129,7 +168,20 @@ export class SceneBuilder {
     this.moverMeshes = [];
     this.pickupMesh = null;
 
-    this.material = new THREE.MeshLambertMaterial({ vertexColors: true });
+    // Phong rather than Lambert: Lambert is pure diffuse, so metal, glass,
+    // concrete and ice all responded to light identically and every surface read
+    // as the same matte plastic. Phong adds a specular term for a fraction of
+    // what MeshStandardMaterial's full PBR would cost on a phone - and with no
+    // textures anywhere, roughness and metalness maps would have nothing to
+    // sample, so the extra cost would buy nothing.
+    this.material = new THREE.MeshPhongMaterial({
+      vertexColors: true,
+      specular: 0x1c2230,
+      shininess: 24,
+      // Faces are flat-shaded facets; letting three smooth them would undo the
+      // whole look.
+      flatShading: false,
+    });
 
     this._build();
   }
@@ -158,7 +210,7 @@ export class SceneBuilder {
         minX: cs.minX[i], minY: cs.minY[i], minZ: cs.minZ[i],
         maxX: cs.maxX[i], maxY: cs.maxY[i], maxZ: cs.maxZ[i],
         color: colorFor(cs, i, theme),
-        shade: shadeFor(cs, i),
+        shade: shadeFor(cs, i) * glowFor(cs, i, theme),
       });
 
       if (isSurfaceCandidate(cs, i)) {
@@ -229,8 +281,11 @@ export class SceneBuilder {
     if (pickups.length === 0) return;
 
     const geo = new THREE.OctahedronGeometry(0.34, 0);
-    const mat = new THREE.MeshLambertMaterial({
-      color: 0xffd85e, emissive: 0x6b4a00, emissiveIntensity: 0.6,
+    // Pushed well past white on purpose: a coin should be the brightest thing on
+    // screen and throw a halo, which is what makes it read as worth chasing.
+    const mat = new THREE.MeshPhongMaterial({
+      color: 0xffd85e, emissive: 0xffc02a, emissiveIntensity: 2.4,
+      specular: 0xffffff, shininess: 60,
     });
     const mesh = new THREE.InstancedMesh(geo, mat, pickups.length);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
