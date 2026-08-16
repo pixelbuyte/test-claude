@@ -116,6 +116,8 @@ export class VFXManager {
     this.points = new THREE.Points(geo, mat);
     this.points.frustumCulled = false;
     this.points.name = 'vfx';
+    /** Kept so dispose() can take the points back out of the scene. */
+    this.scene = scene;
     scene.add(this.points);
 
     this.geometry = geo;
@@ -288,6 +290,7 @@ export class VFXManager {
   }
 
   dispose() {
+    this.scene.remove(this.points);
     this.geometry.dispose();
     if (this.material.map) this.material.map.dispose();
     this.material.dispose();

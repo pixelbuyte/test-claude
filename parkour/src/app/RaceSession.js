@@ -355,6 +355,9 @@ export class RaceSession {
       this.renderer.scene.remove(v.view.root);
       v.view.dispose();
     }
+    // The particle pool too: without this every restart left a stale Points
+    // object in the scene, each one a draw call for the rest of the session.
+    this.vfx.dispose();
     this.scene.dispose();
   }
 }
