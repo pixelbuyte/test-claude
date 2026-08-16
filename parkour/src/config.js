@@ -153,9 +153,39 @@ export const CAMERA = {
   lookAheadPerSpeed: 0.35,
   fovLandscape: 62,
   fovPortrait: 74,
+  /**
+   * Portrait framing.
+   *
+   * Rotating the phone used to change nothing but the field of view, so a tall
+   * screen got the landscape framing stretched over it: the runner sat large and
+   * low with a third of the frame given to empty sky, and no more of the course
+   * was visible than in landscape - which is backwards, since a tall screen is
+   * exactly where there is room to see further ahead.
+   *
+   * Lifting the camera pitches it down toward the same look point, which raises
+   * the horizon in frame and trades that dead sky for track. The extra boom
+   * keeps the runner from growing to fill the taller viewport.
+   */
+  portraitHeightBonus: 0.9,
+  portraitBoomScale: 1.1,
   fovSpeedKick: 12,
   /** Critically-damped follow frequency. */
   followOmega: 9,
+  /**
+   * Vertical follow while airborne, and how far the camera may trail below.
+   *
+   * The camera used to damp Y at `followOmega`, the same rate as X, so it
+   * tracked a jump almost perfectly - the runner stayed pinned at the same
+   * height in frame and the whole world dropped instead. That is precisely why
+   * jumps read flat: you never see the runner rise.
+   *
+   * Following slowly through the air lets the body climb within the frame,
+   * which is where the sense of height comes from. The trail is clamped so a
+   * long fall can never push the runner off the top of the screen - lag is a
+   * feel device, not a licence to lose the player.
+   */
+  followOmegaAir: 3.2,
+  maxVerticalTrail: 1.7,
   lookOmega: 7,
   fovOmega: 4,
   /** Camera pulls in fast when blocked, eases back out slowly. */

@@ -86,6 +86,36 @@ export const CLIPS = {
     ],
   },
 
+  /**
+   * A front somersault on the double jump.
+   *
+   * The rotation lives on BONE.ROOT's X channel, which nothing else writes -
+   * and which the view discarded outright until now, so no clip could pitch the
+   * body at all. A flip is exactly that pitch, so it was impossible by
+   * construction rather than merely unimplemented.
+   *
+   * Duration is matched to the double jump's hang time. Landing a rotation
+   * short looks far worse than not rotating, so the tuck opens out by 0.8 and
+   * the last fifth is spent upright and reaching for the ground.
+   */
+  flip: {
+    id: 'flip', duration: 0.66, loop: false, blendIn: 0.05,
+    tracks: [
+      { bone: BONE.ROOT, axis: 0, keys: [0, 0, 0.12, 0.5, 0.82, PI * 2 - 0.35, 1, PI * 2] },
+      // Tuck in hard, then open out to land - the shape that makes a flip read
+      // as athletic rather than as a model spinning on a spit.
+      { bone: BONE.THIGH_L, axis: 0, keys: [0, -0.7, 0.35, -2.3, 0.72, -1.9, 1, -0.35] },
+      { bone: BONE.THIGH_R, axis: 0, keys: [0, -0.5, 0.35, -2.1, 0.72, -2.0, 1, -0.5] },
+      { bone: BONE.SHIN_L, axis: 0, keys: [0, -0.9, 0.35, -2.4, 0.72, -2.2, 1, -0.3] },
+      { bone: BONE.SHIN_R, axis: 0, keys: [0, -0.7, 0.35, -2.3, 0.72, -2.3, 1, -0.45] },
+      { bone: BONE.SPINE, axis: 0, keys: [0, -0.1, 0.35, 0.55, 0.75, 0.3, 1, -0.05] },
+      { bone: BONE.ARM_L, axis: 0, keys: [0, -2.4, 0.3, -0.9, 0.75, -1.4, 1, -2.2] },
+      { bone: BONE.ARM_R, axis: 0, keys: [0, -2.3, 0.3, -0.8, 0.75, -1.3, 1, -2.1] },
+      { bone: BONE.FOREARM_L, axis: 0, keys: [0, -0.6, 0.35, -1.9, 1, -0.5] },
+      { bone: BONE.FOREARM_R, axis: 0, keys: [0, -0.6, 0.35, -1.9, 1, -0.5] },
+    ],
+  },
+
   fall: {
     id: 'fall', duration: 0.6, loop: true, blendIn: 0.14,
     tracks: [

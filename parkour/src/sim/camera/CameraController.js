@@ -73,14 +73,27 @@ export function stepCamera(cam, p, world) {
 
   // --- Where the camera wants to be ---------------------------------------
   cam.boomTarget = lerp(CAMERA.boomNear, CAMERA.boomFar, speedT);
+  if (cam.portrait) cam.boomTarget *= CAMERA.portraitBoomScale;
   const boom = antiClip(cam, p, world);
 
   const wantX = p.pos.x * 0.75;
-  const wantY = p.pos.y + CAMERA.height;
+  const height = CAMERA.height + (cam.portrait ? CAMERA.portraitHeightBonus : 0);
+  const wantY = p.pos.y + height;
   const wantZ = p.pos.z - boom;
 
   cam.pos.x = damp(cam.pos.x, wantX, CAMERA.followOmega, STEP);
-  cam.pos.y = damp(cam.pos.y, wantY, CAMERA.followOmega, STEP);
+
+  // Vertical follow is deliberately slacker in the air than on the ground, so
+  // the runner climbs within the frame rather than staying pinned to one height
+  // while the world drops around them. Snapping back to the tight rate on
+  // contact is what makes a landing feel like it arrives.
+  const omegaY = p.grounded ? CAMERA.followOmega : CAMERA.followOmegaAir;
+  cam.pos.y = damp(cam.pos.y, wantY, omegaY, STEP);
+
+  // ...but never so far behind that the runner leaves the top of the screen.
+  // Lag is a feel device; losing sight of the player is a bug.
+  const floorY = wantY - CAMERA.maxVerticalTrail;
+  if (cam.pos.y < floorY) cam.pos.y = floorY;
   // Forward is not damped: falling behind the runner reads as lag, not weight.
   cam.pos.z = wantZ;
 
@@ -145,6 +158,17 @@ function antiClip(cam, p, world) {
   const probe = cam._probe;
   const r = CAMERA.clipRadius;
 
+  // Narrow the collider set to the span the boom actually sweeps, first.
+  //
+  // `world.candidates` is a single shared buffer refreshed per racer per
+  // substep, and the camera steps after the whole field has moved - so this
+  // probe was reading whichever opponent happened to be stepped last, whose
+  // bucket can be ninety metres up the course. The anti-clip was therefore
+  // testing geometry nowhere near the camera and silently doing nothing:
+  // configured, costed, and dead. Nothing downstream in the substep reads the
+  // list after this, so refreshing it here is free of side effects.
+  world.refresh(p.pos.z - cam.boomTarget * 0.5, cam.boomTarget * 0.5 + r + 1);
+
   for (let s = 1; s <= CAMERA.clipSamples; s++) {
     const t = s / CAMERA.clipSamples;
     const d = cam.boomTarget * t;
@@ -153,7 +177,13 @@ function antiClip(cam, p, world) {
     const z = p.pos.z - d;
     setBoxAABB(probe, x - r, y - r, z - r, x + r, y + r, z + r);
     if (overlapBox(probe, world.cs, world.candidates, world.candidateCount, BLOCKERS, cam._hits) > 0) {
-      allowed = Math.min(allowed, d - r);
+      // Retreat to the last sample that actually probed clear, not to this one
+      // minus the probe radius. Samples are boomTarget/clipSamples apart -
+      // nearly two metres - which is four times the radius, so subtracting the
+      // radius left the camera up to a sample-width inside the very thing it
+      // was avoiding. Backing off to known-clear ground is slightly
+      // conservative and always correct.
+      allowed = Math.min(allowed, (s - 1) / CAMERA.clipSamples * cam.boomTarget);
       break;
     }
   }
