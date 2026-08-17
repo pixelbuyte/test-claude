@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avatar bake-off — Opus 5 vs Fable 5</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #0b0f18;
+    color: #e8ecf5;
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 40px 24px 64px;
+  }
+  header { max-width: 960px; margin: 0 auto 34px; }
+  h1 { margin: 0 0 8px; font-size: 26px; letter-spacing: -.02em; }
+  header p { margin: 0; color: #97a3b8; max-width: 60ch; }
+  .grid {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+  }
+  figure { margin: 0; }
+  .frame {
+    aspect-ratio: 386 / 630;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #223049;
+    background: #050f33;
+  }
+  iframe { width: 100%; height: 100%; border: 0; display: block; }
+  figcaption { margin-top: 12px; }
+  .who { font-weight: 600; letter-spacing: -.01em; }
+  .note { color: #8d99ae; font-size: 13.5px; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Avatar bake-off</h1>
+    <p>Same brief, same reference image, two models. Both outputs are single self-contained
+       HTML files — inline SVG only, no scripts and no external requests.</p>
+  </header>
+
+  <div class="grid">
+    <figure>
+      <div class="frame"><iframe src="../opus/avatar.html" title="Opus 5 render" loading="lazy"></iframe></div>
+      <figcaption>
+        <div class="who">Opus 5</div>
+        <div class="note">Ellipsoid head, arms held off the body with a seam shadow, forward-projecting
+          boots, 25-ray masked sunburst.</div>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="frame"><iframe src="../fable/avatar.html" title="Fable 5 render" loading="lazy"></iframe></div>
+      <figcaption>
+        <div class="who">Fable 5</div>
+        <div class="note">Rounded-square head, segmented limbs with visible joints, flatter sunburst.
+          Cleaner minifig read, further from the reference.</div>
+      </figcaption>
+    </figure>
+  </div>
+</body>
+</html>

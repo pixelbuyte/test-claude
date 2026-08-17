@@ -1,0 +1,277 @@
+<title>Blocky Avatar</title>
+<style>
+  :root {
+    --bg-deep: #05123a;
+    --bg-mid: #1240a8;
+    --bg-bright: #3f8ae8;
+  }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg-deep);
+  }
+  body {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .stage {
+    width: min(100vw, calc(100vh * 386 / 630));
+    height: min(100vh, calc(100vw * 630 / 386));
+  }
+  svg { display: block; width: 100%; height: 100%; }
+</style>
+
+<div class="stage">
+<svg viewBox="0 0 386 630" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="A blocky orange and red toy avatar standing against a blue sunburst background">
+  <defs>
+    <!-- ---------- background ---------- -->
+    <radialGradient id="sky" cx="50%" cy="42%" r="72%">
+      <stop offset="0%"   stop-color="#5da3f2"/>
+      <stop offset="34%"  stop-color="#2f6ede"/>
+      <stop offset="68%"  stop-color="#123fa6"/>
+      <stop offset="100%" stop-color="#050f33"/>
+    </radialGradient>
+
+    <radialGradient id="rayFade" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#fff" stop-opacity="0"/>
+      <stop offset="16%"  stop-color="#fff" stop-opacity=".85"/>
+      <stop offset="55%"  stop-color="#fff" stop-opacity=".55"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="rayMask">
+      <rect width="386" height="630" fill="url(#rayFade)"/>
+    </mask>
+
+    <radialGradient id="vignette" cx="50%" cy="44%" r="62%">
+      <stop offset="55%"  stop-color="#040d2a" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#040d2a" stop-opacity=".82"/>
+    </radialGradient>
+
+    <polygon id="rayW" points="193,300 160,-460 226,-460" fill="#dcecff"/>
+    <polygon id="rayN" points="193,300 182,-460 204,-460" fill="#eaf3ff"/>
+
+    <!-- ---------- character shading ---------- -->
+    <radialGradient id="gHead" cx="34%" cy="26%" r="82%">
+      <stop offset="0%"   stop-color="#ffbc6d"/>
+      <stop offset="42%"  stop-color="#f89740"/>
+      <stop offset="100%" stop-color="#dd7325"/>
+    </radialGradient>
+
+    <linearGradient id="gShirt" x1="0" y1="0" x2="1" y2=".22">
+      <stop offset="0%"   stop-color="#e8832f"/>
+      <stop offset="13%"  stop-color="#ffab52"/>
+      <stop offset="52%"  stop-color="#f79240"/>
+      <stop offset="100%" stop-color="#e07a2a"/>
+    </linearGradient>
+
+    <linearGradient id="gLimb" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#dd8433"/>
+      <stop offset="16%"  stop-color="#ffab52"/>
+      <stop offset="58%"  stop-color="#f38f3d"/>
+      <stop offset="100%" stop-color="#d97024"/>
+    </linearGradient>
+
+    <linearGradient id="gRed" x1="0" y1="0" x2="1" y2=".18">
+      <stop offset="0%"   stop-color="#d2543e"/>
+      <stop offset="15%"  stop-color="#f2694c"/>
+      <stop offset="54%"  stop-color="#e0503a"/>
+      <stop offset="100%" stop-color="#bd3a24"/>
+    </linearGradient>
+
+    <linearGradient id="gGloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity=".42"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="gEdgeO" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#a04d14" stop-opacity="0"/>
+      <stop offset="55%"  stop-color="#a04d14" stop-opacity=".18"/>
+      <stop offset="100%" stop-color="#a04d14" stop-opacity=".6"/>
+    </linearGradient>
+    <linearGradient id="gEdgeR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#8a2a17" stop-opacity="0"/>
+      <stop offset="55%"  stop-color="#8a2a17" stop-opacity=".2"/>
+      <stop offset="100%" stop-color="#8a2a17" stop-opacity=".62"/>
+    </linearGradient>
+
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <filter id="softer" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <filter id="tight" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.2"/>
+    </filter>
+  </defs>
+
+  <!-- ================= background ================= -->
+  <rect width="386" height="630" fill="url(#sky)"/>
+
+  <g mask="url(#rayMask)" opacity=".26" filter="url(#soft)">
+    <use href="#rayW"/>
+    <use href="#rayW" transform="rotate(24 193 300)"/>
+    <use href="#rayW" transform="rotate(47 193 300)"/>
+    <use href="#rayW" transform="rotate(68 193 300)"/>
+    <use href="#rayW" transform="rotate(93 193 300)"/>
+    <use href="#rayW" transform="rotate(115 193 300)"/>
+    <use href="#rayW" transform="rotate(140 193 300)"/>
+    <use href="#rayW" transform="rotate(162 193 300)"/>
+    <use href="#rayW" transform="rotate(185 193 300)"/>
+    <use href="#rayW" transform="rotate(208 193 300)"/>
+    <use href="#rayW" transform="rotate(231 193 300)"/>
+    <use href="#rayW" transform="rotate(252 193 300)"/>
+    <use href="#rayW" transform="rotate(275 193 300)"/>
+    <use href="#rayW" transform="rotate(297 193 300)"/>
+    <use href="#rayW" transform="rotate(320 193 300)"/>
+    <use href="#rayW" transform="rotate(342 193 300)"/>
+  </g>
+
+  <!-- thinner rays offset between the wide ones, for the uneven reference burst -->
+  <g mask="url(#rayMask)" opacity=".20" filter="url(#tight)">
+    <use href="#rayN" transform="rotate(12 193 300)"/>
+    <use href="#rayN" transform="rotate(36 193 300)"/>
+    <use href="#rayN" transform="rotate(57 193 300)"/>
+    <use href="#rayN" transform="rotate(81 193 300)"/>
+    <use href="#rayN" transform="rotate(104 193 300)"/>
+    <use href="#rayN" transform="rotate(128 193 300)"/>
+    <use href="#rayN" transform="rotate(151 193 300)"/>
+    <use href="#rayN" transform="rotate(173 193 300)"/>
+    <use href="#rayN" transform="rotate(196 193 300)"/>
+    <use href="#rayN" transform="rotate(219 193 300)"/>
+    <use href="#rayN" transform="rotate(243 193 300)"/>
+    <use href="#rayN" transform="rotate(264 193 300)"/>
+    <use href="#rayN" transform="rotate(287 193 300)"/>
+    <use href="#rayN" transform="rotate(309 193 300)"/>
+    <use href="#rayN" transform="rotate(331 193 300)"/>
+    <use href="#rayN" transform="rotate(353 193 300)"/>
+  </g>
+
+  <rect width="386" height="630" fill="url(#vignette)"/>
+
+  <!-- soft occlusion hugging the figure, so it separates from the bright centre -->
+  <g filter="url(#softer)" opacity=".3" fill="#07204f">
+    <ellipse cx="193" cy="146" rx="74" ry="68"/>
+    <rect x="110" y="214" width="166" height="152" rx="34"/>
+    <rect x="126" y="340" width="134" height="126" rx="26"/>
+    <rect x="134" y="466" width="118" height="124" rx="22"/>
+    <rect x="72" y="244" width="62" height="168" rx="26"/>
+    <rect x="252" y="244" width="62" height="168" rx="26"/>
+  </g>
+
+  <!-- ================= ground shadow ================= -->
+  <ellipse cx="193" cy="592" rx="96" ry="20" fill="#03102f" opacity=".45" filter="url(#soft)"/>
+
+  <!-- ================= legs ================= -->
+  <g id="legs">
+    <!-- boots -->
+    <g>
+      <path d="M140,494 L192,494 L192,566 Q192,574 184,574 L148,574 Q140,574 140,566 Z" fill="url(#gRed)"/>
+      <path d="M137,556 L195,556 L195,580 Q195,589 185,589 L147,589 Q137,589 137,580 Z" fill="url(#gRed)"/>
+      <path d="M137,556 L195,556 L195,563 L137,563 Z" fill="#ffffff" opacity=".05"/>
+      <path d="M170,494 L192,494 L195,580 Q195,589 186,589 L168,589 Z" fill="url(#gEdgeR)"/>
+    </g>
+    <g>
+      <path d="M194,494 L246,494 L246,566 Q246,574 238,574 L202,574 Q194,574 194,566 Z" fill="url(#gRed)"/>
+      <path d="M191,556 L249,556 L249,580 Q249,589 239,589 L201,589 Q191,589 191,580 Z" fill="url(#gRed)"/>
+      <path d="M191,556 L249,556 L249,563 L191,563 Z" fill="#ffffff" opacity=".05"/>
+      <path d="M224,494 L246,494 L249,580 Q249,589 240,589 L222,589 Z" fill="url(#gEdgeR)"/>
+    </g>
+
+    <!-- thighs -->
+    <path d="M142,410 L190,410 L190,500 L142,500 Z" fill="url(#gLimb)"/>
+    <path d="M196,410 L244,410 L244,500 L196,500 Z" fill="url(#gLimb)"/>
+    <path d="M168,410 L190,410 L190,500 L168,500 Z" fill="url(#gEdgeO)"/>
+    <path d="M222,410 L244,410 L244,500 L222,500 Z" fill="url(#gEdgeO)"/>
+    <rect x="188" y="410" width="10" height="92" fill="#8c4413" opacity=".3" filter="url(#tight)"/>
+  </g>
+
+  <!-- ================= shorts ================= -->
+  <g id="shorts">
+    <path d="M132,348 L254,348 L252,444 Q252,452 244,452 L200,452 Q194,452 193,444
+             Q192,452 186,452 L142,452 Q134,452 134,444 Z" fill="url(#gRed)"/>
+    <path d="M132,348 L254,348 L254,360 L132,360 Z" fill="#ffffff" opacity=".09"/>
+    <path d="M224,348 L254,348 L252,452 L224,452 Z" fill="url(#gEdgeR)"/>
+    <path d="M189,352 L197,352 L196,448 L190,448 Z" fill="#8f2c1a" opacity=".38"/>
+  </g>
+
+  <!-- ================= arms (behind the torso, so the shoulders tuck cleanly) ========= -->
+  <g id="arm-left">
+    <path d="M82,246 L128,242 L124,330 L78,334 Z" fill="url(#gLimb)"/>
+    <path d="M104,246 L128,242 L124,330 L100,334 Z" fill="url(#gEdgeO)"/>
+    <!-- cuff -->
+    <path d="M75,330 L126,326 L128,358 L77,362 Z" fill="url(#gRed)"/>
+    <!-- blocky hand -->
+    <path d="M75,356 L127,352 L130,392 Q130,402 119,404 L89,407 Q77,405 75,396 Z" fill="url(#gRed)"/>
+    <path d="M106,353 L127,352 L130,392 Q130,402 120,404 L104,406 Z" fill="url(#gEdgeR)"/>
+  </g>
+
+  <g id="arm-right">
+    <path d="M304,246 L258,242 L262,330 L308,334 Z" fill="url(#gLimb)"/>
+    <path d="M282,244 L304,246 L308,334 L286,333 Z" fill="url(#gEdgeO)"/>
+    <path d="M311,330 L260,326 L258,358 L309,362 Z" fill="url(#gRed)"/>
+    <path d="M311,356 L259,352 L256,392 Q256,402 267,404 L297,407 Q309,405 311,396 Z" fill="url(#gRed)"/>
+    <path d="M288,353 L311,356 L311,396 Q309,405 298,407 L286,406 Z" fill="url(#gEdgeR)"/>
+  </g>
+
+  <!-- ================= neck ================= -->
+  <path d="M172,188 L214,188 L214,232 L172,232 Z" fill="#cf6a1e"/>
+
+  <!-- ================= torso / t-shirt ================= -->
+  <g id="torso">
+    <!-- contact shadow where the sleeves sit on the arms -->
+    <path d="M112,236 L146,236 L146,300 L112,300 Z" fill="#7d3c10" opacity=".35" filter="url(#soft)"/>
+    <path d="M240,236 L274,236 L274,300 L240,300 Z" fill="#7d3c10" opacity=".4" filter="url(#soft)"/>
+
+    <path d="M142,216 Q193,204 244,216
+             L258,222 Q272,229 272,244
+             L269,284 Q267,296 254,300
+             L256,360 L130,360 L132,300
+             Q119,296 117,284 L114,244
+             Q114,229 128,222 Z" fill="url(#gShirt)"/>
+
+    <!-- shadow side of the shirt -->
+    <path d="M244,216 L258,222 Q272,229 272,244 L269,284 Q267,296 254,300 L256,360 L240,360 L242,218 Z"
+          fill="url(#gEdgeO)"/>
+    <!-- sleeve hem creases -->
+    <path d="M117,284 Q136,296 154,292 L154,300 Q133,304 118,296 Z" fill="#a8511a" opacity=".4"/>
+    <path d="M269,284 Q250,296 232,292 L232,300 Q253,304 268,296 Z" fill="#a8511a" opacity=".45"/>
+    <!-- collar shadow under the chin -->
+    <path d="M150,218 Q193,236 236,218 L236,204 L150,204 Z" fill="#a8511a" opacity=".42" filter="url(#tight)"/>
+    <!-- hem -->
+    <path d="M130,352 L256,352 L256,360 L130,360 Z" fill="#b6591b" opacity=".3"/>
+    <!-- top light across the chest -->
+    <path d="M142,216 Q193,204 244,216 L244,260 Q193,276 142,260 Z" fill="url(#gGloss)" opacity=".45"/>
+  </g>
+
+  <!-- ================= head ================= -->
+  <g id="head">
+    <ellipse cx="193" cy="140" rx="69" ry="64" fill="url(#gHead)"/>
+    <ellipse cx="193" cy="192" rx="44" ry="13" fill="#b45a1a" opacity=".38" filter="url(#tight)"/>
+    <ellipse cx="167" cy="106" rx="29" ry="19" fill="#fff" opacity=".2" filter="url(#soft)"
+             transform="rotate(-22 167 106)"/>
+    <path d="M241,105 A69,64 0 0 1 235,180" fill="none" stroke="#8ec4ff" stroke-width="4"
+          opacity=".2" stroke-linecap="round" filter="url(#tight)"/>
+  </g>
+
+  <!-- cool bounce light off the blue background, along the shadow-side edges -->
+  <g id="rim" fill="none" stroke="#9fd0ff" stroke-linecap="round" opacity=".22" filter="url(#tight)">
+    <path d="M271,248 L268,283" stroke-width="4"/>
+    <path d="M255,308 L256,354" stroke-width="4"/>
+    <path d="M305,252 L308,330" stroke-width="4"/>
+    <path d="M310,360 L311,394" stroke-width="4"/>
+    <path d="M252,356 L251,446" stroke-width="4"/>
+    <path d="M243,414 L243,498" stroke-width="3.5"/>
+    <path d="M245,500 L247,562" stroke-width="3.5"/>
+    <path d="M189,500 L191,562" stroke-width="3"/>
+  </g>
+
+  <!-- soles -->
+  <g fill="#8f2c1a" opacity=".32">
+    <rect x="137" y="582" width="58" height="7" rx="3"/>
+    <rect x="191" y="582" width="58" height="7" rx="3"/>
+  </g>
+</svg>
+</div>
