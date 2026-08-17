@@ -29,6 +29,13 @@ export const CHARACTERS = [
     cost: 0, unlockAt: 0,
   },
   {
+    id: 'runner-tangerine',
+    name: 'Tangerine',
+    blurb: 'Straight off the reference sheet.',
+    primary: 0xf79240, accent: 0xde4a32, skin: 0xf5983c,
+    cost: 0, unlockAt: 0,
+  },
+  {
     id: 'runner-ash',
     name: 'Ash',
     blurb: 'Quiet colours, loud lines.',

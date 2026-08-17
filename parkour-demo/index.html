@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tangerine runs the course</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg: #0a0e17;
+    --panel: #121826;
+    --line: #223049;
+    --ink: #e8ecf5;
+    --dim: #8d99ae;
+    --accent: #f79240;
+  }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 44px 22px 80px;
+  }
+  .wrap { max-width: 1020px; margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.025em; }
+  h2 { margin: 46px 0 14px; font-size: 17px; letter-spacing: .02em; text-transform: uppercase; color: var(--dim); }
+  .lede { margin: 0; color: var(--dim); max-width: 66ch; }
+  .swatches { display: flex; gap: 8px; margin: 20px 0 0; }
+  .sw { width: 44px; height: 26px; border-radius: 5px; border: 1px solid #0006; }
+  figure { margin: 0; }
+  .hero img, .picker img { width: 100%; border-radius: 12px; border: 1px solid var(--line); display: block; }
+  video { width: 100%; border-radius: 12px; border: 1px solid var(--line); display: block; background: #000; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .grid img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+  .cap { margin-top: 8px; }
+  .cap b { display: block; font-size: 14px; }
+  .cap span { color: var(--dim); font-size: 13px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 720px) { .two { grid-template-columns: 1fr; } }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 600; }
+  td.n { font-variant-numeric: tabular-nums; }
+  code { background: #1b2333; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .note { color: var(--dim); font-size: 14px; max-width: 70ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tangerine runs the course</h1>
+  <p class="lede">The blocky avatar from the reference sheet, added to Vertigo Rush as a playable
+     runner and turned loose on <b>Whiteout</b> — driven by the game's own opponent AI, not by a
+     scripted sequence of keypresses.</p>
+
+  <div class="swatches" aria-label="Palette">
+    <div class="sw" style="background:#f79240" title="primary — torso, thighs"></div>
+    <div class="sw" style="background:#de4a32" title="accent — gloves, shorts, boots"></div>
+    <div class="sw" style="background:#f5983c" title="skin — head, forearms"></div>
+  </div>
+
+  <h2>The run</h2>
+  <video src="./shots/demo-run.webm" controls muted playsinline preload="metadata"
+         poster="./shots/wide-gameplay.png"></video>
+  <p class="note cap">A full course, start to finish. Rendered headlessly on a software GPU, so the
+     capture runs around 18 fps — the simulation itself is fixed-step and unaffected.</p>
+
+  <h2>Every move it hit</h2>
+  <div class="grid">
+    <figure><img src="./shots/frost-run.png" alt="Running">
+      <figcaption class="cap"><b>Run</b><span>Baseline gait.</span></figcaption></figure>
+    <figure><img src="./shots/frost-sprint.png" alt="Sprinting">
+      <figcaption class="cap"><b>Sprint</b><span>Top speed, ~19 m/s.</span></figcaption></figure>
+    <figure><img src="./shots/frost-jump.png" alt="Jumping">
+      <figcaption class="cap"><b>Jump</b><span>Launch off a ledge.</span></figcaption></figure>
+    <figure><img src="./shots/frost-vault.png" alt="Vaulting a crate">
+      <figcaption class="cap"><b>Vault</b><span>Fires on its own at speed.</span></figcaption></figure>
+    <figure><img src="./shots/frost-slide.png" alt="Sliding">
+      <figcaption class="cap"><b>Slide</b><span>Under the low gap.</span></figcaption></figure>
+    <figure><img src="./shots/frost-wallrun.png" alt="Wall running">
+      <figcaption class="cap"><b>Wall-run</b><span>Arm out along the panel.</span></figcaption></figure>
+    <figure><img src="./shots/frost-fall.png" alt="Falling">
+      <figcaption class="cap"><b>Fall</b><span>Airborne between roofs.</span></figcaption></figure>
+    <figure><img src="./shots/frost-land.png" alt="Landing">
+      <figcaption class="cap"><b>Land</b><span>Absorb, then back to run.</span></figcaption></figure>
+  </div>
+
+  <h2>In the game</h2>
+  <div class="two">
+    <figure class="picker"><img src="./shots/runner-picker.png" alt="The runner picker showing Tangerine selected">
+      <figcaption class="cap"><span>Sits in the roster next to Ember, owned from the start.</span></figcaption></figure>
+    <figure class="hero"><img src="./shots/wide-gameplay.png" alt="Gameplay view mid-race">
+      <figcaption class="cap"><span>Mid-field on Whiteout, third of six.</span></figcaption></figure>
+  </div>
+
+  <h2>What one run looked like</h2>
+  <table>
+    <thead><tr><th>State</th><th>Frames observed</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>sprint</td><td class="n">559</td><td>Held top speed for most of the course</td></tr>
+      <tr><td>fall</td><td class="n">76</td><td>Airborne</td></tr>
+      <tr><td>run</td><td class="n">72</td><td>Below sprint threshold</td></tr>
+      <tr><td>slide</td><td class="n">54</td><td>Under low cover</td></tr>
+      <tr><td>idle</td><td class="n">39</td><td>Pre-countdown</td></tr>
+      <tr><td>jump</td><td class="n">32</td><td>Launches</td></tr>
+      <tr><td>land</td><td class="n">31</td><td>Touchdowns</td></tr>
+      <tr><td>wallrun</td><td class="n">23</td><td>Along a vertical face</td></tr>
+      <tr><td>vault</td><td class="n">11</td><td>Over crates</td></tr>
+      <tr><td>stumble</td><td class="n">4</td><td>Clipped something — the AI is not perfect</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Sampled once per rendered frame over one complete run, which the racer finished.</p>
+
+  <h2>How the demo drives itself</h2>
+  <p class="note">Nothing about the runner is privileged — an opponent fills in the same intent
+    object a thumb would, and is advanced by the same <code>stepRacer</code>. So the demo hands the
+    player to <code>makeAI</code> / <code>thinkAI</code> and lets the game play itself:</p>
+  <p class="note"><code>session.input = null</code>, then <code>session.intent</code> becomes a getter
+    returning <code>thinkAI(ai, world)</code>. Each still is captured by pausing the simulation the
+    instant a wanted state first appears, swinging the <em>simulation</em> camera in close, and
+    letting the render loop sync three.js from it.</p>
+
+</div>
+</body>
+</html>

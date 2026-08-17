@@ -22,7 +22,7 @@ export function defaultSave() {
     xp: 0,
     playerLevel: 1,
     characterId: 'runner-ember',
-    unlockedCharacters: ['runner-ember'],
+    unlockedCharacters: ['runner-ember', 'runner-tangerine'],
     /** Per level: { bestTime, bestPlacement, coins, medal, runs, finished }. */
     levels: {},
     settings: {
