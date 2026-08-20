@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Inter Tight', system-ui, sans-serif; background: #0b0c10; }
+    a { color: #8fe8ff; } a:hover { color: #bff2ff; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+    .mono { font-family:'IBM Plex Mono',monospace; }
+    .box { background:#15171c; border:1px solid #262a33; border-radius:10px; }
+    .stagelabel { font-size:9.5px; letter-spacing:.08em; color:#7a8190; text-transform:uppercase; }
+    .stagename { font-size:12.5px; color:#e7e9ee; font-weight:600; margin-top:3px; }
+  </style>
+</helmet>
+<div style="width:1100px;height:900px;background:radial-gradient(circle at 50% 10%,#181b22 0%,#0b0c10 55%);color:#e7e9ee;box-sizing:border-box;padding:34px 44px;">
+
+  <div style="text-align:center;">
+    <div class="mono" style="font-size:11px;letter-spacing:.24em;color:#8fe8ff;text-transform:uppercase;">Concept sheet · 05</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;margin-top:6px;">Signal path</div>
+    <div class="mono" style="font-size:12px;color:#8b93a3;margin-top:6px;">Environment in, haptic pulse out — five stages, one honest bottleneck</div>
+  </div>
+
+  <!-- ===== STAGE FLOW ===== -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:0;margin-top:34px;">
+
+    <div class="box" style="width:150px;padding:16px;text-align:center;">
+      <svg width="30" height="30" viewBox="0 0 24 24" style="margin:0 auto;display:block;"><path d="M2 12c2-6 4-6 5 0s3 6 5 0 3-6 5 0 3 6 5 0" fill="none" stroke="#8fe8ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="stagelabel" style="margin-top:8px;">01 · read</div>
+      <div class="stagename">Environment</div>
+      <div class="mono" style="font-size:9px;color:#7a8190;margin-top:4px;line-height:1.5;">motion · impact · proximity</div>
+    </div>
+
+    <svg width="46" height="20" style="flex:none;"><path d="M2,10 L40,10 M40,10 L32,4 M40,10 L32,16" fill="none" stroke="#3a3f4a" stroke-width="2"/></svg>
+
+    <div class="box" style="width:150px;padding:16px;text-align:center;">
+      <svg width="30" height="30" viewBox="0 0 24 24" style="margin:0 auto;display:block;"><rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="#8fe8ff" stroke-width="1.6"/><path d="M9 12h6M12 9v6" stroke="#8fe8ff" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <div class="stagelabel" style="margin-top:8px;">02 · sample</div>
+      <div class="stagename">Sensors</div>
+      <div class="mono" style="font-size:9px;color:#7a8190;margin-top:4px;line-height:1.5;">IMU · ToF/radar · strain</div>
+      <div class="mono" style="font-size:9.5px;color:#8fe8ff;margin-top:6px;">~5 ms</div>
+    </div>
+
+    <svg width="46" height="20" style="flex:none;"><path d="M2,10 L40,10 M40,10 L32,4 M40,10 L32,16" fill="none" stroke="#3a3f4a" stroke-width="2"/></svg>
+
+    <div class="box" style="width:170px;padding:16px;text-align:center;border-color:#8fe8ff44;box-shadow:0 0 0 1px #8fe8ff22 inset;">
+      <svg width="30" height="30" viewBox="0 0 24 24" style="margin:0 auto;display:block;"><polygon points="12,2 20,8 20,16 12,22 4,16 4,8" fill="none" stroke="#8fe8ff" stroke-width="1.6"/><circle cx="12" cy="12" r="3" fill="#8fe8ff"/></svg>
+      <div class="stagelabel" style="margin-top:8px;">03 · decide</div>
+      <div class="stagename">Core hub</div>
+      <div class="mono" style="font-size:9px;color:#7a8190;margin-top:4px;line-height:1.5;">sensor fusion · which node fires</div>
+      <div class="mono" style="font-size:9.5px;color:#8fe8ff;margin-top:6px;">~10 ms</div>
+    </div>
+
+    <svg width="46" height="20" style="flex:none;"><path d="M2,10 L40,10 M40,10 L32,4 M40,10 L32,16" fill="none" stroke="#3a3f4a" stroke-width="2"/></svg>
+
+    <div class="box" style="width:150px;padding:16px;text-align:center;">
+      <svg width="30" height="30" viewBox="0 0 24 24" style="margin:0 auto;display:block;"><path d="M4 12h4l2-7 4 14 2-7h4" fill="none" stroke="#8fe8ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="stagelabel" style="margin-top:8px;">04 · relay</div>
+      <div class="stagename">Signal bus</div>
+      <div class="mono" style="font-size:9px;color:#7a8190;margin-top:4px;line-height:1.5;">flex-PCB trace, wired</div>
+      <div class="mono" style="font-size:9.5px;color:#8fe8ff;margin-top:6px;">~2 ms</div>
+    </div>
+
+    <svg width="46" height="20" style="flex:none;"><path d="M2,10 L40,10 M40,10 L32,4 M40,10 L32,16" fill="none" stroke="#3a3f4a" stroke-width="2"/></svg>
+
+    <div class="box" style="width:150px;padding:16px;text-align:center;">
+      <svg width="30" height="30" viewBox="0 0 24 24" style="margin:0 auto;display:block;"><circle cx="12" cy="12" r="3" fill="#8fe8ff"/><circle cx="12" cy="12" r="7" fill="none" stroke="#8fe8ff" stroke-width="1.3" opacity="0.6"/><circle cx="12" cy="12" r="11" fill="none" stroke="#8fe8ff" stroke-width="1.3" opacity="0.3"/></svg>
+      <div class="stagelabel" style="margin-top:8px;">05 · actuate</div>
+      <div class="stagename">Cue node</div>
+      <div class="mono" style="font-size:9px;color:#7a8190;margin-top:4px;line-height:1.5;">LRA haptic, palm/sole</div>
+      <div class="mono" style="font-size:9.5px;color:#8fe8ff;margin-top:6px;">~20–30 ms rise</div>
+    </div>
+
+  </div>
+
+  <!-- ===== LATENCY BUDGET ===== -->
+  <div style="margin-top:56px;">
+    <div class="mono" style="font-size:11px;letter-spacing:.16em;color:#e7e9ee;text-transform:uppercase;text-align:center;">Latency budget — the honest part</div>
+
+    <div style="width:920px;margin:22px auto 0;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="mono" style="width:190px;font-size:10.5px;color:#8fe8ff;text-align:right;">Suit sense-to-cue loop</div>
+        <div style="flex:1;height:26px;background:#1a1c22;border-radius:5px;position:relative;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:14.5%;background:linear-gradient(90deg,#8fe8ff,#bff2ff);"></div>
+        </div>
+        <div class="mono" style="width:70px;font-size:10.5px;color:#e7e9ee;">30–50 ms</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-top:14px;">
+        <div class="mono" style="width:190px;font-size:10.5px;color:#c9a53e;text-align:right;">Simple visual reaction</div>
+        <div style="flex:1;height:26px;background:#1a1c22;border-radius:5px;position:relative;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:58%;background:linear-gradient(90deg,#c9a53e88,#c9a53e44);"></div>
+        </div>
+        <div class="mono" style="width:70px;font-size:10.5px;color:#e7e9ee;">180–220 ms</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-top:14px;">
+        <div class="mono" style="width:190px;font-size:10.5px;color:#ff6a3d;text-align:right;">Reaction to a surprise</div>
+        <div style="flex:1;height:26px;background:#1a1c22;border-radius:5px;position:relative;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,#ff6a3d88,#ff6a3d33);"></div>
+        </div>
+        <div class="mono" style="width:70px;font-size:10.5px;color:#e7e9ee;">300–400 ms</div>
+      </div>
+    </div>
+
+    <div class="mono" style="max-width:760px;margin:22px auto 0;font-size:11px;color:#9aa1af;line-height:1.65;text-align:center;">
+      The suit cannot beat a spinal reflex — it doesn't touch the muscles. What it can do is arrive
+      <span style="color:#e7e9ee;">150–350 ms before the wearer would otherwise notice a hazard</span>,
+      turning a surprise into something half-expected. That's a head start, not superhuman speed —
+      and it's the honest claim to build the pitch on.
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

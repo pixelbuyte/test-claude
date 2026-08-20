@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Inter Tight', system-ui, sans-serif; background: #0b0c10; }
+    a { color: #8fe8ff; } a:hover { color: #bff2ff; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+    .mono { font-family:'IBM Plex Mono',monospace; }
+    .namecard { background:#15171c; border:1px solid #262a33; border-radius:12px; padding:22px; }
+    .rec { border-color:#8fe8ff55; box-shadow:0 0 0 1px #8fe8ff22 inset; }
+  </style>
+</helmet>
+<div style="width:900px;height:1080px;background:radial-gradient(circle at 50% 8%,#181b22 0%,#0b0c10 55%);color:#e7e9ee;box-sizing:border-box;padding:34px 44px;">
+
+  <div style="text-align:center;">
+    <div class="mono" style="font-size:11px;letter-spacing:.24em;color:#8fe8ff;text-transform:uppercase;">Concept sheet · 07</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;margin-top:6px;">Naming directions</div>
+    <div class="mono" style="font-size:12px;color:#8b93a3;margin-top:6px;">Telltale is locked — the rest stay here as the runners-up on record</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;margin-top:28px;">
+
+    <div class="namecard rec">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;">Telltale</div>
+        <div class="mono" style="font-size:9.5px;color:#8fe8ff;letter-spacing:.1em;">LOCKED — see sheet 01</div>
+      </div>
+      <div style="font-size:12.5px;color:#c7ccd6;margin-top:8px;line-height:1.6;">Plain English, and it's the whole pitch in one word: a suit that tells you before it happens. Nobody else owns this as a hardware brand. Tagline writes itself — <span style="color:#e7e9ee;">"it tells you before it happens."</span> Not yet trademark-checked — do that before it goes anywhere public.</div>
+    </div>
+
+    <div class="namecard">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;">Kairo</div>
+      <div style="font-size:12.5px;color:#c7ccd6;margin-top:8px;line-height:1.6;">From <span class="mono">回路</span> — Japanese for "circuit." Short, brandable, carries the anime-tech register the visual design already speaks. Sounds exotic without translating to anything embarrassing. Needs a real trademark check.</div>
+    </div>
+
+    <div class="namecard">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;">Vantage</div>
+      <div style="font-size:12.5px;color:#c7ccd6;margin-top:8px;line-height:1.6;">A vantage is a position that gives you a wider view — which is the honest claim: more awareness, not more speed. Reads premium and plain-spoken rather than sci-fi; safest choice if the pitch leans toward investors over anime fans.</div>
+    </div>
+
+    <div class="namecard">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;">Warden</div>
+      <div style="font-size:12.5px;color:#c7ccd6;margin-top:8px;line-height:1.6;">Implies something watching over you, always active in the background — matches the core hub's actual job description. Single hard word, easy to say out loud, hero-suit-appropriate without leaning on any specific IP.</div>
+    </div>
+
+    <div class="namecard">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;">Fivepoint</div>
+      <div style="font-size:12.5px;color:#c7ccd6;margin-top:8px;line-height:1.6;">Literal and a little nerdy: five cue nodes, and the emblem itself is a four-point kite plus its own name as the fifth point of the joke. Best if the brand wants to lead with the engineering rather than the hero-suit fantasy.</div>
+    </div>
+
+  </div>
+
+  <div class="mono" style="max-width:760px;margin:26px auto 0;font-size:10.5px;color:#565c68;line-height:1.6;text-align:center;">
+    NONE OF THESE HAVE BEEN CHECKED AGAINST EXISTING TRADEMARKS, GAME TITLES, OR PRODUCT NAMES — DO THAT BEFORE COMMITTING.
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Inter Tight', system-ui, sans-serif; background: #0b0c10; }
+    a { color: #8fe8ff; } a:hover { color: #bff2ff; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+    .mono { font-family:'IBM Plex Mono',monospace; }
+    .cell { background:#15171c; padding:14px 16px; }
+    .rowlabel { background:#111318; padding:14px 16px; font-size:11px; letter-spacing:.04em; color:#8fe8ff; font-weight:600; display:flex; align-items:center; }
+    .tiertitle { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:#e7e9ee; }
+    .tiercost { font-size:10px; color:#7a8190; margin-top:2px; }
+    .cellbody { font-size:11px; color:#c7ccd6; line-height:1.55; }
+  </style>
+</helmet>
+<div style="width:1160px;height:1180px;background:radial-gradient(circle at 50% 8%,#181b22 0%,#0b0c10 55%);color:#e7e9ee;box-sizing:border-box;padding:34px 40px;">
+
+  <div style="text-align:center;">
+    <div class="mono" style="font-size:11px;letter-spacing:.24em;color:#8fe8ff;text-transform:uppercase;">Concept sheet · 06</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;margin-top:6px;">What it takes to build one</div>
+    <div class="mono" style="font-size:12px;color:#8b93a3;margin-top:6px;">Three honest tiers — none of them cheap, none of them science fiction</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:170px repeat(3,minmax(0,1fr));gap:1px;background:#262a33;margin-top:28px;border-radius:10px;overflow:hidden;">
+
+    <div class="rowlabel" style="background:#0b0c10;"></div>
+    <div class="cell" style="text-align:center;">
+      <div class="tiertitle">DIY / Maker</div>
+      <div class="tiercost">weekend project, one person</div>
+    </div>
+    <div class="cell" style="text-align:center;background:#171b22;">
+      <div class="tiertitle" style="color:#8fe8ff;">Advanced Prototype</div>
+      <div class="tiercost">makerspace + small team</div>
+    </div>
+    <div class="cell" style="text-align:center;">
+      <div class="tiertitle">Near-Production</div>
+      <div class="tiercost">contract EE/ME + textile partner</div>
+    </div>
+
+    <div class="rowlabel">Core sensing</div>
+    <div class="cell cellbody">ESP32 + BNO055 IMU breakout</div>
+    <div class="cell cellbody" style="background:#171b22;">nRF52840 + BNO086 IMU, compact mmWave/Doppler module for proximity</div>
+    <div class="cell cellbody">Redundant IMUs, integrated mmWave + ToF array, dedicated fusion coprocessor</div>
+
+    <div class="rowlabel">Haptics ×4</div>
+    <div class="cell cellbody">Coin ERM motors — <span style="color:#ff6a3d;">~60–100 ms</span> rise time</div>
+    <div class="cell cellbody" style="background:#171b22;">LRA + DRV2605L haptic driver — <span style="color:#8fe8ff;">~5–15 ms</span> rise time</div>
+    <div class="cell cellbody">Closed-loop LRA array, auto-tunes resonance to skin contact</div>
+
+    <div class="rowlabel">Signal path</div>
+    <div class="cell cellbody">Wired I²C, breadboard harness</div>
+    <div class="cell cellbody" style="background:#171b22;">Thin wired harness or BLE 5.2 (wired is lower-latency and the safer default)</div>
+    <div class="cell cellbody">Low-latency wired backbone; wireless reserved for a companion app only</div>
+
+    <div class="rowlabel">Power</div>
+    <div class="cell cellbody">500 mAh LiPo + TP4056 charger</div>
+    <div class="cell cellbody" style="background:#171b22;">2000 mAh LiPo, USB-C, ~4–8 h runtime</div>
+    <div class="cell cellbody">Distributed cells for balance, hot-swap, wireless charging dock</div>
+
+    <div class="rowlabel">Emblems / shell</div>
+    <div class="cell cellbody">3D-printed housings + WS2812 LED strip</div>
+    <div class="cell cellbody" style="background:#171b22;">Flex-PCB + diffuser lens, silicone-overmolded housing</div>
+    <div class="cell cellbody">Medical-grade silicone, laser-welded seams, no stitching to fail</div>
+
+    <div class="rowlabel">Base layer</div>
+    <div class="cell cellbody">Sewn onto an off-the-shelf compression layer</div>
+    <div class="cell cellbody" style="background:#171b22;">Laminated 4-way-stretch fabric, purpose-cut</div>
+    <div class="cell cellbody">Body-scanned compression garment, IP54+ rated</div>
+
+    <div class="rowlabel" style="color:#e7e9ee;">Est. parts cost</div>
+    <div class="cell cellbody" style="color:#e7e9ee;font-weight:600;">$150 – 350</div>
+    <div class="cell cellbody" style="background:#171b22;color:#e7e9ee;font-weight:600;">$1,200 – 3,000</div>
+    <div class="cell cellbody" style="color:#e7e9ee;font-weight:600;">$8,000 – 25,000 / unit</div>
+
+    <div class="rowlabel" style="color:#e7e9ee;">Build time</div>
+    <div class="cell cellbody" style="color:#e7e9ee;">A weekend – 2 weeks</div>
+    <div class="cell cellbody" style="background:#171b22;color:#e7e9ee;">1 – 3 months</div>
+    <div class="cell cellbody" style="color:#e7e9ee;">6 – 12 months</div>
+  </div>
+
+  <div class="mono" style="max-width:820px;margin:26px auto 0;font-size:11px;color:#9aa1af;line-height:1.65;text-align:center;">
+    The DIY tier proves the concept and gets the timing story right — it will feel laggy (ERM motors alone add
+    50–100 ms most of the budget). The jump to LRA + a real haptic driver in the Advanced tier is where the
+    "pulse before contact" effect actually starts to feel real.
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
