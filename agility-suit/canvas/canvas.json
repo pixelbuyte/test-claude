@@ -1,0 +1,14 @@
+{
+  "artboards": [
+    { "file": "Overview.dc.html", "x": 0, "y": 0, "w": 640, "h": 900 },
+    { "file": "Main.dc.html", "x": 720, "y": 0, "w": 900, "h": 1040 },
+    { "file": "Back.dc.html", "x": 1700, "y": 0, "w": 640, "h": 1040 },
+    { "file": "Colorways.dc.html", "x": 0, "y": 1120, "w": 1160, "h": 680 },
+    { "file": "ActionPose.dc.html", "x": 1240, "y": 1120, "w": 720, "h": 700 },
+    { "file": "SystemDiagram.dc.html", "x": 0, "y": 1900, "w": 1100, "h": 900 },
+    { "file": "TechSpecs.dc.html", "x": 1180, "y": 1900, "w": 1160, "h": 1180 },
+    { "file": "Naming.dc.html", "x": 0, "y": 3160, "w": 900, "h": 1080 },
+    { "file": "FigureFront.dc.html", "x": 0, "y": 4320, "w": 280, "h": 574, "title": "Figure component (reused by Main + Colorways)" }
+  ],
+  "launch": { "view": "focused", "file": "Overview.dc.html" }
+}

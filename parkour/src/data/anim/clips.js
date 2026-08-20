@@ -37,15 +37,19 @@ function gait(amplitude, lean, armLift) {
   return [
     { bone: BONE.THIGH_L, axis: 0, keys: [0, amplitude, 0.5, -amplitude, 1, amplitude] },
     { bone: BONE.THIGH_R, axis: 0, keys: [0, -amplitude, 0.5, amplitude, 1, -amplitude] },
-    { bone: BONE.SHIN_L, axis: 0, keys: [0, 0.1, 0.25, -amplitude * 1.1, 0.5, -0.15, 0.75, -0.1, 1, 0.1] },
-    { bone: BONE.SHIN_R, axis: 0, keys: [0, -0.15, 0.25, -0.1, 0.5, 0.1, 0.75, -amplitude * 1.1, 1, -0.15] },
-    { bone: BONE.ARM_L, axis: 0, keys: [0, -amplitude * 0.8 - armLift, 0.5, amplitude * 0.8 - armLift, 1, -amplitude * 0.8 - armLift] },
-    { bone: BONE.ARM_R, axis: 0, keys: [0, amplitude * 0.8 - armLift, 0.5, -amplitude * 0.8 - armLift, 1, amplitude * 0.8 - armLift] },
-    { bone: BONE.FOREARM_L, axis: 0, keys: [0, -0.5, 0.5, -0.9, 1, -0.5] },
-    { bone: BONE.FOREARM_R, axis: 0, keys: [0, -0.9, 0.5, -0.5, 1, -0.9] },
+    { bone: BONE.SHIN_L, axis: 0, keys: [0, 0.1, 0.25, -amplitude * 1.25, 0.5, -0.15, 0.75, -0.1, 1, 0.1] },
+    { bone: BONE.SHIN_R, axis: 0, keys: [0, -0.15, 0.25, -0.1, 0.5, 0.1, 0.75, -amplitude * 1.25, 1, -0.15] },
+    { bone: BONE.ARM_L, axis: 0, keys: [0, -amplitude * 0.95 - armLift, 0.5, amplitude * 0.95 - armLift, 1, -amplitude * 0.95 - armLift] },
+    { bone: BONE.ARM_R, axis: 0, keys: [0, amplitude * 0.95 - armLift, 0.5, -amplitude * 0.95 - armLift, 1, amplitude * 0.95 - armLift] },
+    // Arms held slightly out from the body: the rounded torso is wider than the
+    // old boxes, and elbows brushing the ribs read as a shuffle, not a sprint.
+    { bone: BONE.ARM_L, axis: 2, keys: [0, 0.22, 1, 0.22] },
+    { bone: BONE.ARM_R, axis: 2, keys: [0, -0.22, 1, -0.22] },
+    { bone: BONE.FOREARM_L, axis: 0, keys: [0, -0.6, 0.5, -1.1, 1, -0.6] },
+    { bone: BONE.FOREARM_R, axis: 0, keys: [0, -1.1, 0.5, -0.6, 1, -1.1] },
     { bone: BONE.SPINE, axis: 0, keys: [0, lean, 1, lean] },
-    { bone: BONE.HIPS, axis: 1, keys: [0, 0.08, 0.5, -0.08, 1, 0.08] },
-    { bone: BONE.CHEST, axis: 1, keys: [0, -0.1, 0.5, 0.1, 1, -0.1] },
+    { bone: BONE.HIPS, axis: 1, keys: [0, 0.1, 0.5, -0.1, 1, 0.1] },
+    { bone: BONE.CHEST, axis: 1, keys: [0, -0.13, 0.5, 0.13, 1, -0.13] },
   ];
 }
 
@@ -62,40 +66,50 @@ export const CLIPS = {
 
   run: {
     id: 'run', duration: 0.62, loop: true, blendIn: 0.12,
-    tracks: gait(0.62, 0.12, 0.55),
+    tracks: gait(0.72, 0.2, 0.55),
     // Two footfalls per cycle, at the frames the feet actually plant.
     events: [{ t: 0.24, name: 'footstep' }, { t: 0.74, name: 'footstep' }],
   },
 
   sprint: {
     id: 'sprint', duration: 0.44, loop: true, blendIn: 0.12,
-    tracks: gait(0.85, 0.26, 0.75),
+    tracks: gait(1.0, 0.38, 0.75),
     events: [{ t: 0.22, name: 'footstep' }, { t: 0.72, name: 'footstep' }],
   },
 
   jumpUp: {
+    // A leap, not a hop: arms thrown up and wide, legs scissored - the
+    // spread-eagle beat at the apex is the signature pose of the whole game.
     id: 'jumpUp', duration: 0.45, loop: false, blendIn: 0.08,
     tracks: [
-      { bone: BONE.SPINE, axis: 0, keys: [0, -0.15, 1, 0.05] },
-      { bone: BONE.THIGH_L, axis: 0, keys: [0, -0.9, 1, -0.4] },
-      { bone: BONE.THIGH_R, axis: 0, keys: [0, -0.35, 1, -0.6] },
-      { bone: BONE.SHIN_L, axis: 0, keys: [0, -1.1, 1, -0.5] },
-      { bone: BONE.SHIN_R, axis: 0, keys: [0, -0.3, 1, -0.8] },
-      { bone: BONE.ARM_L, axis: 0, keys: [0, -2.1, 1, -1.5] },
-      { bone: BONE.ARM_R, axis: 0, keys: [0, -1.6, 1, -1.1] },
+      { bone: BONE.SPINE, axis: 0, keys: [0, -0.2, 1, 0.05] },
+      { bone: BONE.THIGH_L, axis: 0, keys: [0, -1.2, 1, -0.35] },
+      { bone: BONE.THIGH_R, axis: 0, keys: [0, 0.4, 1, -0.7] },
+      { bone: BONE.SHIN_L, axis: 0, keys: [0, -1.3, 1, -0.4] },
+      { bone: BONE.SHIN_R, axis: 0, keys: [0, -0.2, 1, -0.9] },
+      { bone: BONE.ARM_L, axis: 0, keys: [0, -2.5, 1, -1.8] },
+      { bone: BONE.ARM_R, axis: 0, keys: [0, -2.2, 1, -1.4] },
+      { bone: BONE.ARM_L, axis: 2, keys: [0, 0.7, 1, 0.9] },
+      { bone: BONE.ARM_R, axis: 2, keys: [0, -0.7, 1, -0.9] },
+      { bone: BONE.FOREARM_L, axis: 0, keys: [0, -0.3, 1, -0.15] },
+      { bone: BONE.FOREARM_R, axis: 0, keys: [0, -0.3, 1, -0.15] },
     ],
   },
 
   fall: {
+    // Full flail: arms windmilling out wide, legs splayed and kicking. Falling
+    // should look like an emergency, not a pose.
     id: 'fall', duration: 0.6, loop: true, blendIn: 0.14,
     tracks: [
-      { bone: BONE.SPINE, axis: 0, keys: [0, 0.16, 0.5, 0.22, 1, 0.16] },
-      { bone: BONE.THIGH_L, axis: 0, keys: [0, -0.5, 0.5, -0.35, 1, -0.5] },
-      { bone: BONE.THIGH_R, axis: 0, keys: [0, -0.3, 0.5, -0.5, 1, -0.3] },
-      { bone: BONE.ARM_L, axis: 0, keys: [0, -2.3, 0.5, -2.5, 1, -2.3] },
-      { bone: BONE.ARM_R, axis: 0, keys: [0, -2.2, 0.5, -2.0, 1, -2.2] },
-      { bone: BONE.ARM_L, axis: 2, keys: [0, 0.5, 1, 0.5] },
-      { bone: BONE.ARM_R, axis: 2, keys: [0, -0.5, 1, -0.5] },
+      { bone: BONE.SPINE, axis: 0, keys: [0, 0.18, 0.5, 0.26, 1, 0.18] },
+      { bone: BONE.THIGH_L, axis: 0, keys: [0, -0.8, 0.5, -0.25, 1, -0.8] },
+      { bone: BONE.THIGH_R, axis: 0, keys: [0, -0.2, 0.5, -0.75, 1, -0.2] },
+      { bone: BONE.SHIN_L, axis: 0, keys: [0, -0.5, 0.5, -0.9, 1, -0.5] },
+      { bone: BONE.SHIN_R, axis: 0, keys: [0, -0.9, 0.5, -0.4, 1, -0.9] },
+      { bone: BONE.ARM_L, axis: 0, keys: [0, -2.7, 0.5, -2.1, 1, -2.7] },
+      { bone: BONE.ARM_R, axis: 0, keys: [0, -2.0, 0.5, -2.6, 1, -2.0] },
+      { bone: BONE.ARM_L, axis: 2, keys: [0, 1.1, 0.5, 0.8, 1, 1.1] },
+      { bone: BONE.ARM_R, axis: 2, keys: [0, -0.8, 0.5, -1.1, 1, -0.8] },
     ],
   },
 

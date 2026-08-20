@@ -3,6 +3,13 @@
 An original 3D parkour racing game that runs in a mobile browser. No build step,
 no bundler, no external assets — open `index.html` from a static server and play.
 
+The presentation chases the arcade parkour-racer look: white rooftop slabs
+under a saturated blue sky, one loud orange runner against a field of blues,
+a breadcrumb trail of dots marking the route, a stage-badge progress bar with
+a checkered flag, your live placement in giant type, and every opponent
+carrying its rank and name over its head. All of it is procedural and
+original — there is still not a single asset file in the project.
+
 ```bash
 npm test                     # 201 tests, zero dependencies
 npx http-server . -p 8080    # ES modules need a server; file:// will not work
@@ -235,11 +242,19 @@ trusted, so a hand-edited file cannot grant it.
 ## Status
 
 Playable end to end: twelve levels across four themes plus a practice track,
-raced against a field of AI opponents, with vaulting, sliding, wall-running,
+raced against fields of five to nine AI opponents, with vaulting, sliding, wall-running,
 wall-jumping, mantling, launch pads, power-ups, coins and shards, checkpoints,
 respawns, a countdown, live rank, pause, results, six unlockable runners,
 settings, procedural audio and particles — and best times, medals, coins and XP
 that survive a reload.
+
+Reworked since: the whole presentation moved from night neon to the bright
+daylight reference look — jelly-rounded runners on a capsule rig, a race-bar
+HUD with floating rank tags projected over opponents, a checkered finish gate,
+normal-blended particles that survive a white floor, footstep puffs and a
+runner-coloured comet tail, and a jump retuned floatier up top and harder on
+the way down (the level validator re-proved every course against the new
+numbers, and the medal targets were re-measured).
 
 Hardened since: medal targets measured rather than guessed (`npm run tune`
 races every level headlessly; gold is that reference time, and a test re-runs

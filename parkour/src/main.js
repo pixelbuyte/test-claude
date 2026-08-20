@@ -21,6 +21,7 @@ import { TutorialDirector } from './app/tutorial.js';
 import { HINT_SECONDS } from './data/tutorial.js';
 import { AudioManager } from './audio/AudioManager.js';
 import { CHARACTERS, character, purchaseState } from './data/characters.js';
+import { RankLabels } from './app/rankLabels.js';
 
 /**
  * Every course the player can pick, practice track first.
@@ -32,7 +33,12 @@ const COURSES = [
   {
     id: 'practice', name: 'Practice', theme: 'rooftops', seed: 7,
     build: buildPracticeLevel,
-    roster: [{ name: 'Juno', skill: 'normal' }, { name: 'Pike', skill: 'easy' }],
+    roster: [
+      { name: 'Juno', skill: 'normal' },
+      { name: 'Pike', skill: 'easy' },
+      { name: 'Moss', skill: 'easy' },
+      { name: 'Brix', skill: 'easy' },
+    ],
   },
   ...LEVELS.map((def) => ({
     id: def.id, name: def.name, theme: def.theme, seed: def.seed,
@@ -60,11 +66,12 @@ function boot() {
   const el = (id) => document.getElementById(id);
   const hud = {
     time: el('hud-time'),
-    rank: el('hud-rank'),
+    rankBig: el('rank-big'),
+    badge: el('race-badge'),
     coins: el('hud-coins'),
-    speed: el('hud-speed'),
     state: el('hud-state'),
     progress: el('hud-progress-fill'),
+    progressRunner: el('hud-progress-runner'),
     toast: el('toast'),
     overlay: el('overlay'),
     tagline: el('overlay-tagline'),
@@ -73,6 +80,7 @@ function boot() {
     countdown: el('countdown'),
     effects: el('effects'),
     results: el('results'),
+    resultsPlace: el('results-place'),
     resultsBody: el('results-body'),
     resultsNotes: el('results-notes'),
     wallet: el('wallet'),
@@ -101,6 +109,8 @@ function boot() {
 
   const tutorial = new TutorialDirector(save.data.tutorialSeen);
   tutorial.enabled = save.data.settings.tutorialHints !== false;
+
+  const rankLabels = new RankLabels(el('rank-labels'));
 
   let course = COURSES[0];
   let session = null;
@@ -142,23 +152,40 @@ function boot() {
     toast(automatic ? `Quality lowered to ${next}` : `Quality: ${next}`);
   }
 
+  /**
+   * A short buzz where the body would feel one. Fire-and-forget: vibrate() is
+   * absent on iOS Safari and desktop, and silently ignoring that is correct.
+   */
+  function buzz(ms) {
+    if (save.data.settings.haptics === false) return;
+    if (typeof navigator.vibrate === 'function') navigator.vibrate(ms);
+  }
+
   function handleEvent(e) {
     if (!session) return;
     const mine = e.actor === session.player.index;
     if (!mine && e.type !== EV.COUNTDOWN_TICK && e.type !== EV.RACE_START) return;
 
     switch (e.type) {
-      case EV.VAULT: toast('Vault'); break;
+      case EV.VAULT: toast('Vault'); buzz(12); break;
       case EV.SLIDE_START: toast('Slide'); break;
       case EV.WALLRUN_START: toast('Wall run'); break;
-      case EV.WALL_JUMP: toast('Wall jump'); break;
-      case EV.MANTLE: toast('Mantle'); break;
+      case EV.WALL_JUMP: toast('Wall jump'); buzz(15); break;
+      case EV.MANTLE: toast('Mantle'); buzz(12); break;
       case EV.DOUBLE_JUMP: toast('Double jump'); break;
-      case EV.LAUNCH_PAD: toast('Launch!'); break;
+      case EV.LAUNCH_PAD: toast('Launch!'); buzz(25); break;
       case EV.CHECKPOINT: toast('Checkpoint'); break;
-      case EV.CRASH: toast('Crash'); break;
-      case EV.DEATH: toast('Respawning'); break;
-      case EV.RANK_CHANGE: toast(ordinal(e.a)); break;
+      case EV.CRASH: toast('Crash'); buzz(45); break;
+      case EV.DEATH: toast('Respawning'); buzz([40, 40, 40]); break;
+      case EV.LAND:
+        if (e.a > 12) buzz(18);
+        break;
+      case EV.RANK_CHANGE:
+        // The big readout carries the news itself - a toast would say it twice.
+        hud.rankBig.classList.remove('bump');
+        void hud.rankBig.offsetWidth;
+        hud.rankBig.classList.add('bump');
+        break;
       case EV.COUNTDOWN_TICK:
         hud.countdown.textContent = e.a > 0 ? String(e.a) : 'GO';
         hud.countdown.classList.remove('pulse');
@@ -177,6 +204,8 @@ function boot() {
   /** Tears down the previous race and builds one for the selected course. */
   function buildSession() {
     if (session) session.dispose();
+    const stage = COURSES.indexOf(course);
+    hud.badge.textContent = stage <= 0 ? 'P' : String(stage);
     const level = course.build();
     session = new RaceSession(level, renderer, input, {
       roster: course.roster, seed: course.seed, tier, audio,
@@ -391,6 +420,10 @@ function boot() {
       distance: session.player.pos.z,
     }, targets);
 
+    hud.resultsPlace.innerHTML = me.dnf
+      ? 'DNF'
+      : `${ordinal(me.placement)}<span class="place-word">place</span>`;
+
     hud.resultsBody.innerHTML = results.map((r) => `
       <tr class="${r.isPlayer ? 'me' : ''}">
         <td>${r.placement}</td>
@@ -440,11 +473,15 @@ function boot() {
 
     const s = session.hudState();
     hud.time.textContent = formatClock(s.time);
-    hud.rank.textContent = `${s.rank}/${s.fieldSize}`;
     hud.coins.textContent = String(s.coins);
-    hud.speed.textContent = s.speed.toFixed(1);
     hud.state.textContent = stateName(s.state);
-    hud.progress.style.width = `${(s.progress * 100).toFixed(1)}%`;
+    const pct = `${(s.progress * 100).toFixed(1)}%`;
+    hud.progress.style.width = pct;
+    hud.progressRunner.style.left = pct;
+    // Written only on change: this string is compared sixty times a second.
+    const place = ordinal(s.rank);
+    if (hud.rankBig.textContent !== place) hud.rankBig.textContent = place;
+    rankLabels.update(session.running || s.phase === PHASE.FINISHED ? session : null, renderer);
     renderEffects(s.effects);
 
     // Teaching happens only while the race is actually live - during the

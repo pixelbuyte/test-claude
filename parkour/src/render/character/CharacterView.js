@@ -16,6 +16,51 @@ import { makeAnimator, stepAnimator } from '../../sim/anim/AnimationController.j
 
 const SKIN = 0xf0c8a0;
 
+/**
+ * Rounded geometry for one bone, replacing the old hard boxes.
+ *
+ * The reference silhouette is a jelly figure: an oversized ball of a head,
+ * chunky capsule limbs, a soft torso. Capsules also solve the joint problem
+ * boxes had - the cap extends past the bone's end, so a bent elbow overlaps
+ * its forearm instead of opening a gap.
+ *
+ * All geometry hangs downward from its joint (translate by -length/2), matching
+ * the box convention, so the animation layer needs no changes at all.
+ */
+function roundedBoneGeometry(def) {
+  const [w, len, d] = def.size;
+
+  // The head is a ball, and deliberately bigger than the box it replaces -
+  // the oversized head is most of the character's charm.
+  if (def.name === 'head') {
+    const geo = new THREE.SphereGeometry(w * 0.72, 12, 9);
+    geo.translate(0, -len / 2, 0);
+    return geo;
+  }
+
+  // Feet are squashed spheres: rounded in every direction, longer than wide.
+  if (def.name === 'footL' || def.name === 'footR') {
+    const geo = new THREE.SphereGeometry(0.5, 10, 7);
+    geo.scale(w * 1.15, len * 1.1, d * 1.05);
+    geo.translate(0, -len / 2, 0.02);
+    return geo;
+  }
+
+  // The torso stack (hips/spine/chest) overlaps itself heavily so three
+  // capsules read as one soft body instead of a chain of beads.
+  const torso = def.name === 'hips' || def.name === 'spine' || def.name === 'chest';
+
+  // Everything else is a capsule hanging from its joint. Radius comes from
+  // width; the cylinder section makes up the rest of the bone's length.
+  const radius = (w / 2) * (torso ? 1.05 : 1.12);
+  const cyl = torso ? len * 1.05 : Math.max(0.02, len - radius);
+  const geo = new THREE.CapsuleGeometry(radius, cyl, 4, 10);
+  // Torso segments are wider than deep; flatten the capsule to match.
+  if (d < w) geo.scale(1, 1, Math.max(0.55, d / w));
+  geo.translate(0, -len / 2, 0);
+  return geo;
+}
+
 export class CharacterView {
   /**
    * @param {object} opts { color, accent, skin, castShadow }
@@ -51,10 +96,7 @@ export class CharacterView {
 
       // The root bone is the transform everything hangs off and draws nothing.
       if (def.size[0] > 0) {
-        const geo = new THREE.BoxGeometry(def.size[0], def.size[1], def.size[2]);
-        // Boxes hang downward from their joint, so rotating the joint swings the
-        // limb rather than spinning it about its middle.
-        geo.translate(0, -def.size[1] / 2, 0);
+        const geo = roundedBoneGeometry(def);
         // Phong, matching the level: a runner lit only diffusely reads as felt
         // against surfaces that now catch a highlight.
         const mat = new THREE.MeshPhongMaterial({

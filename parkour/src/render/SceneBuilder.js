@@ -9,7 +9,7 @@
  * a distance window: no geometry is created or destroyed during a race.
  */
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { KIND, FLAG, MOVEMENT } from '../config.js';
+import { KIND, FLAG } from '../config.js';
 import { getTheme } from '../data/themes.js';
 import { mergeBoxes } from './geometry/boxMerge.js';
 import { buildDecor } from './geometry/decor.js';
@@ -18,6 +18,9 @@ import { buildDecor } from './geometry/decor.js';
 const MARKS = {
   /** Continuous stripe hugging each outer edge of the running surface. */
   edgeWidth: 0.3,
+  /** Centre guide dots - the breadcrumb trail that says "the route goes here". */
+  dotSize: 0.5,
+  dotSpacing: 2.6,
   /** Dashed lane dividers, world-aligned so they run through chunk seams. */
   dashWidth: 0.16,
   dashLength: 1.7,
@@ -81,7 +84,7 @@ function pushMarkings(out, cs, i, theme) {
   const y1 = y + MARKS.thickness;
   const z0 = cs.minZ[i];
   const z1 = cs.maxZ[i];
-  const colour = theme.rail;
+  const colour = theme.mark ?? theme.rail;
 
   for (const x of [cs.minX[i], cs.maxX[i] - MARKS.edgeWidth]) {
     out.push({
@@ -92,23 +95,21 @@ function pushMarkings(out, cs, i, theme) {
     });
   }
 
-  // Lane dividers sit between adjacent lanes, so a three-lane track gets two.
-  const half = MOVEMENT.laneWidth * 0.5;
+  // A single breadcrumb trail of dots down the centre, not lane dividers: the
+  // trail reads as "the route goes this way" at any speed, and dots streaming
+  // underfoot are the speed cue the dashes used to be.
   const centreX = (cs.minX[i] + cs.maxX[i]) * 0.5;
-  // Phase from world Z rather than from the surface's own start, so dashes stay
-  // in step across a seam instead of restarting at every chunk boundary.
-  const first = Math.ceil(z0 / MARKS.dashSpacing) * MARKS.dashSpacing;
-
-  for (const offset of [-half, half]) {
-    const x = centreX + offset - MARKS.dashWidth * 0.5;
-    for (let z = first; z + MARKS.dashLength <= z1; z += MARKS.dashSpacing) {
-      out.push({
-        minX: x, maxX: x + MARKS.dashWidth,
-        minY: y, maxY: y1,
-        minZ: z, maxZ: z + MARKS.dashLength,
-        color: colour, shade: lit(MARKS.dashGlow),
-      });
-    }
+  const x = centreX - MARKS.dotSize * 0.5;
+  // Phase from world Z rather than from the surface's own start, so the trail
+  // stays in step across a seam instead of restarting at every chunk boundary.
+  const first = Math.ceil(z0 / MARKS.dotSpacing) * MARKS.dotSpacing;
+  for (let z = first; z + MARKS.dotSize <= z1; z += MARKS.dotSpacing) {
+    out.push({
+      minX: x, maxX: x + MARKS.dotSize,
+      minY: y, maxY: y1,
+      minZ: z, maxZ: z + MARKS.dotSize,
+      color: colour, shade: lit(MARKS.dashGlow),
+    });
   }
 }
 
@@ -213,6 +214,23 @@ export class SceneBuilder {
         shade: shadeFor(cs, i) * glowFor(cs, i, theme),
       });
 
+      // A wall you can run along says so: an accent stripe at hand height down
+      // both faces. This is affordance paint, not decoration - it is how the
+      // player learns which grey slab is a route.
+      if (cs.kind[i] === KIND.WALLRUNNABLE && cs.maxY[i] - cs.minY[i] >= 1.6) {
+        const g = theme.glow ?? 1;
+        const y0 = cs.minY[i] + 1.55;
+        const y1 = Math.min(cs.maxY[i], y0 + 0.3);
+        for (const face of [cs.minX[i], cs.maxX[i]]) {
+          buckets[s].push({
+            minX: face - 0.035, maxX: face + 0.035,
+            minY: y0, maxY: y1,
+            minZ: cs.minZ[i], maxZ: cs.maxZ[i],
+            color: theme.accent, shade: 1 + 0.6 * g,
+          });
+        }
+      }
+
       if (isSurfaceCandidate(cs, i)) {
         candidates[s].push(i);
         if (cs.maxY[i] < baseY[s]) baseY[s] = cs.maxY[i];
@@ -245,11 +263,73 @@ export class SceneBuilder {
 
     this._buildMovers();
     this._buildPickups();
+    this._buildFinishGate();
 
     // The world beyond the track. Instanced, so the whole skyline is two draw
     // calls however many buildings are in it.
     this.decor = buildDecor(this.level);
     this.group.add(this.decor.group);
+  }
+
+  /**
+   * A checkered gate over the finish line, plus a checkered strip on the
+   * ground under it. Purely visual - the finish itself is the invisible
+   * trigger the builder placed - but a race needs somewhere to *see* itself
+   * end, and one merged mesh costs a single draw call.
+   */
+  _buildFinishGate() {
+    const cs = this.level.colliders;
+    let trigger = -1;
+    for (let i = 0; i < cs.count; i++) {
+      if ((cs.flags[i] & FLAG.FINISH) !== 0) { trigger = i; break; }
+    }
+    if (trigger < 0) return;
+
+    // The builder makes the finish volume span [ground - 2, ground + 8].
+    const ground = cs.minY[trigger] + 2;
+    const z = cs.minZ[trigger];
+    const dark = 0x20293a;
+    const light = 0xffffff;
+    const boxes = [];
+
+    for (const side of [-1, 1]) {
+      boxes.push({
+        minX: side * 7.4 - 0.35, maxX: side * 7.4 + 0.35,
+        minY: ground, maxY: ground + 5.2,
+        minZ: z - 0.35, maxZ: z + 0.35,
+        color: light, shade: 1,
+      });
+    }
+
+    // The beam is the checkers themselves: two rows of alternating cells.
+    const cell = 0.775;
+    for (let row = 0; row < 2; row++) {
+      for (let c = 0; c < 20; c++) {
+        boxes.push({
+          minX: -7.75 + c * cell, maxX: -7.75 + (c + 1) * cell,
+          minY: ground + 5.2 + row * cell, maxY: ground + 5.2 + (row + 1) * cell,
+          minZ: z - 0.28, maxZ: z + 0.28,
+          color: (c + row) % 2 === 0 ? dark : light, shade: 1,
+        });
+      }
+    }
+
+    // And painted on the ground, where the runner actually crosses it.
+    for (let row = 0; row < 2; row++) {
+      for (let c = 0; c < 20; c++) {
+        boxes.push({
+          minX: -7.75 + c * cell, maxX: -7.75 + (c + 1) * cell,
+          minY: ground + 0.02, maxY: ground + 0.05,
+          minZ: z - 1.6 + row * cell, maxZ: z - 1.6 + (row + 1) * cell,
+          color: (c + row) % 2 === 0 ? dark : light, shade: 1,
+        });
+      }
+    }
+
+    const mesh = new THREE.Mesh(mergeBoxes(boxes), this.material);
+    mesh.name = 'finish-gate';
+    this.group.add(mesh);
+    this.finishGate = mesh;
   }
 
   _buildMovers() {
@@ -350,6 +430,7 @@ export class SceneBuilder {
 
   dispose() {
     if (this.decor) this.decor.dispose();
+    if (this.finishGate) this.finishGate.geometry.dispose();
     for (const mesh of this.sectionMeshes) mesh.geometry.dispose();
     for (const { mesh } of this.moverMeshes) mesh.geometry.dispose();
     if (this.pickupMesh) {

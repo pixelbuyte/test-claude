@@ -40,13 +40,14 @@ export const MOVEMENT = {
   speedApproach: 6,
 
   // Gravity is asymmetric: floaty on the way up, snappy on the way down.
-  gravityUp: -34,
-  gravityDown: -46,
-  terminalVelocity: -38,
+  gravityUp: -30,
+  gravityDown: -52,
+  terminalVelocity: -42,
 
-  // Jumping
-  jumpVelocity: 11.2,
-  doubleJumpVelocity: 9.4,
+  // Jumping. The arc is deliberately generous: a fast launch, a floaty beat at
+  // the apex where the runner spreads out, then a hard pull back down.
+  jumpVelocity: 11.6,
+  doubleJumpVelocity: 10.0,
   /** Releasing jump early cuts upward velocity to this fraction. */
   jumpCutFactor: 0.45,
   coyoteTime: 0.12,
@@ -146,14 +147,17 @@ export const POWERUPS = {
 };
 
 export const CAMERA = {
-  boomNear: 6.2,
-  boomFar: 7.6,
-  height: 2.4,
-  lookAheadBase: 4.5,
-  lookAheadPerSpeed: 0.35,
-  fovLandscape: 62,
-  fovPortrait: 74,
-  fovSpeedKick: 12,
+  // Higher and closer than a road-racer camera: the reference framing looks
+  // *down* at the runner from behind, so the next three obstacles are on
+  // screen above them and a gap reads as a hole rather than a horizon line.
+  boomNear: 5.6,
+  boomFar: 6.9,
+  height: 3.4,
+  lookAheadBase: 6.0,
+  lookAheadPerSpeed: 0.32,
+  fovLandscape: 58,
+  fovPortrait: 70,
+  fovSpeedKick: 10,
   /** Critically-damped follow frequency. */
   followOmega: 9,
   lookOmega: 7,

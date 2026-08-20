@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Inter Tight', system-ui, sans-serif; background: #0b0c10; }
+    a { color: #8fe8ff; } a:hover { color: #bff2ff; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  </style>
+</helmet>
+<div style="width:900px;height:1040px;background:radial-gradient(circle at 50% 18%,#181b22 0%,#0b0c10 60%);color:#e7e9ee;position:relative;box-sizing:border-box;padding:36px 0 0;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.24em;color:{{glowColor}};text-transform:uppercase;">Concept sheet · 01</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:34px;letter-spacing:.01em;margin-top:6px;">Front — {{colorwayName}}</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a3;margin-top:6px;">Reactive-instinct suit · <span style="color:#c7ccd6;">{{workingTitle}}</span></div>
+  </div>
+
+  <div style="position:relative;width:900px;height:900px;">
+    <div style="position:absolute;left:250px;top:110px;width:400px;height:820px;">
+      <dc-import name="FigureFront" base-color="{{baseColor}}" trim-color="{{trimColor}}" glow-color="{{glowColor}}" glow-soft-color="{{glowSoftColor}}" id-suffix="main" hint-size="400,820"></dc-import>
+    </div>
+
+    <svg viewBox="0 0 900 900" style="position:absolute;left:0;top:0;width:900px;height:900px;pointer-events:none;">
+      <g stroke="#3a3f4a" stroke-width="1.2" opacity="0.7">
+        <path d="M230,207 L450,207 L450,222" fill="none"/>
+        <path d="M230,530 L343,530 L343,535" fill="none"/>
+        <path d="M230,846 L428,846 L428,841" fill="none"/>
+        <path d="M670,505 L450,505 L450,515" fill="none"/>
+        <path d="M670,555 L557,555 L557,545" fill="none"/>
+      </g>
+      <g fill="{{glowColor}}" opacity="0.9">
+        <circle cx="450" cy="222" r="2.5"/>
+        <circle cx="343" cy="535" r="2.5"/>
+        <circle cx="428" cy="841" r="2.5"/>
+        <circle cx="450" cy="515" r="2.5"/>
+        <circle cx="557" cy="545" r="2.5"/>
+      </g>
+    </svg>
+
+    <div style="position:absolute;left:30px;top:174px;width:200px;text-align:right;font-family:'IBM Plex Mono',monospace;">
+      <div style="font-size:11px;letter-spacing:.05em;color:#e7e9ee;">SENSOR VISOR</div>
+      <div style="font-size:10px;color:#8b93a3;line-height:1.5;margin-top:2px;">Head-mounted array. Wide-field motion + depth read, forward bias.</div>
+    </div>
+    <div style="position:absolute;left:30px;top:497px;width:200px;text-align:right;font-family:'IBM Plex Mono',monospace;">
+      <div style="font-size:11px;letter-spacing:.05em;color:#e7e9ee;">CUE NODE — PALM</div>
+      <div style="font-size:10px;color:#8b93a3;line-height:1.5;margin-top:2px;">Mirrored, both hands. Haptic pulse fires a beat before predicted contact.</div>
+    </div>
+    <div style="position:absolute;left:30px;top:813px;width:200px;text-align:right;font-family:'IBM Plex Mono',monospace;">
+      <div style="font-size:11px;letter-spacing:.05em;color:#e7e9ee;">CUE NODE — SOLE</div>
+      <div style="font-size:10px;color:#8b93a3;line-height:1.5;margin-top:2px;">Mirrored, both feet. Cues footing before a stumble or a bad plant.</div>
+    </div>
+    <div style="position:absolute;left:672px;top:472px;width:200px;text-align:left;font-family:'IBM Plex Mono',monospace;">
+      <div style="font-size:11px;letter-spacing:.05em;color:#e7e9ee;">CORE HUB</div>
+      <div style="font-size:10px;color:#8b93a3;line-height:1.5;margin-top:2px;">IMU + proximity fusion. Reads incoming motion, arbitrates which node fires.</div>
+    </div>
+    <div style="position:absolute;left:672px;top:540px;width:200px;text-align:left;font-family:'IBM Plex Mono',monospace;">
+      <div style="font-size:11px;letter-spacing:.05em;color:#e7e9ee;">LATENCY BUDGET</div>
+      <div style="font-size:10px;color:#8b93a3;line-height:1.5;margin-top:2px;">Sense-to-cue loop targets ~30–50 ms — a heads-up, not a reflex.</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;bottom:26px;width:900px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#565c68;letter-spacing:.06em;">
+    THIS AUGMENTS AWARENESS AND DECISION-MAKING — NOT REFLEX SPEED. THE CUE ARRIVES BEFORE THE HAZARD, NOT FASTER THAN THE BODY.
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{
+  "colorwayName": {"editor": "text", "default": "Umbra"},
+  "workingTitle": {"editor": "text", "default": "TELLTALE"},
+  "baseColor": {"editor": "color", "default": "#14151a"},
+  "trimColor": {"editor": "color", "default": "#2c3038"},
+  "glowColor": {"editor": "color", "default": "#8fe8ff"},
+  "glowSoftColor": {"editor": "color", "default": "#bff2ff"}
+}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      colorwayName: this.props.colorwayName ?? 'Umbra',
+      workingTitle: this.props.workingTitle ?? 'TELLTALE',
+      baseColor: this.props.baseColor ?? '#14151a',
+      trimColor: this.props.trimColor ?? '#2c3038',
+      glowColor: this.props.glowColor ?? '#8fe8ff',
+      glowSoftColor: this.props.glowSoftColor ?? '#bff2ff'
+    };
+  }
+}
+</script>
+</body>
+</html>

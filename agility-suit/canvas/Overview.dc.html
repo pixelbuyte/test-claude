@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Inter Tight', system-ui, sans-serif; background: #0b0c10; }
+    a { color: #8fe8ff; } a:hover { color: #bff2ff; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+    .mono { font-family:'IBM Plex Mono',monospace; }
+    .row { display:flex; gap:10px; align-items:baseline; padding:9px 0; border-bottom:1px solid #1e2128; }
+    .row:last-child { border-bottom:none; }
+    .status { font-size:9px; padding:2px 7px; border-radius:3px; font-family:'IBM Plex Mono',monospace; letter-spacing:.04em; flex:none; }
+    .locked { background:#1d3a2e; color:#7fe0a8; }
+    .open { background:#3a2e1d; color:#e0b87f; }
+  </style>
+</helmet>
+<div style="width:640px;height:900px;background:radial-gradient(circle at 30% 0%,#181b22 0%,#0b0c10 55%);color:#e7e9ee;box-sizing:border-box;padding:40px;">
+
+  <div class="mono" style="font-size:11px;letter-spacing:.24em;color:#8fe8ff;text-transform:uppercase;">Design concept · ongoing project</div>
+  <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:40px;line-height:1.1;margin-top:14px;">Telltale</div>
+  <div class="mono" style="font-size:11px;color:#7a8190;margin-top:6px;">it tells you before it happens — formerly "Project Instinct," name locked on sheet 07</div>
+
+  <div style="font-size:15px;color:#c7ccd6;line-height:1.65;margin-top:22px;max-width:520px;">
+    A fitted suit that reads incoming motion, impact and proximity through a waist-mounted core hub,
+    then pulses a haptic cue at the palm or sole that's about to matter — a fraction of a second
+    before contact. Five glowing kite emblems mark the nodes: both palms, both soles, one larger hub
+    at the waist.
+  </div>
+
+  <div style="margin-top:22px;padding:16px 18px;background:#15171c;border:1px solid #262a33;border-left:3px solid #8fe8ff;border-radius:6px;max-width:520px;">
+    <div class="mono" style="font-size:10px;letter-spacing:.1em;color:#8fe8ff;text-transform:uppercase;">What this actually is</div>
+    <div style="font-size:12.5px;color:#c7ccd6;line-height:1.6;margin-top:8px;">
+      An awareness aid, not a speed upgrade. The suit's own sense-to-cue loop (~30–50 ms) can't beat
+      a spinal reflex — but it lands 150–350 ms before the wearer would otherwise consciously notice
+      a hazard. That head start is the real, defensible claim. See sheet 05 for the numbers.
+    </div>
+  </div>
+
+  <div style="margin-top:30px;">
+    <div class="mono" style="font-size:10px;letter-spacing:.16em;color:#7a8190;text-transform:uppercase;">Decision log</div>
+
+    <div class="row">
+      <span class="status locked">LOCKED</span>
+      <span style="font-size:12.5px;">Node placement: both palms, both soles, waist core hub — 5 points</span>
+    </div>
+    <div class="row">
+      <span class="status locked">LOCKED</span>
+      <span style="font-size:12.5px;">Emblem shape: kite (four-point, elongated top), diffuser + LED + LRA stack</span>
+    </div>
+    <div class="row">
+      <span class="status locked">LOCKED</span>
+      <span style="font-size:12.5px;">Visual language: sleek full-mask hero suit, tech-pack construction sheet — not painterly render</span>
+    </div>
+    <div class="row">
+      <span class="status locked">LOCKED</span>
+      <span style="font-size:12.5px;">Framing: augments awareness, not reflex speed — carried through every technical sheet</span>
+    </div>
+    <div class="row">
+      <span class="status locked">LOCKED</span>
+      <span style="font-size:12.5px;">Primary colorway: Umbra — graphite + electric cyan. Ember/Zenith/Nova stay as documented alternates on sheet 03</span>
+    </div>
+    <div class="row">
+      <span class="status locked">LOCKED</span>
+      <span style="font-size:12.5px;">Name: Telltale — see sheet 07. Not yet trademark-checked</span>
+    </div>
+    <div class="row">
+      <span class="status open">OPEN</span>
+      <span style="font-size:12.5px;">Build tier to actually target first — DIY proves it, Advanced is where it feels real</span>
+    </div>
+  </div>
+
+  <div class="mono" style="font-size:9.5px;color:#454a54;margin-top:26px;">
+    Sheets: 01–02 front/back · 03 colorways · 04 action pose · 05 signal path + latency · 06 build tiers · 07 naming
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

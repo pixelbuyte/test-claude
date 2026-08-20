@@ -20,8 +20,18 @@ import { SceneBuilder } from '../render/SceneBuilder.js';
 import { VFXManager } from '../render/VFXManager.js';
 import { CharacterView } from '../render/character/CharacterView.js';
 
-/** Opponent palette - distinct enough to tell apart at speed. */
-const OPPONENT_COLORS = [0x4fc3f7, 0xba68c8, 0x81c784, 0xffd54f, 0xff8a65, 0x90a4ae];
+/**
+ * Opponent palette: the field is shades of blue, so "orange = me, blue = them"
+ * is readable in half a second. Each entry is [body, darker accent] of one hue.
+ */
+const OPPONENT_COLORS = [
+  [0x35a8f0, 0x2490d8],
+  [0x5cc4f7, 0x3fa8e2],
+  [0x2b8ede, 0x1c76c2],
+  [0x6ad2fa, 0x4ab6e6],
+  [0x3fb4ec, 0x2c98d4],
+  [0x2481c8, 0x186aae],
+];
 
 export class RaceSession {
   /**
@@ -65,11 +75,13 @@ export class RaceSession {
     // never reads a half-stepped body.
     const me = opts.character;
     this.views = this.race.racers.map((r, i) => {
+      const blue = OPPONENT_COLORS[(i - 1 + OPPONENT_COLORS.length) % OPPONENT_COLORS.length];
       const view = new CharacterView(r.isPlayer && me ? {
         color: me.primary, accent: me.accent, skin: me.skin, castShadow: true,
       } : {
-        color: r.isPlayer ? 0xff7a3d : OPPONENT_COLORS[(i - 1) % OPPONENT_COLORS.length],
-        accent: r.isPlayer ? 0x2b3350 : 0x1e2438,
+        color: r.isPlayer ? 0xff5a24 : blue[0],
+        accent: r.isPlayer ? 0xdd4414 : blue[1],
+        skin: r.isPlayer ? 0xff5a24 : blue[0],
         castShadow: r.isPlayer,
       });
       renderer.scene.add(view.root);
@@ -84,6 +96,8 @@ export class RaceSession {
 
     this.intent = input ? input.intent : makeIntent();
     this.onEvent = null;
+    /** What the comet tail sheds - the player's own colour. */
+    this.trailColor = (opts.character && opts.character.primary) || 0xff5a24;
 
     resetCamera(this.camera, player);
     this._syncAspect();
@@ -165,12 +179,16 @@ export class RaceSession {
   }
 
   /**
-   * Turns an event into particles. Every racer gets these, not just the player -
-   * seeing an opponent crash ahead of you is information.
+   * Turns an event into particles. Movement effects fire for every racer -
+   * seeing an opponent crash ahead of you is information - but pickups only
+   * for the player: with a field of ten, rivals hoovering the same coin lines
+   * turned every race into a permanent yellow drizzle.
    */
   _spawnVFX(e) {
     const racer = this.race.racers[e.actor];
     if (!racer || !this.vfx.enabled) return;
+    if (e.actor !== this.player.index
+      && (e.type === EV.COIN || e.type === EV.SHARD || e.type === EV.POWERUP_PICKUP)) return;
     const at = racer.pos;
 
     switch (e.type) {
@@ -211,7 +229,7 @@ export class RaceSession {
         this.vfx.emit('crash', at, { scale: 1.1, dirZ: -0.7 });
         break;
       case EV.DEATH:
-        this.vfx.emit('crash', at, { scale: 1.8 });
+        this.vfx.emit('crash', at, { scale: 1.2 });
         break;
       default:
         break;
@@ -261,10 +279,18 @@ export class RaceSession {
     this.scene.updatePickups(this.world, this.race.time);
 
     this.vfx.speedLines(focus, this.player.speed, dtSeconds);
-    this.vfx.update(dtSeconds);
+    this.vfx.runnerTrail(focus, this.player.speed, dtSeconds, this.trailColor);
     // The player's rig emitted these while posing; footsteps land on the frame
-    // the foot planted rather than on a timer's best guess.
-    if (this.audio) this.audio.playAnimationEvents(me.view.events, this.player);
+    // the foot planted rather than on a timer's best guess. The same events
+    // drive the dust: one white puff exactly where the foot went down.
+    const animEvents = me.view.events;
+    if (this.vfx.enabled && this.player.grounded && this.player.speed > 4) {
+      for (let i = 0; i < animEvents.length; i++) {
+        if (animEvents[i] === 'footstep') this.vfx.emit('puff', focus, { scale: 1 });
+      }
+    }
+    this.vfx.update(dtSeconds);
+    if (this.audio) this.audio.playAnimationEvents(animEvents, this.player);
 
     this.renderer.render();
   }
@@ -329,6 +355,9 @@ export class RaceSession {
       this.renderer.scene.remove(v.view.root);
       v.view.dispose();
     }
+    // The particle pool too: without this every restart left a stale Points
+    // object in the scene, each one a draw call for the rest of the session.
+    this.vfx.dispose();
     this.scene.dispose();
   }
 }

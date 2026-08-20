@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Inter Tight', system-ui, sans-serif; background: #0b0c10; }
+    a { color: #8fe8ff; } a:hover { color: #bff2ff; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  </style>
+</helmet>
+<div style="width:1160px;height:680px;background:radial-gradient(circle at 50% 12%,#181b22 0%,#0b0c10 60%);color:#e7e9ee;box-sizing:border-box;padding:34px 40px;">
+  <div style="text-align:center;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.24em;color:#8fe8ff;text-transform:uppercase;">Concept sheet · 03</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;letter-spacing:.01em;margin-top:6px;">Colorway directions</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a3;margin-top:6px;">Same cut, four energy signatures — Umbra locked as primary, the rest stay documented alternates</div>
+  </div>
+
+  <div style="display:flex;justify-content:center;align-items:flex-start;gap:36px;margin-top:26px;">
+
+    <div style="display:flex;flex-direction:column;align-items:center;padding:10px;border-radius:12px;background:#8fe8ff0d;box-shadow:0 0 0 1px #8fe8ff3d inset;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#8fe8ff;margin-bottom:8px;">PRIMARY — LOCKED</div>
+      <div style="width:216px;height:443px;"><dc-import name="FigureFront" base-color="#14151a" trim-color="#2c3038" glow-color="#8fe8ff" glow-soft-color="#bff2ff" id-suffix="umbra" hint-size="216,443"></dc-import></div>
+      <div style="margin-top:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;">Umbra</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#7a8190;text-align:center;max-width:190px;line-height:1.5;margin-top:2px;">Graphite + electric cyan. Night-ops, the locked direction.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="width:216px;height:443px;"><dc-import name="FigureFront" base-color="#160f0f" trim-color="#3c1a16" glow-color="#ff6a3d" glow-soft-color="#ffb98f" id-suffix="ember" hint-size="216,443"></dc-import></div>
+      <div style="margin-top:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;">Ember</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#7a8190;text-align:center;max-width:190px;line-height:1.5;margin-top:2px;">Near-black + cursed-technique red-orange.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="width:216px;height:443px;"><dc-import name="FigureFront" base-color="#efece4" trim-color="#c9a53e" glow-color="#ffd76a" glow-soft-color="#fff0c2" id-suffix="zenith" hint-size="216,443"></dc-import></div>
+      <div style="margin-top:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;">Zenith</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#7a8190;text-align:center;max-width:190px;line-height:1.5;margin-top:2px;">Pearl white + muted gold. God-tier / ascended read.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="width:216px;height:443px;"><dc-import name="FigureFront" base-color="#171223" trim-color="#3a2a5c" glow-color="#b98cff" glow-soft-color="#ddc4ff" id-suffix="nova" hint-size="216,443"></dc-import></div>
+      <div style="margin-top:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;">Nova</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#7a8190;text-align:center;max-width:190px;line-height:1.5;margin-top:2px;">Deep violet. Psychic / mystic-type read.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

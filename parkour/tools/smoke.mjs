@@ -226,7 +226,7 @@ const result = await page.evaluate(() => {
     finite: Number.isFinite(s.player.pos.x) && Number.isFinite(s.player.pos.y)
       && Number.isFinite(s.player.pos.z),
     hudTime: document.getElementById('hud-time').textContent,
-    hudRank: document.getElementById('hud-rank').textContent,
+    hudRank: document.getElementById('rank-big').textContent,
     progressWidth: document.getElementById('hud-progress-fill').style.width,
   };
 });
@@ -279,7 +279,7 @@ if (result.opponentsFinite && result.opponentZ.some((z) => z > 20)) {
   fail(`opponents are not racing: z = ${result.opponentZ.join(', ')}`);
 }
 
-if (/^\d+\/\d+$/.test(result.hudRank)) pass(`HUD rank showing ${result.hudRank}`);
+if (/^\d+(ST|ND|RD|TH)$/i.test(result.hudRank)) pass(`HUD rank showing ${result.hudRank}`);
 else fail(`HUD rank is "${result.hudRank}"`);
 
 if (parseFloat(result.progressWidth) > 0) pass(`progress bar at ${result.progressWidth}`);

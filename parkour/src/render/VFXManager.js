@@ -18,13 +18,17 @@ const PRESETS = {
   dust: { count: 5, life: 0.5, size: 0.16, speed: 1.6, gravity: -2, spread: 0.5, color: 0xcfd8ee, drag: 3 },
   land: { count: 10, life: 0.45, size: 0.2, speed: 3.0, gravity: -7, spread: 0.9, color: 0xdfe6f5, drag: 3.4 },
   spark: { count: 14, life: 0.5, size: 0.13, speed: 6.5, gravity: -14, spread: 1.4, color: 0xffb26b, drag: 1.6 },
-  crash: { count: 22, life: 0.7, size: 0.19, speed: 7.5, gravity: -16, spread: 2.0, color: 0xff5a4a, drag: 1.4 },
+  crash: { count: 12, life: 0.5, size: 0.17, speed: 5.5, gravity: -16, spread: 1.3, color: 0xff5a4a, drag: 2.2 },
   coin: { count: 8, life: 0.42, size: 0.15, speed: 3.4, gravity: -3, spread: 1.1, color: 0xffd85e, drag: 2.4 },
   shard: { count: 16, life: 0.6, size: 0.17, speed: 4.4, gravity: -3, spread: 1.3, color: 0x8fe6ff, drag: 2.0 },
   power: { count: 20, life: 0.65, size: 0.18, speed: 4.8, gravity: -1.5, spread: 1.6, color: 0x9d7bff, drag: 2.0 },
   boost: { count: 16, life: 0.5, size: 0.16, speed: 5.5, gravity: -1, spread: 1.2, color: 0x6fd0ff, drag: 2.2 },
   wall: { count: 6, life: 0.4, size: 0.13, speed: 2.6, gravity: -5, spread: 0.7, color: 0xbcc6dd, drag: 2.8 },
   speedline: { count: 3, life: 0.28, size: 0.1, speed: 0.4, gravity: 0, spread: 3.2, color: 0xffffff, drag: 0.2 },
+  /** One soft white ball per footfall, left hanging where the foot planted. */
+  puff: { count: 2, life: 0.55, size: 0.3, speed: 0.9, gravity: 0.3, spread: 0.35, color: 0xffffff, drag: 4.5 },
+  /** The comet tail: emitted at the runner, coloured by the runner. */
+  trail: { count: 2, life: 0.34, size: 0.17, speed: 2.2, gravity: 0, spread: 0.5, color: 0xff5a24, drag: 2.2 },
 };
 
 /**
@@ -72,8 +76,6 @@ export class VFXManager {
     this.positions = new Float32Array(n * 3);
     this.velocities = new Float32Array(n * 3);
     this.colors = new Float32Array(n * 3);
-    /** The colour a particle was emitted with; `colors` is that times its fade. */
-    this.baseColors = new Float32Array(n * 3);
     this.sizes = new Float32Array(n);
     this.baseSizes = new Float32Array(n);
     this.life = new Float32Array(n);
@@ -87,13 +89,19 @@ export class VFXManager {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
-    geo.setAttribute('size', new THREE.BufferAttribute(this.sizes, 1));
+    // 'aScale', not 'size': PointsMaterial's shader has a `size` *uniform*, so
+    // an attribute by that name is silently ignored - which is exactly what
+    // happened, and why no particle ever actually shrank. The material patch
+    // below injects this attribute into the stock shader under its own name.
+    geo.setAttribute('aScale', new THREE.BufferAttribute(this.sizes, 1));
     // Never culled: the bounding sphere would have to be recomputed every frame,
     // and the particles are always near the camera anyway.
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
 
     const mat = new THREE.PointsMaterial({
-      size: 0.18,
+      // The uniform becomes a plain multiplier: per-particle size lives in the
+      // aScale attribute, which carries absolute world sizes from the presets.
+      size: 1,
       // Without a map every particle is a hard-edged square, which is why a
       // crash read as confetti rather than debris. The sprite is drawn onto a
       // canvas at construction - still no asset file, still fully procedural.
@@ -101,15 +109,32 @@ export class VFXManager {
       alphaTest: 0.01,
       vertexColors: true,
       transparent: true,
-      opacity: 0.95,
+      opacity: 0.92,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      // Normal, not additive: the daylight themes run over near-white ground,
+      // and additive blending can only ever brighten - a white footstep puff
+      // over a white rooftop simply vanished. Dying particles shrink to zero
+      // in update() instead of darkening, which needs no per-particle alpha.
+      blending: THREE.NormalBlending,
       sizeAttenuation: true,
     });
+
+    // Stock PointsMaterial has no per-particle size at all: its vertex shader
+    // is `gl_PointSize = size;` with `size` a uniform. Patch the two lines so
+    // the aScale attribute participates - this is the entire difference
+    // between particles that genuinely shrink to nothing and particles that
+    // hold full size for their whole life and then pop out in one frame.
+    mat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader
+        .replace('uniform float size;', 'uniform float size;\nattribute float aScale;')
+        .replace('gl_PointSize = size;', 'gl_PointSize = size * aScale;');
+    };
 
     this.points = new THREE.Points(geo, mat);
     this.points.frustumCulled = false;
     this.points.name = 'vfx';
+    /** Kept so dispose() can take the points back out of the scene. */
+    this.scene = scene;
     scene.add(this.points);
 
     this.geometry = geo;
@@ -156,9 +181,6 @@ export class VFXManager {
       this.velocities[o + 1] = (this._rand() * 0.8 + 0.2 + (opts.dirY ?? 0)) * sp;
       this.velocities[o + 2] = ((this._rand() - 0.5) * p.spread + (opts.dirZ ?? 0)) * sp;
 
-      this.baseColors[o] = this._color.r;
-      this.baseColors[o + 1] = this._color.g;
-      this.baseColors[o + 2] = this._color.b;
       this.colors[o] = this._color.r;
       this.colors[o + 1] = this._color.g;
       this.colors[o + 2] = this._color.b;
@@ -170,6 +192,8 @@ export class VFXManager {
       this.drag[slot] = p.drag;
       this.gravity[slot] = p.gravity;
     }
+    // Colours are written only here, so this is the one place they upload.
+    this.geometry.attributes.color.needsUpdate = true;
   }
 
   /**
@@ -189,12 +213,27 @@ export class VFXManager {
     }
   }
 
+  /**
+   * The comet tail: runner-coloured particles shed continuously at speed, so a
+   * fast runner visibly *burns*. Rate-limited by an accumulator exactly like
+   * speedLines, and coloured per call so every racer can shed its own colour.
+   */
+  runnerTrail(at, speed, dt, color) {
+    if (!this.enabled || speed < 12) return;
+    this._trailAccum = (this._trailAccum || 0) + dt * (speed - 10) * 2.2;
+    while (this._trailAccum >= 1) {
+      this._trailAccum -= 1;
+      this.emit('trail', {
+        x: at.x, y: at.y + 0.5 + this._rand() * 0.7, z: at.z,
+      }, { scale: 1, color, dirZ: -1.4 });
+    }
+  }
+
   /** Integrates every live particle. One flat loop, no allocation. */
   update(dt) {
     if (this.alive === 0) return;
     const pos = this.positions;
     const vel = this.velocities;
-    const col = this.colors;
 
     let alive = 0;
     for (let i = 0; i < this.budget; i++) {
@@ -223,22 +262,17 @@ export class VFXManager {
       pos[o + 1] += vel[o + 1] * dt;
       pos[o + 2] += vel[o + 2] * dt;
 
-      // Fade by scaling the emitted colour toward black. Under additive
-      // blending that *is* a fade-out, and it costs no per-particle opacity
-      // attribute. Scaling from the stored base each frame rather than
-      // multiplying in place keeps it framerate-independent and reversible.
+      // Fade by shrinking to nothing rather than darkening. Under normal
+      // blending a colour scaled toward black is a *black particle*, not a
+      // faded one - dying dust would read as soot on a white rooftop. A size
+      // ramp needs no per-particle alpha and works over any background.
       const t = next / this.maxLife[i];
-      const fade = t * t;
-      col[o] = this.baseColors[o] * fade;
-      col[o + 1] = this.baseColors[o + 1] * fade;
-      col[o + 2] = this.baseColors[o + 2] * fade;
-      this.sizes[i] = this.baseSizes[i] * (0.55 + t * 0.45);
+      this.sizes[i] = this.baseSizes[i] * (t * (2 - t));
     }
 
     this.alive = alive;
     this.geometry.attributes.position.needsUpdate = true;
-    this.geometry.attributes.color.needsUpdate = true;
-    this.geometry.attributes.size.needsUpdate = true;
+    this.geometry.attributes.aScale.needsUpdate = true;
   }
 
   setEnabled(on) {
@@ -273,6 +307,7 @@ export class VFXManager {
   }
 
   dispose() {
+    this.scene.remove(this.points);
     this.geometry.dispose();
     if (this.material.map) this.material.map.dispose();
     this.material.dispose();
