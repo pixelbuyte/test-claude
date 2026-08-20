@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin:0; font-family:'Inter Tight', system-ui, sans-serif; }
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@500&display=swap');
+</style>
+</head>
+<body>
+<div style="width:900px;height:760px;background:radial-gradient(ellipse 700px 560px at 55% 46%,#1b1e26 0%,#0e0f13 62%,#08090b 100%);position:relative;box-sizing:border-box;">
+
+  <svg viewBox="0 0 560 500" style="position:absolute;left:90px;top:60px;width:720px;height:640px;display:block;">
+    <defs>
+      <filter id="aglow" x="-150%" y="-150%" width="400%" height="400%">
+        <feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="aglowSoft" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="14"/></filter>
+    </defs>
+
+    <ellipse cx="300" cy="480" rx="130" ry="14" fill="#000" opacity="0.35"/>
+
+    <g stroke="#3a3f4a" stroke-width="2" opacity="0.4" stroke-linecap="round">
+      <path d="M40,300 L120,286" fill="none"/>
+      <path d="M30,340 L118,322" fill="none"/>
+      <path d="M55,380 L128,362" fill="none"/>
+    </g>
+
+    <path d="M311.1,324.7 L396.4,353.4 L411.6,318.6 L332.9,275.3 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <path d="M414.0,351.0 L470.1,305.2 L457.9,286.8 L394.0,321.0 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <path d="M461.9,306.8 L504.7,310.9 L507.3,297.1 L466.1,285.2 Z" fill="#08090b" stroke="#000" stroke-width="2.5"/>
+    <circle cx="322" cy="300" r="27" fill="#14151a" stroke="#000" stroke-width="2"/>
+    <circle cx="404" cy="336" r="19" fill="#2c3038" stroke="#000" stroke-width="1.5" opacity="0.9"/>
+    <circle cx="464" cy="296" r="14" fill="#14151a" stroke="#000" stroke-width="1.5"/>
+
+    <path d="M308.3,190.8 L373.9,148.5 L362.1,127.5 L291.7,161.2 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <path d="M376.5,146.5 L427.7,89.7 L416.3,78.3 L359.5,129.5 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <circle cx="300" cy="176" r="17" fill="#14151a" stroke="#000" stroke-width="2"/>
+    <circle cx="368" cy="138" r="12" fill="#2c3038" stroke="#000" stroke-width="1.5" opacity="0.9"/>
+    <path d="M403,68 Q432,72 434,100 L412,102 Q400,88 403,68 Z" fill="#08090b" stroke="#000" stroke-width="2"/>
+
+    <path d="M192.4,185.9 Q216.4,250.2 256.4,314.5 L343.6,285.5 Q338.6,214.8 317.6,144.1 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <path d="M230,152 L280,304" stroke="#2c3038" stroke-width="2.5" opacity="0.55"/>
+    <path d="M210,196 L246,224 L300,168" stroke="#2c3038" stroke-width="2.5" fill="none" opacity="0.75"/>
+    <path d="M214,168 Q245,182 288,158 L280,142 Q246,164 220,150 Z" fill="#0c0d10"/>
+
+    <g transform="translate(228,96) rotate(18)">
+      <path d="M0,-52 Q46,-50 54,2 Q58,36 36,58 Q16,78 -10,74 Q-40,68 -52,38
+               Q-62,8 -50,-24 Q-36,-52 0,-52 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+      <path d="M-46,4 Q0,-10 46,6 Q42,22 0,28 Q-42,22 -46,4 Z" fill="#8fe8ff" filter="url(#aglow)" opacity="0.95"/>
+    </g>
+
+    <g transform="translate(296,296)">
+      <g stroke="#2c3038" stroke-width="1.2" opacity="0.85">
+        <path d="M0,0 L-50,-14"/><path d="M0,0 L-40,20"/><path d="M0,0 L44,-24"/><path d="M0,0 L20,26"/>
+      </g>
+      <circle r="46" fill="none" stroke="#8fe8ff" stroke-width="1" opacity="0.4"/>
+      <circle r="30" fill="none" stroke="#8fe8ff" stroke-width="1" opacity="0.25"/>
+      <polygon points="0,-34 21,-3 0,27 -21,-3" fill="#8fe8ff" opacity="0.65" filter="url(#aglowSoft)"/>
+      <polygon points="0,-28 17,-1 0,22 -17,-1" fill="#bff2ff" stroke="#000" stroke-width="2"/>
+      <polygon points="0,-28 17,-1 0,22 -17,-1" fill="none" stroke="#8fe8ff" stroke-width="1.2"/>
+    </g>
+
+    <path d="M261.2,281.8 L198.9,357.4 L229.1,386.6 L302.8,322.2 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <path d="M195.6,379.8 L236.0,457.1 L260.0,446.9 L232.4,364.2 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <path d="M245.1,463.6 L302.1,473.8 L305.9,458.2 L250.9,440.4 Z" fill="#08090b" stroke="#000" stroke-width="2.5"/>
+    <circle cx="282" cy="302" r="30" fill="#14151a" stroke="#000" stroke-width="2"/>
+    <circle cx="214" cy="372" r="22" fill="#2c3038" stroke="#000" stroke-width="1.5" opacity="0.92"/>
+    <circle cx="248" cy="452" r="15" fill="#14151a" stroke="#000" stroke-width="1.5"/>
+    <g transform="translate(276,458)">
+      <polygon points="0,-15 9,-0.5 0,12 -9,-0.5" fill="#8fe8ff" opacity="0.7" filter="url(#aglowSoft)"/>
+      <polygon points="0,-12 8,-0.5 0,9.5 -8,-0.5" fill="#bff2ff" stroke="#000" stroke-width="1.5"/>
+    </g>
+    <path d="M276,458 L318,420" stroke="#8fe8ff" stroke-width="2" opacity="0.55" stroke-linecap="round" filter="url(#aglow)"/>
+
+    <g transform="translate(484,300)" opacity="0.55">
+      <polygon points="0,-11 7,-0.5 0,8.5 -7,-0.5" fill="#8fe8ff" opacity="0.5" filter="url(#aglowSoft)"/>
+      <polygon points="0,-9 6,-0.5 0,7 -6,-0.5" fill="#bff2ff" stroke="#000" stroke-width="1.3"/>
+    </g>
+
+    <path d="M194.2,169.5 L156.6,249.8 L179.4,262.2 L225.8,186.5 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <path d="M155.9,260.8 L187.6,329.3 L204.4,322.7 L180.1,251.2 Z" fill="#14151a" stroke="#000" stroke-width="2.5"/>
+    <circle cx="210" cy="178" r="19" fill="#14151a" stroke="#000" stroke-width="2"/>
+    <circle cx="168" cy="256" r="15" fill="#2c3038" stroke="#000" stroke-width="1.5" opacity="0.9"/>
+    <path d="M155,320 Q148,342 172,346 L192,340 Q200,334 196,320 L182,330 Q170,332 168,322 Z" fill="#08090b" stroke="#000" stroke-width="2"/>
+    <g transform="translate(174,332)">
+      <polygon points="0,-14 8.5,-0.5 0,11 -8.5,-0.5" fill="#8fe8ff" opacity="0.75" filter="url(#aglowSoft)"/>
+      <polygon points="0,-11 7,-0.5 0,8.5 -7,-0.5" fill="#bff2ff" stroke="#000" stroke-width="1.5"/>
+    </g>
+    <path d="M174,332 L206,378" stroke="#8fe8ff" stroke-width="2" opacity="0.55" stroke-linecap="round" filter="url(#aglow)"/>
+
+    <g transform="translate(423,80)" opacity="0.55">
+      <polygon points="0,-11 7,-0.5 0,8.5 -7,-0.5" fill="#8fe8ff" opacity="0.5" filter="url(#aglowSoft)"/>
+      <polygon points="0,-9 6,-0.5 0,7 -6,-0.5" fill="#bff2ff" stroke="#000" stroke-width="1.3"/>
+    </g>
+
+    <path d="M296,296 L360,240" stroke="#8fe8ff" stroke-width="2" opacity="0.5" stroke-linecap="round" filter="url(#aglow)"/>
+  </svg>
+
+  <div style="position:absolute;left:40px;bottom:36px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;color:#e7e9ee;letter-spacing:.01em;">TELLTALE</div>
+  <div style="position:absolute;left:40px;bottom:16px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#6b7280;letter-spacing:.08em;">UMBRA · REACTIVE STANCE</div>
+</div>
+</body>
+</html>
