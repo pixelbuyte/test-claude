@@ -49,7 +49,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 pb-6 pt-10 sm:px-6 sm:pt-16">
         <div className="text-center">
           <h1 className="shimmer-text text-4xl font-black tracking-tight sm:text-5xl">
-            Pay to be seen. Timed, not forever.
+            <span className="accent">Pay to be seen.</span> Timed, not forever.
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-neutral-500 dark:text-neutral-400">
             5 featured spots up top. Steal them early if you dare. A permanent leaderboard below for the long game.

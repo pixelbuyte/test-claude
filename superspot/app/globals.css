@@ -8,8 +8,9 @@ body {
 
 .dark body {
   background:
-    radial-gradient(1200px 600px at 50% -10%, rgba(124, 77, 255, 0.18), transparent 60%),
-    #0a0a0c;
+    radial-gradient(900px 420px at 12% -8%, rgba(18, 196, 99, 0.12), transparent 60%),
+    radial-gradient(700px 380px at 100% 0%, rgba(232, 182, 76, 0.07), transparent 55%),
+    #08090a;
 }
 
 ::selection {
@@ -17,16 +18,20 @@ body {
 }
 
 .glass {
-  @apply bg-white/70 dark:bg-white/[0.04] backdrop-blur-xl border border-black/5 dark:border-white/10;
+  @apply bg-white/80 dark:bg-white/[0.035] backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08];
 }
 
 .shimmer-text {
-  background: linear-gradient(90deg, #7c4dff 0%, #a593ff 25%, #7c4dff 50%, #a593ff 75%, #7c4dff 100%);
+  color: inherit;
+}
+
+.shimmer-text .accent {
+  background: linear-gradient(90deg, #12c463 0%, #5cf59c 50%, #12c463 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: shimmer 4s linear infinite;
+  animation: shimmer 5s linear infinite;
 }
 
 .scrollbar-thin::-webkit-scrollbar {

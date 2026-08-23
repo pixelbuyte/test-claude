@@ -18,11 +18,11 @@ function money(cents: number) {
 }
 
 const SPOT_STYLES: Record<number, string> = {
-  1: "from-amber-400/30 via-amber-300/10 to-transparent ring-amber-400/40",
-  2: "from-slate-300/25 via-slate-200/10 to-transparent ring-slate-300/30",
-  3: "from-orange-400/25 via-orange-300/10 to-transparent ring-orange-400/30",
-  4: "from-brand-400/20 via-brand-300/10 to-transparent ring-brand-400/25",
-  5: "from-brand-400/15 via-brand-300/5 to-transparent ring-brand-400/20",
+  1: "from-gold/25 via-gold/[0.06] to-transparent ring-gold/40",
+  2: "from-slate-300/20 via-slate-200/[0.06] to-transparent ring-slate-300/25",
+  3: "from-orange-400/20 via-orange-300/[0.06] to-transparent ring-orange-400/25",
+  4: "from-brand-500/15 via-brand-400/[0.06] to-transparent ring-brand-500/20",
+  5: "from-brand-500/10 via-brand-400/[0.04] to-transparent ring-brand-500/15",
 };
 
 export default function FeaturedGrid({
@@ -90,7 +90,7 @@ export default function FeaturedGrid({
                 <span>{occupied ? `${entry.listing!.clicks.toLocaleString()} clicks` : "Be the first"}</span>
                 <button
                   onClick={() => setModalSpot(entry)}
-                  className="rounded-full bg-black text-white dark:bg-white dark:text-black px-3 py-1 text-[11px] font-semibold hover:opacity-80 transition"
+                  className="rounded-full bg-brand-500 text-black px-3 py-1 text-[11px] font-bold hover:bg-brand-400 transition"
                 >
                   {occupied ? `Steal ${money(entry.stealPriceCents ?? entry.openPriceCents)}` : `Claim ${money(entry.openPriceCents)}`}
                 </button>
