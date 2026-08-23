@@ -6,6 +6,7 @@ import Ticker from "@/components/Ticker";
 import FeaturedGrid, { FeaturedEntry } from "@/components/FeaturedGrid";
 import Leaderboard from "@/components/Leaderboard";
 import HowItWorks from "@/components/HowItWorks";
+import MoneyRules from "@/components/MoneyRules";
 import ShareButtons from "@/components/ShareButtons";
 import { Listing, Duration } from "@/lib/types";
 
@@ -79,7 +80,8 @@ export default function Home() {
             <p className="max-w-md text-[15px] leading-relaxed text-ash">
               Five spots. Rent one for 6 hours or 3 days. Anyone can rip it out
               from under you by covering what&apos;s left on your clock plus a
-              premium — and the board below never forgets what you spent.
+              premium. Below that sits a permanent board that never expires and
+              never gets stolen.
             </p>
             <ShareButtons text="Someone just paid real money to sit at the top of SuperSpot 👀" />
           </div>
@@ -100,7 +102,8 @@ export default function Home() {
           )}
         </section>
 
-        <section className="mx-auto mt-24 max-w-6xl px-4 sm:px-6">
+        <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
+          <p className="rule-label mb-5">Permanent — never expires</p>
           {data ? (
             <Leaderboard
               listings={data.leaderboard}
@@ -113,7 +116,11 @@ export default function Home() {
           )}
         </section>
 
-        <section className="mx-auto mt-24 max-w-6xl px-4 sm:px-6">
+        <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
+          <MoneyRules totalCents={data?.revenueCents ?? 0} />
+        </section>
+
+        <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
           <HowItWorks />
         </section>
 
@@ -124,10 +131,7 @@ export default function Home() {
             </span>
             <p className="max-w-md text-xs text-dust">
               No NSFW, no invite-link spam, no adult content — violators get
-              de-listed without a refund.{" "}
-              <a href="/admin" className="text-ash underline underline-offset-2 hover:text-acid">
-                Admin
-              </a>
+              de-listed without a refund.
             </p>
           </div>
         </footer>

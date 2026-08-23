@@ -76,15 +76,17 @@ function seed(): Store {
 
   // Two of the five featured spots start pre-claimed so the countdown /
   // "steal" mechanic is visible immediately without any setup.
-  const demoFeatured: Array<[string, string, string, number, Duration, number]> = [
-    ["https://www.indiehackers.com", "Indie Hackers", "Learn how developers grow to $10k/mo+.", 1, 24, 3200],
-    ["https://www.ycombinator.com", "Y Combinator", "Make something people want.", 3, 12, 6300],
+  // Click counts included: a featured spot showing 0 clicks actively argues
+  // against the product, and these are seeded placeholders like the board.
+  const demoFeatured: Array<[string, string, string, number, Duration, number, number]> = [
+    ["https://www.indiehackers.com", "Indie Hackers", "Learn how developers grow to $10k/mo+.", 1, 24, 3200, 412],
+    ["https://www.ycombinator.com", "Y Combinator", "Make something people want.", 3, 12, 6300, 188],
   ];
 
   const featured = new Map<number, FeaturedClaim>();
   const now = Date.now();
-  for (const [url, title, description, spot, duration, amountCents] of demoFeatured) {
-    const l = makeListing({ url, title, description });
+  for (const [url, title, description, spot, duration, amountCents, clicks] of demoFeatured) {
+    const l = makeListing({ url, title, description, clicks });
     listings.set(l.id, l);
     const startedAt = now - Math.round(duration * 60 * 60 * 1000 * 0.35); // already ~35% elapsed
     const expiresAt = startedAt + duration * 60 * 60 * 1000;

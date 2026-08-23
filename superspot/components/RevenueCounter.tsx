@@ -10,7 +10,7 @@ export default function RevenueCounter({ cents }: { cents: number }) {
   return (
     <span className="flex items-baseline gap-2">
       <span className="num hidden text-[10px] uppercase tracking-[0.2em] text-dust sm:inline">
-        Pot
+        Spent here
       </span>
       <span className="font-display text-xl leading-none tracking-crush text-acid">
         {dollars}

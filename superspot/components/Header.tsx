@@ -17,12 +17,6 @@ export default function Header({ revenueCents }: { revenueCents: number }) {
 
         <div className="flex items-center gap-4">
           <RevenueCounter cents={revenueCents} />
-          <Link
-            href="/admin"
-            className="num hidden text-[11px] uppercase tracking-[0.18em] text-dust transition-colors hover:text-bone sm:inline"
-          >
-            Admin
-          </Link>
           <ThemeToggle />
         </div>
       </div>

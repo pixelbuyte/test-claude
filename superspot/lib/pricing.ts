@@ -17,7 +17,7 @@ export const DEFAULT_SETTINGS: AdminSettings = {
     72: 7.5,
   },
   maxDurationHours: 72,
-  outbidPremiumPct: 15, // must pay 15% more than remaining value to steal a spot
+  outbidPremiumPct: 40, // scaled by time remaining — see minStealPriceCents
   bannedKeywords: [
     "porn",
     "xxx",
@@ -72,15 +72,40 @@ export function remainingValueCents(
   return Math.round(amountCents * (remaining / total));
 }
 
+/**
+ * What it costs to take an occupied spot early.
+ *
+ * Two problems with a flat "remaining value + X%": a long reign decays to
+ * almost nothing near the end, and it could fall below the price of simply
+ * renting the spot fresh — so sniping was cheaper than buying, which killed
+ * the incentive to book longer durations at all.
+ *
+ * So: the premium scales with how much time is left (sniping someone's fresh
+ * 3-day reign should hurt far more than picking off their last hour), and the
+ * result is floored at the spot's own asking price — a spot is never cheaper
+ * to steal than to rent.
+ */
 export function minStealPriceCents(
   settings: AdminSettings,
   amountCents: number,
   startedAt: number,
   expiresAt: number,
-  now: number
+  now: number,
+  spot?: number
 ): number {
   const remaining = remainingValueCents(amountCents, startedAt, expiresAt, now);
-  return Math.round(remaining * (1 + settings.outbidPremiumPct / 100));
+
+  const total = expiresAt - startedAt;
+  const fractionLeft =
+    total > 0 ? Math.max(0, Math.min(1, (expiresAt - now) / total)) : 0;
+
+  // Doubles the premium on a freshly-claimed spot, tapering to the base rate
+  // as the clock runs out.
+  const premiumPct = settings.outbidPremiumPct * (1 + fractionLeft);
+  const bid = remaining * (1 + premiumPct / 100);
+
+  const floor = spot ? priceForSpot(settings, spot, 6) : 0;
+  return Math.round(Math.max(bid, floor));
 }
 
 export function containsBannedContent(

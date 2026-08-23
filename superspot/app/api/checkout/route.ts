@@ -75,7 +75,8 @@ export async function POST(req: NextRequest) {
         existing.claim.amountCents,
         existing.claim.startedAt,
         existing.claim.expiresAt,
-        Date.now()
+        Date.now(),
+        spot
       );
       floor = Math.max(openPrice, stealPrice);
       description = `Steal Spot #${spot} for ${duration}h`;

@@ -24,7 +24,8 @@ export async function GET(_req: NextRequest) {
       claim.amountCents,
       claim.startedAt,
       claim.expiresAt,
-      now
+      now,
+      spot
     );
     return {
       spot,
