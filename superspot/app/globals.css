@@ -2,36 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 antialiased transition-colors;
+/* ── Surface tokens ────────────────────────────────────────────────
+   One set of semantic colors, redefined once for dark. Components
+   reference these instead of hand-picking neutrals at each call site. */
+:root {
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --surface-2: #f4f2ee;
+  --line: rgba(23, 22, 20, 0.1);
+  --line-strong: rgba(23, 22, 20, 0.2);
+  --ink: #171614;
+  --ink-mute: #6c6862;
+  --ink-faint: #9a958d;
 }
 
-.dark body {
-  background:
-    radial-gradient(900px 420px at 12% -8%, rgba(18, 196, 99, 0.12), transparent 60%),
-    radial-gradient(700px 380px at 100% 0%, rgba(232, 182, 76, 0.07), transparent 55%),
-    #08090a;
+.dark {
+  --bg: #0c0c0d;
+  --surface: #141415;
+  --surface-2: #1c1c1e;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --ink: #f2f0ed;
+  --ink-mute: #9d9a94;
+  --ink-faint: #6a6762;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  @apply antialiased;
 }
 
 ::selection {
-  @apply bg-brand-500/40;
+  background: #12c463;
+  color: #04120a;
 }
 
-.glass {
-  @apply bg-white/80 dark:bg-white/[0.035] backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08];
+/* Flat, honest surfaces — a hairline and a fill, no blur, no gradient. */
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--line);
 }
 
-.shimmer-text {
-  color: inherit;
+.hairline {
+  border-color: var(--line);
 }
 
-.shimmer-text .accent {
-  background: linear-gradient(90deg, #12c463 0%, #5cf59c 50%, #12c463 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 5s linear infinite;
+/* Numerals that line up in columns: prices, countdowns, click counts. */
+.num {
+  @apply font-mono tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Ruled section label — small caps mono over a full-bleed hairline. */
+.rule-label {
+  @apply flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em];
+  color: var(--ink-faint);
+}
+.rule-label::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--line);
 }
 
 .scrollbar-thin::-webkit-scrollbar {
@@ -39,6 +71,6 @@ body {
   width: 6px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(128, 128, 128, 0.3);
+  background: var(--line-strong);
   border-radius: 999px;
 }

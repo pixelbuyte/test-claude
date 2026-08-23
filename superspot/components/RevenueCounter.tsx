@@ -8,13 +8,11 @@ export default function RevenueCounter({ cents }: { cents: number }) {
   });
 
   return (
-    <div className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm">
-      <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+    <span className="num inline-flex items-baseline gap-2 text-[11px]">
+      <span className="hidden uppercase tracking-[0.14em] text-ink-faint sm:inline">
+        Paid out
       </span>
-      <span className="text-neutral-500 dark:text-neutral-400">Total paid out</span>
-      <span className="font-semibold tabular-nums">{dollars}</span>
-    </div>
+      <span className="font-semibold text-cash">{dollars}</span>
+    </span>
   );
 }

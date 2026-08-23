@@ -31,7 +31,7 @@ export default function AdminPage() {
   }
 
   if (!settings) {
-    return <div className="mx-auto max-w-3xl px-6 py-20 text-center text-neutral-400">Loading…</div>;
+    return <div className="mx-auto max-w-3xl px-6 py-20 text-center text-ink-faint">Loading…</div>;
   }
 
   return (
@@ -39,21 +39,21 @@ export default function AdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Admin</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="text-sm text-ink-mute">
             Base prices, durations, and content filters. No auth on this demo route — lock it down before going live.
           </p>
         </div>
-        <Link href="/" className="text-sm underline hover:text-brand-500">
+        <Link href="/" className="text-sm underline hover:text-cash">
           ← Back
         </Link>
       </div>
 
-      <section className="glass mt-8 rounded-2xl p-6">
+      <section className="surface mt-8 rounded-lg p-6">
         <h2 className="font-semibold">Base prices (6h rate, per spot)</h2>
         <div className="mt-4 grid grid-cols-5 gap-3">
           {[1, 2, 3, 4, 5].map((spot) => (
             <div key={spot}>
-              <label className="text-xs text-neutral-500">Spot #{spot}</label>
+              <label className="text-xs text-ink-faint">Spot #{spot}</label>
               <input
                 type="number"
                 value={(settings.basePricesCents[spot] ?? 0) / 100}
@@ -73,12 +73,12 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <section className="glass mt-6 rounded-2xl p-6">
+      <section className="surface mt-6 rounded-lg p-6">
         <h2 className="font-semibold">Duration multipliers</h2>
         <div className="mt-4 grid grid-cols-4 gap-3">
           {([6, 12, 24, 72] as Duration[]).map((d) => (
             <div key={d}>
-              <label className="text-xs text-neutral-500">{d}h</label>
+              <label className="text-xs text-ink-faint">{d}h</label>
               <input
                 type="number"
                 step="0.1"
@@ -98,7 +98,7 @@ export default function AdminPage() {
           ))}
         </div>
         <div className="mt-4">
-          <label className="text-xs text-neutral-500">Max duration allowed (hours)</label>
+          <label className="text-xs text-ink-faint">Max duration allowed (hours)</label>
           <select
             value={settings.maxDurationHours}
             onChange={(e) => save({ ...settings, maxDurationHours: Number(e.target.value) as Duration })}
@@ -113,9 +113,9 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <section className="glass mt-6 rounded-2xl p-6">
+      <section className="surface mt-6 rounded-lg p-6">
         <h2 className="font-semibold">Steal / outbid premium</h2>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-ink-mute">
           Percent above the current occupant's remaining value required to take their spot early.
         </p>
         <input
@@ -127,9 +127,9 @@ export default function AdminPage() {
         <span className="ml-2 text-sm">%</span>
       </section>
 
-      <section className="glass mt-6 rounded-2xl p-6">
+      <section className="surface mt-6 rounded-lg p-6">
         <h2 className="font-semibold">Banned keywords</h2>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-ink-mute">
           Any listing whose URL, title, or description contains one of these is rejected at checkout.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -163,14 +163,14 @@ export default function AdminPage() {
               save({ ...settings, bannedKeywords: [...settings.bannedKeywords, newKeyword.trim()] });
               setNewKeyword("");
             }}
-            className="rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-500"
+            className="rounded-md bg-cash px-4 text-sm font-semibold text-[#04120a] hover:bg-cash-bright"
           >
             Add
           </button>
         </div>
       </section>
 
-      <section className="glass mt-6 rounded-2xl p-6">
+      <section className="surface mt-6 rounded-lg p-6">
         <h2 className="font-semibold">Banned categories</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {settings.bannedCategories.map((cat) => (
@@ -203,7 +203,7 @@ export default function AdminPage() {
               save({ ...settings, bannedCategories: [...settings.bannedCategories, newCategory.trim()] });
               setNewCategory("");
             }}
-            className="rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-500"
+            className="rounded-md bg-cash px-4 text-sm font-semibold text-[#04120a] hover:bg-cash-bright"
           >
             Add
           </button>
