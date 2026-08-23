@@ -4,19 +4,20 @@ import RevenueCounter from "./RevenueCounter";
 
 export default function Header({ revenueCents }: { revenueCents: number }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-black/5 dark:border-white/5 glass">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-black dark:bg-white text-sm font-black text-brand-400 dark:text-brand-600">S</span>
-          <span className="text-lg font-bold tracking-tight">SuperSpot</span>
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <Link href="/" className="flex items-baseline gap-2">
+          <span className="font-display text-xl tracking-tight">SuperSpot</span>
+          <span className="num hidden text-[10px] uppercase tracking-[0.18em] text-ink-faint sm:inline">
+            playlocal.space
+          </span>
         </Link>
-        <div className="hidden sm:block">
+
+        <div className="flex items-center gap-3">
           <RevenueCounter cents={revenueCents} />
-        </div>
-        <div className="flex items-center gap-2">
           <Link
             href="/admin"
-            className="hidden rounded-full border border-black/10 dark:border-white/10 px-3 py-1.5 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 transition sm:inline-block"
+            className="num hidden text-[11px] uppercase tracking-[0.14em] text-ink-faint transition-colors hover:text-ink sm:inline"
           >
             Admin
           </Link>

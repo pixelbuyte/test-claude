@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Duration } from "@/lib/types";
+import SiteIcon from "./SiteIcon";
 
 type Props = {
   open: boolean;
@@ -124,13 +125,13 @@ export default function ClaimModal({
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-2xl glass p-6 shadow-2xl animate-rise"
+        className="surface w-full max-w-md rounded-lg p-6 shadow-2xl animate-rise"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold">
+        <h3 className="font-display text-2xl tracking-tight">
           {mode === "featured" ? `Claim Spot #${spot}` : "Bid for the leaderboard"}
         </h3>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-sm text-ink-mute">
           {mode === "featured"
             ? "No account needed — paste your link, pick a duration, pay."
             : "Higher total bids rank higher, forever. No expiry."}
@@ -138,40 +139,40 @@ export default function ClaimModal({
 
         <div className="mt-4 space-y-3">
           <div>
-            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">URL or @handle</label>
+            <label className="num text-[11px] uppercase tracking-[0.14em] text-ink-faint">URL or @handle</label>
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onBlur={fetchMeta}
               placeholder="yourproject.com"
-              className="mt-1 w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
+              className="mt-2 w-full rounded-md border border-line-strong bg-surface-2 px-3 py-2 text-sm outline-none transition-colors focus:border-cash"
             />
           </div>
 
-          {loadingMeta && <p className="text-xs text-neutral-500">Fetching preview…</p>}
+          {loadingMeta && <p className="num text-[11px] text-ink-faint">Fetching preview…</p>}
 
           {meta && (
-            <div className="flex items-center gap-3 rounded-lg border border-black/10 dark:border-white/10 p-2">
-              {meta.favicon && <img src={meta.favicon} alt="" className="h-8 w-8 rounded" />}
+            <div className="flex items-center gap-3 rounded-md border border-line p-2">
+              <SiteIcon src={meta.favicon} title={meta.title || "?"} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{meta.title}</p>
-                <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{meta.description}</p>
+                <p className="truncate text-xs text-ink-mute">{meta.description}</p>
               </div>
             </div>
           )}
 
           {mode === "featured" ? (
             <div>
-              <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Duration</label>
+              <label className="num text-[11px] uppercase tracking-[0.14em] text-ink-faint">Duration</label>
               <div className="mt-1 grid grid-cols-4 gap-2">
                 {durations.map((d) => (
                   <button
                     key={d}
                     onClick={() => setDuration(d)}
-                    className={`rounded-lg border px-2 py-2 text-xs font-medium transition ${
+                    className={`num rounded-md border px-2 py-2 text-[11px] transition-colors ${
                       duration === d
-                        ? "border-brand-500 bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                        : "border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/10"
+                        ? "border-cash bg-cash/10 text-cash"
+                        : "border-line hover:border-line-strong"
                     }`}
                   >
                     {DURATION_LABEL[d]}
@@ -181,35 +182,35 @@ export default function ClaimModal({
             </div>
           ) : (
             <div>
-              <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Your bid (USD)</label>
+              <label className="num text-[11px] uppercase tracking-[0.14em] text-ink-faint">Your bid (USD)</label>
               <input
                 type="number"
                 min={5}
                 step={1}
                 value={bidCents / 100}
                 onChange={(e) => setBidCents(Math.round(Number(e.target.value) * 100))}
-                className="mt-1 w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
+                className="mt-2 w-full rounded-md border border-line-strong bg-surface-2 px-3 py-2 text-sm outline-none transition-colors focus:border-cash"
               />
             </div>
           )}
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 
-          <div className="flex items-center justify-between rounded-lg bg-brand-500/10 px-3 py-2 text-sm">
-            <span className="text-neutral-500 dark:text-neutral-400">
+          <div className="flex items-baseline justify-between border-t border-line pt-4">
+            <span className="num text-[11px] uppercase tracking-[0.14em] text-ink-faint">
               {mode === "featured" && (stealPriceCents ?? 0) > (openPriceCents ?? 0) ? "Steal price" : "Price"}
             </span>
-            <span className="font-semibold text-brand-600 dark:text-brand-300">{money(requiredPrice)}</span>
+            <span className="num text-2xl font-semibold text-cash">{money(requiredPrice)}</span>
           </div>
 
           <button
             onClick={submit}
             disabled={submitting}
-            className="w-full rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-500 disabled:opacity-50"
+            className="w-full rounded-md bg-cash py-3 text-sm font-semibold text-[#04120a] transition-colors hover:bg-cash-bright disabled:opacity-50"
           >
             {submitting ? "Processing…" : `Pay ${money(requiredPrice)} & go live`}
           </button>
-          <p className="text-center text-[11px] text-neutral-400">
+          <p className="text-center text-[11px] text-ink-faint">
             Test mode — no real charge unless Stripe live keys are configured.
           </p>
         </div>

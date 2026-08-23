@@ -6,47 +6,46 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#eafff2",
-          100: "#ccffe0",
-          200: "#99ffc2",
-          300: "#5cf59c",
-          400: "#2ee27e",
-          500: "#12c463",
-          600: "#0aa050",
-          700: "#0a7d42",
-          800: "#0c6237",
-          900: "#0a4f2e",
+        // Semantic surfaces, driven by the CSS vars in globals.css so
+        // light/dark switch in one place instead of per-component pairs.
+        bg: "var(--bg)",
+        surface: "var(--surface)",
+        "surface-2": "var(--surface-2)",
+        line: "var(--line)",
+        "line-strong": "var(--line-strong)",
+        ink: "var(--ink)",
+        "ink-mute": "var(--ink-mute)",
+        "ink-faint": "var(--ink-faint)",
+
+        // The money accent. One hue, used sparingly — prices and live state.
+        cash: {
+          DEFAULT: "#12c463",
+          bright: "#2ee27e",
+          deep: "#0a7d42",
         },
-        gold: "#e8b64c",
+        gold: "#c9973f",
       },
       fontFamily: {
-        sans: [
-          "Inter",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "sans-serif",
-        ],
+        display: ["var(--font-display)", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "-apple-system", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+      },
+      letterSpacing: {
+        tightest: "-0.045em",
       },
       keyframes: {
         pulseglow: {
           "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.55" },
-        },
-        shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
+          "50%": { opacity: "0.45" },
         },
         rise: {
-          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
       animation: {
-        pulseglow: "pulseglow 2s ease-in-out infinite",
-        shimmer: "shimmer 2.5s linear infinite",
-        rise: "rise 0.4s ease-out both",
+        pulseglow: "pulseglow 1.6s ease-in-out infinite",
+        rise: "rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both",
       },
     },
   },

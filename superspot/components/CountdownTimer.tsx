@@ -40,7 +40,7 @@ export default function CountdownTimer({
 
   return (
     <span
-      className={`font-mono tabular-nums ${urgent ? "text-red-400 animate-pulseglow" : ""} ${className ?? ""}`}
+      className={`num ${urgent ? "text-red-400 animate-pulseglow" : ""} ${className ?? ""}`}
     >
       {format(remaining)}
     </span>

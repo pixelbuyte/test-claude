@@ -22,9 +22,9 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className="grid h-9 w-9 place-items-center rounded-full border border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10 transition"
+      className="num rounded-md border border-line-strong px-2.5 py-2 text-[11px] uppercase tracking-[0.14em] text-ink-faint transition-colors hover:border-ink hover:text-ink"
     >
-      {dark ? "☀️" : "🌙"}
+      {dark ? "Light" : "Dark"}
     </button>
   );
 }
