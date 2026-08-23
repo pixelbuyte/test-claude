@@ -30,6 +30,25 @@ export const DEFAULT_SETTINGS: AdminSettings = {
   bannedCategories: ["adult", "gambling-unlicensed", "weapons"],
 };
 
+// Amounts are chosen by the buyer ("pay what you want"), so they arrive from
+// the client and must be validated server-side before they ever reach Stripe.
+// The ceiling is Stripe's own per-charge maximum for USD.
+export const MIN_AMOUNT_CENTS = 100; // $1
+export const MAX_AMOUNT_CENTS = 99_999_999; // $999,999.99
+
+/**
+ * Coerce a client-supplied amount into a safe integer cent value.
+ * Returns null for anything non-finite, non-numeric, or out of band —
+ * callers must treat null as a rejected request, never as zero.
+ */
+export function normalizeAmountCents(input: unknown): number | null {
+  const raw = typeof input === "number" ? input : Number(input);
+  if (!Number.isFinite(raw)) return null;
+  const cents = Math.round(raw);
+  if (cents < MIN_AMOUNT_CENTS || cents > MAX_AMOUNT_CENTS) return null;
+  return cents;
+}
+
 export function priceForSpot(
   settings: AdminSettings,
   spot: number,

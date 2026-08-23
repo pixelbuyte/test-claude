@@ -7,6 +7,8 @@ import { AdminSettings, Duration } from "@/lib/types";
 export default function AdminPage() {
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [saved, setSaved] = useState(false);
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState<string | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
   const [newCategory, setNewCategory] = useState("");
 
@@ -14,17 +16,30 @@ export default function AdminPage() {
     fetch("/api/admin/settings")
       .then((r) => r.json())
       .then(setSettings);
+    // Kept in sessionStorage only — never persisted to disk or sent anywhere
+    // but this app's own settings endpoint.
+    try {
+      setPassword(sessionStorage.getItem("superspot-admin") ?? "");
+    } catch {}
   }, []);
 
   async function save(next: AdminSettings) {
     setSettings(next);
     setSaved(false);
+    setAuthError(null);
     const res = await fetch("/api/admin/settings", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-admin-password": password },
       body: JSON.stringify(next),
     });
     const updated = await res.json();
+    if (!res.ok) {
+      setAuthError(updated.error ?? "Could not save.");
+      return;
+    }
+    try {
+      sessionStorage.setItem("superspot-admin", password);
+    } catch {}
     setSettings(updated);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
@@ -40,12 +55,27 @@ export default function AdminPage() {
         <div>
           <h1 className="text-2xl font-bold">Admin</h1>
           <p className="text-sm text-ash">
-            Base prices, durations, and content filters. No auth on this demo route — lock it down before going live.
+            Base prices, durations, and content filters. Saving requires the
+            admin password set as ADMIN_PASSWORD on the deployment.
           </p>
         </div>
         <Link href="/" className="text-sm underline hover:text-acid">
           ← Back
         </Link>
+      </div>
+
+      <div className="panel mt-6 p-4">
+        <label className="num text-[11px] uppercase tracking-[0.14em] text-dust">
+          Admin password
+        </label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="required to save changes"
+          className="num mt-2 w-full border border-edge bg-panel-2 px-3 py-2 text-sm outline-none transition-colors focus:border-acid"
+        />
+        {authError && <p className="mt-2 text-sm text-hot">{authError}</p>}
       </div>
 
       <section className="panel mt-8 p-6">

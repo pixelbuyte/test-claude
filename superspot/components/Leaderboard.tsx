@@ -17,10 +17,12 @@ export default function Leaderboard({
   listings,
   onRefresh,
   onClick,
+  payments,
 }: {
   listings: Listing[];
   onRefresh: () => void;
   onClick: (listingId: string) => void;
+  payments?: { enabled: boolean; live: boolean; minAmountCents: number };
 }) {
   const [open, setOpen] = useState(false);
   const top = listings[0]?.totalPaid ?? 0;
@@ -115,6 +117,7 @@ export default function Leaderboard({
         onDone={onRefresh}
         mode="permanent"
         durations={[]}
+        payments={payments}
       />
     </div>
   );

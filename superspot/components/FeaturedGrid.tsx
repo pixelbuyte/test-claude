@@ -27,11 +27,13 @@ export default function FeaturedGrid({
   durations,
   onRefresh,
   onClick,
+  payments,
 }: {
   entries: FeaturedEntry[];
   durations: Duration[];
   onRefresh: () => void;
   onClick: (listingId: string) => void;
+  payments?: { enabled: boolean; live: boolean; minAmountCents: number };
 }) {
   const [modalSpot, setModalSpot] = useState<FeaturedEntry | null>(null);
   const [hero, ...rest] = entries;
@@ -83,6 +85,7 @@ export default function FeaturedGrid({
         openPriceCents={modalSpot?.openPriceCents}
         stealPriceCents={modalSpot?.stealPriceCents}
         durations={durations}
+        payments={payments}
       />
     </>
   );

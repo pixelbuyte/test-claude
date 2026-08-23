@@ -14,6 +14,7 @@ type ListingsResponse = {
   leaderboard: Listing[];
   revenueCents: number;
   settings: { maxDurationHours: Duration };
+  payments: { enabled: boolean; live: boolean; minAmountCents: number };
 };
 
 const ALL_DURATIONS: Duration[] = [6, 12, 24, 72];
@@ -90,6 +91,7 @@ export default function Home() {
             <FeaturedGrid
               entries={data.featured}
               durations={durations}
+              payments={data.payments}
               onRefresh={refresh}
               onClick={registerClick}
             />
@@ -102,6 +104,7 @@ export default function Home() {
           {data ? (
             <Leaderboard
               listings={data.leaderboard}
+              payments={data.payments}
               onRefresh={refresh}
               onClick={registerClick}
             />
