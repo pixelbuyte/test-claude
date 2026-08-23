@@ -6,46 +6,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Semantic surfaces, driven by the CSS vars in globals.css so
-        // light/dark switch in one place instead of per-component pairs.
-        bg: "var(--bg)",
-        surface: "var(--surface)",
-        "surface-2": "var(--surface-2)",
-        line: "var(--line)",
-        "line-strong": "var(--line-strong)",
-        ink: "var(--ink)",
-        "ink-mute": "var(--ink-mute)",
-        "ink-faint": "var(--ink-faint)",
-
-        // The money accent. One hue, used sparingly — prices and live state.
-        cash: {
-          DEFAULT: "#12c463",
-          bright: "#2ee27e",
-          deep: "#0a7d42",
-        },
-        gold: "#c9973f",
+        void: "var(--void)",
+        panel: "var(--panel)",
+        "panel-2": "var(--panel-2)",
+        edge: "var(--edge)",
+        "edge-hot": "var(--edge-hot)",
+        acid: "var(--acid)",
+        "acid-dim": "var(--acid-dim)",
+        hot: "var(--hot)",
+        ice: "var(--ice)",
+        bone: "var(--bone)",
+        ash: "var(--ash)",
+        dust: "var(--dust)",
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
-        sans: ["var(--font-sans)", "-apple-system", "sans-serif"],
+        display: ["var(--font-display)", "Impact", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       letterSpacing: {
-        tightest: "-0.045em",
+        crush: "-0.03em",
       },
       keyframes: {
-        pulseglow: {
+        blink: {
           "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.45" },
-        },
-        rise: {
-          "0%": { opacity: "0", transform: "translateY(8px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
+          "50%": { opacity: "0.2" },
         },
       },
       animation: {
-        pulseglow: "pulseglow 1.6s ease-in-out infinite",
-        rise: "rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both",
+        blink: "blink 1.1s steps(2, end) infinite",
       },
     },
   },

@@ -2,75 +2,173 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Surface tokens ────────────────────────────────────────────────
-   One set of semantic colors, redefined once for dark. Components
-   reference these instead of hand-picking neutrals at each call site. */
+/* ══ ARCADE HIGH-SCORE BOARD ═══════════════════════════════════════
+   This is a status auction: people pay to be #1 and get knocked off.
+   The interface should feel like a cabinet high-score screen — acid
+   lime on near-black, hard edges, glowing numerals — not a magazine. */
 :root {
-  --bg: #fbfaf8;
-  --surface: #ffffff;
-  --surface-2: #f4f2ee;
-  --line: rgba(23, 22, 20, 0.1);
-  --line-strong: rgba(23, 22, 20, 0.2);
-  --ink: #171614;
-  --ink-mute: #6c6862;
-  --ink-faint: #9a958d;
+  --void: #07070a;
+  --panel: #101015;
+  --panel-2: #16161d;
+  --edge: #24242e;
+  --edge-hot: #3a3a48;
+
+  --acid: #ccff00;
+  --acid-dim: #8fb300;
+  --hot: #ff2e88;
+  --ice: #00e5ff;
+
+  --bone: #f4f4ef;
+  --ash: #8b8b9a;
+  --dust: #5a5a68;
 }
 
-.dark {
-  --bg: #0c0c0d;
-  --surface: #141415;
-  --surface-2: #1c1c1e;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.18);
-  --ink: #f2f0ed;
-  --ink-mute: #9d9a94;
-  --ink-faint: #6a6762;
+/* Light mode is a deliberate inversion, not a second design: same
+   acid accent, paper ground. The board still reads as a board. */
+html:not(.dark) {
+  --void: #eeeee8;
+  --panel: #ffffff;
+  --panel-2: #f5f5ee;
+  --edge: #d6d6cc;
+  --edge-hot: #b8b8ac;
+  --acid: #6b8f00;
+  --acid-dim: #8fb300;
+  --hot: #d6006a;
+  --bone: #14141a;
+  --ash: #5f5f6c;
+  --dust: #8e8e9a;
 }
 
 body {
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--void);
+  color: var(--bone);
   @apply antialiased;
 }
 
+/* Atmosphere: two colored pools + fine scanlines + grain. Layered so
+   the black never reads as flat #000 nothing. */
+.dark body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(900px 500px at 8% -10%, rgba(204, 255, 0, 0.07), transparent 65%),
+    radial-gradient(700px 450px at 100% 0%, rgba(255, 46, 136, 0.05), transparent 60%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.16;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.16) 0px,
+    rgba(0, 0, 0, 0.16) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+.dark body::after {
+  opacity: 0.4;
+}
+
+/* Everything real sits above the atmosphere layers. */
+main,
+header {
+  position: relative;
+  z-index: 2;
+}
+
 ::selection {
-  background: #12c463;
-  color: #04120a;
+  background: var(--acid);
+  color: #07070a;
 }
 
-/* Flat, honest surfaces — a hairline and a fill, no blur, no gradient. */
-.surface {
-  background: var(--surface);
-  border: 1px solid var(--line);
+/* ── Panels ────────────────────────────────────────────────────────
+   Hard 1px edges, no radius softness, no blur. An offset shadow block
+   gives the cabinet-panel depth without a drop shadow. */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--edge);
 }
 
-.hairline {
-  border-color: var(--line);
+.panel-lift {
+  box-shadow: 4px 4px 0 0 var(--edge);
 }
 
-/* Numerals that line up in columns: prices, countdowns, click counts. */
+.panel-lift-acid {
+  box-shadow: 4px 4px 0 0 var(--acid);
+}
+
+/* Numerals: mono, tabular, slightly glowing when they're money. */
 .num {
   @apply font-mono tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
+  font-feature-settings: "tnum" 1;
 }
 
-/* Ruled section label — small caps mono over a full-bleed hairline. */
+.glow {
+  text-shadow: 0 0 18px currentColor;
+}
+
+/* Giant ghost rank numeral that bleeds behind a row. */
+.ghost-rank {
+  font-family: var(--font-display), Impact, sans-serif;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--edge-hot);
+  line-height: 0.8;
+  user-select: none;
+}
+
+/* Section label: acid tick + caps + rule. */
 .rule-label {
-  @apply flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em];
-  color: var(--ink-faint);
+  @apply flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.22em];
+  color: var(--ash);
+}
+.rule-label::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: var(--acid);
+  flex: none;
 }
 .rule-label::after {
   content: "";
   height: 1px;
   flex: 1;
-  background: var(--line);
+  background: var(--edge);
 }
 
-.scrollbar-thin::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
+/* Marquee ticker of recent board activity. */
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: slide 38s linear infinite;
 }
+@keyframes slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee { animation: none; }
+}
+
+/* Staggered load-in — one orchestrated reveal beats scattered fidgets. */
+@keyframes deal {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.deal {
+  animation: deal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 999px;
+  background: var(--edge-hot);
 }

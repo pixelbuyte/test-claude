@@ -1,19 +1,26 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Anton, Chakra_Petch, DM_Mono } from "next/font/google";
 import "./globals.css";
 
-// Editorial serif for display, grotesk for UI, mono for every numeral.
-// The mono/serif pairing is what keeps this from reading as a default
-// Tailwind template.
-const serif = Instrument_Serif({
+// Arcade cabinet, not magazine. Anton for the huge condensed impact type
+// and the ghost rank numerals; Chakra Petch (angular, techy) for UI so
+// nothing reads as default-Inter; DM Mono for every price and countdown.
+const display = Anton({
   weight: "400",
-  style: ["normal", "italic"],
   subsets: ["latin"],
   variable: "--font-display",
 });
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const sans = Chakra_Petch({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+const mono = DM_Mono({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://playlocal.space"),
@@ -45,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`dark ${sans.variable} ${serif.variable} ${mono.variable}`}
+      className={`dark ${sans.variable} ${display.variable} ${mono.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />

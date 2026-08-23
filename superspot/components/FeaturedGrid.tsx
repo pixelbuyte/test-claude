@@ -34,28 +34,25 @@ export default function FeaturedGrid({
   onClick: (listingId: string) => void;
 }) {
   const [modalSpot, setModalSpot] = useState<FeaturedEntry | null>(null);
-
   const [hero, ...rest] = entries;
 
   return (
     <>
-      {/* Spot #1 gets its own full-width stage; the remaining four sit in a
-          quieter row beneath it. The hierarchy is the product — the top spot
-          should visibly be worth more than the others. */}
-      <div className="grid gap-3 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         {hero && (
-          <HeroCard
+          <HeroSlot
             entry={hero}
             onOpen={() => setModalSpot(hero)}
             onRefresh={onRefresh}
             onClick={onClick}
           />
         )}
-        <div className="grid gap-3 sm:grid-cols-2 lg:col-span-1 lg:grid-cols-1">
-          {rest.slice(0, 2).map((entry) => (
-            <SmallCard
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          {rest.slice(0, 2).map((entry, i) => (
+            <Slot
               key={entry.spot}
               entry={entry}
+              delay={(i + 1) * 70}
               onOpen={() => setModalSpot(entry)}
               onRefresh={onRefresh}
               onClick={onClick}
@@ -64,11 +61,12 @@ export default function FeaturedGrid({
         </div>
       </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {rest.slice(2).map((entry) => (
-          <SmallCard
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {rest.slice(2).map((entry, i) => (
+          <Slot
             key={entry.spot}
             entry={entry}
+            delay={(i + 3) * 70}
             onOpen={() => setModalSpot(entry)}
             onRefresh={onRefresh}
             onClick={onClick}
@@ -90,77 +88,65 @@ export default function FeaturedGrid({
   );
 }
 
-function SpotTag({ spot, gold }: { spot: number; gold?: boolean }) {
-  return (
-    <span
-      className={`num text-[11px] font-medium tracking-[0.14em] ${
-        gold ? "text-gold" : "text-ink-faint"
-      }`}
-    >
-      SPOT {String(spot).padStart(2, "0")}
-    </span>
-  );
-}
-
-function Status({
-  entry,
-  onRefresh,
-}: {
-  entry: FeaturedEntry;
-  onRefresh: () => void;
-}) {
+function Status({ entry, onRefresh }: { entry: FeaturedEntry; onRefresh: () => void }) {
   if (!entry.claim) {
     return (
-      <span className="num flex items-center gap-1.5 text-[11px] text-cash">
-        <span className="h-1.5 w-1.5 rounded-full bg-cash" />
-        OPEN
+      <span className="num flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-acid">
+        <span className="h-2 w-2 animate-blink bg-acid" />
+        Open
       </span>
     );
   }
   return (
-    <CountdownTimer
-      expiresAt={entry.claim.expiresAt}
-      onExpire={onRefresh}
-      className="text-[11px] text-ink-mute"
-    />
+    <span className="num flex items-center gap-1.5 text-[11px] text-ash">
+      <span className="text-dust">ENDS</span>
+      <CountdownTimer expiresAt={entry.claim.expiresAt} onExpire={onRefresh} />
+    </span>
   );
 }
 
-function PriceButton({
+/** The whole price row is the button — big money, hard edge, no rounding. */
+function Bid({
   entry,
   onOpen,
-  large,
+  big,
 }: {
   entry: FeaturedEntry;
   onOpen: () => void;
-  large?: boolean;
+  big?: boolean;
 }) {
-  const occupied = !!entry.claim;
-  const price = occupied ? entry.stealPriceCents ?? entry.openPriceCents : entry.openPriceCents;
+  const taken = !!entry.claim;
+  const price = taken ? entry.stealPriceCents ?? entry.openPriceCents : entry.openPriceCents;
 
   return (
     <button
       onClick={onOpen}
-      className={`group/btn flex items-baseline gap-2 border-t border-line pt-3 text-left transition-colors hover:border-line-strong ${
-        large ? "w-full" : "w-full"
+      className={`group/b flex w-full items-center gap-3 border-t px-1 pt-3 text-left transition-colors ${
+        taken ? "border-edge hover:border-hot" : "border-edge hover:border-acid"
       }`}
     >
-      <span className="num text-[11px] uppercase tracking-[0.14em] text-ink-faint transition-colors group-hover/btn:text-ink">
-        {occupied ? "Steal" : "Claim"}
+      <span
+        className={`num text-[11px] uppercase tracking-[0.18em] ${
+          taken ? "text-hot" : "text-acid"
+        }`}
+      >
+        {taken ? "Steal it" : "Claim it"}
       </span>
       <span
-        className={`num font-semibold text-cash ${large ? "text-2xl" : "text-lg"}`}
+        className={`font-display leading-none tracking-crush ${
+          big ? "text-4xl" : "text-2xl"
+        } ${taken ? "text-hot" : "text-acid"} group-hover/b:glow`}
       >
         {money(price)}
       </span>
-      <span className="ml-auto text-ink-faint transition-transform group-hover/btn:translate-x-0.5">
+      <span className="num ml-auto text-lg text-dust transition-transform group-hover/b:translate-x-1">
         →
       </span>
     </button>
   );
 }
 
-function HeroCard({
+function HeroSlot({
   entry,
   onOpen,
   onRefresh,
@@ -174,13 +160,17 @@ function HeroCard({
   const l = entry.listing;
 
   return (
-    <div className="surface relative flex flex-col justify-between rounded-lg p-5 sm:p-6 lg:col-span-2">
-      {/* A single gold hairline along the top edge is the only ornament the
-          top spot gets — enough to rank it, not enough to shout. */}
-      <span className="absolute inset-x-0 top-0 h-px bg-gold/50" />
+    <div className="deal panel panel-lift-acid relative flex flex-col justify-between overflow-hidden p-5 sm:p-6 lg:col-span-2">
+      {/* The rank numeral is architecture, not decoration — it's the
+          biggest thing on the panel and it bleeds off the corner. */}
+      <span className="ghost-rank pointer-events-none absolute -right-4 top-1/2 -translate-y-1/2 text-[11rem] sm:text-[15rem]">
+        01
+      </span>
 
-      <div className="flex items-center justify-between">
-        <SpotTag spot={entry.spot} gold />
+      <div className="relative flex items-center justify-between">
+        <span className="num bg-acid px-2 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[#07070a]">
+          Top spot
+        </span>
         <Status entry={entry} onRefresh={onRefresh} />
       </div>
 
@@ -190,58 +180,69 @@ function HeroCard({
           target="_blank"
           rel="noopener noreferrer sponsored"
           onClick={() => onClick(l.id)}
-          className="group my-6 block"
+          className="group relative my-8 flex items-start gap-4"
         >
-          <div className="flex items-start gap-4">
-            <SiteIcon src={l.favicon} title={l.title} className="mt-1 h-12 w-12 text-xl" />
-            <div className="min-w-0">
-              <h3 className="font-display text-3xl leading-[1.1] tracking-tight transition-colors group-hover:text-cash sm:text-4xl">
-                {l.title}
-              </h3>
-              <p className="mt-2 line-clamp-2 text-sm text-ink-mute">
-                {l.description || l.url.replace(/^https?:\/\//, "")}
-              </p>
-            </div>
+          <SiteIcon src={l.favicon} title={l.title} className="mt-1 h-14 w-14 text-2xl" />
+          <div className="min-w-0">
+            <h3 className="font-display text-4xl uppercase leading-[0.9] tracking-crush transition-colors group-hover:text-acid sm:text-6xl">
+              {l.title}
+            </h3>
+            <p className="mt-3 line-clamp-2 max-w-md text-sm text-ash">
+              {l.description || l.url.replace(/^https?:\/\//, "")}
+            </p>
           </div>
         </a>
       ) : (
-        <div className="my-6">
-          <h3 className="font-display text-3xl italic leading-[1.1] text-ink-faint sm:text-4xl">
-            This space is unclaimed
+        <div className="relative my-8">
+          <h3 className="font-display text-4xl uppercase leading-[0.9] tracking-crush text-dust sm:text-6xl">
+            Nobody
+            <br />
+            owns this
           </h3>
-          <p className="mt-2 text-sm text-ink-mute">
-            The most valuable slot on the page. Nobody has taken it yet.
+          <p className="mt-3 max-w-sm text-sm text-ash">
+            The most expensive pixels on the page, sitting empty.
           </p>
         </div>
       )}
 
-      <div>
-        <p className="num mb-3 text-[11px] text-ink-faint">
-          {l ? `${l.clicks.toLocaleString()} CLICKS` : "NO CLICKS YET"}
+      <div className="relative">
+        <p className="num mb-3 text-[11px] uppercase tracking-[0.18em] text-dust">
+          {l ? `${l.clicks.toLocaleString()} clicks sent` : "Awaiting first owner"}
         </p>
-        <PriceButton entry={entry} onOpen={onOpen} large />
+        <Bid entry={entry} onOpen={onOpen} big />
       </div>
     </div>
   );
 }
 
-function SmallCard({
+function Slot({
   entry,
   onOpen,
   onRefresh,
   onClick,
+  delay,
 }: {
   entry: FeaturedEntry;
   onOpen: () => void;
   onRefresh: () => void;
   onClick: (id: string) => void;
+  delay: number;
 }) {
   const l = entry.listing;
 
   return (
-    <div className="surface flex flex-col justify-between rounded-lg p-4">
-      <div className="flex items-center justify-between">
-        <SpotTag spot={entry.spot} />
+    <div
+      className="deal panel panel-lift relative flex flex-col justify-between overflow-hidden p-4"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <span className="ghost-rank pointer-events-none absolute -right-3 top-1/2 -translate-y-1/2 text-[6.5rem]">
+        {String(entry.spot).padStart(2, "0")}
+      </span>
+
+      <div className="relative flex items-center justify-between">
+        <span className="num text-[11px] uppercase tracking-[0.18em] text-dust">
+          Spot {String(entry.spot).padStart(2, "0")}
+        </span>
         <Status entry={entry} onRefresh={onRefresh} />
       </div>
 
@@ -251,26 +252,30 @@ function SmallCard({
           target="_blank"
           rel="noopener noreferrer sponsored"
           onClick={() => onClick(l.id)}
-          className="group my-4 flex items-center gap-3"
+          className="group relative my-5 flex items-center gap-3"
         >
-          <SiteIcon src={l.favicon} title={l.title} />
+          <SiteIcon src={l.favicon} title={l.title} className="h-9 w-9" />
           <div className="min-w-0">
-            <p className="truncate font-medium transition-colors group-hover:text-cash">
+            <p className="truncate font-display text-xl uppercase leading-none tracking-crush transition-colors group-hover:text-acid">
               {l.title}
             </p>
-            <p className="num truncate text-[11px] text-ink-faint">
+            <p className="num truncate text-[11px] text-dust">
               {l.clicks.toLocaleString()} clicks
             </p>
           </div>
         </a>
       ) : (
-        <div className="my-4 flex items-center gap-3">
-          <div className="h-8 w-8 shrink-0 rounded border border-dashed border-line-strong" />
-          <p className="font-display text-lg italic text-ink-faint">Unclaimed</p>
+        <div className="relative my-5 flex items-center gap-3">
+          <div className="h-9 w-9 shrink-0 border border-dashed border-edge-hot" />
+          <p className="font-display text-xl uppercase leading-none tracking-crush text-dust">
+            Empty
+          </p>
         </div>
       )}
 
-      <PriceButton entry={entry} onOpen={onOpen} />
+      <div className="relative">
+        <Bid entry={entry} onOpen={onOpen} />
+      </div>
     </div>
   );
 }

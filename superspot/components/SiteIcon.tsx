@@ -21,7 +21,7 @@ export default function SiteIcon({
     return (
       <span
         aria-hidden
-        className={`${className} grid shrink-0 place-items-center rounded border border-line bg-surface-2 font-display text-ink-mute`}
+        className={`${className} grid shrink-0 place-items-center border border-edge bg-panel-2 font-display uppercase text-dust`}
       >
         {letter}
       </span>
@@ -34,7 +34,7 @@ export default function SiteIcon({
       alt=""
       loading="lazy"
       onError={() => setFailed(true)}
-      className={`${className} shrink-0 rounded bg-surface-2 object-contain`}
+      className={`${className} shrink-0 bg-panel-2 object-contain`}
     />
   );
 }
