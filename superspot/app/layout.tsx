@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://playlocal.space"),
   title: "SuperSpot — Pay to be seen",
   description:
     "Claim a timed top spot on the internet's most honest leaderboard. Pay-to-feature spotlight inspired by Super Chat + Outbid, but your reign has a clock.",
