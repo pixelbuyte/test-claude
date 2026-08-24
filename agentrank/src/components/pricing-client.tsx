@@ -9,11 +9,15 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
+  ExtraVisibilityPreview,
+  type PreviewSample,
+} from "@/components/listing-preview";
+import {
   CATALOG,
-  FEATURED_OPEN_ITEM,
+  FEATURED_OPEN_ITEMS,
   formatUsd,
   HIGHLIGHT_ITEMS,
   PERMANENT_ITEMS,
@@ -23,7 +27,12 @@ import {
   type CatalogItem,
   type Tier,
 } from "@/lib/pricing";
-import { cn } from "@/lib/utils";
+import {
+  cn,
+  deriveNameFromUrl,
+  faviconUrl,
+  normalizeUrl,
+} from "@/lib/utils";
 
 /* ────────────────────────── Purchase dialog ────────────────────────── */
 
@@ -70,6 +79,20 @@ function PurchaseDialog({
   };
 
   const canSubmit = url.trim().length > 3;
+
+  // For the extras, preview the buyer's own listing as soon as they type a
+  // URL — their real favicon, their real name, no upload or form-filling.
+  const isExtra = item.kind === "highlight" || item.kind === "featured_open";
+  const previewSample: PreviewSample | undefined = useMemo(() => {
+    if (!isExtra) return undefined;
+    const normalized = normalizeUrl(url);
+    if (!normalized) return undefined;
+    return {
+      name: deriveNameFromUrl(normalized),
+      description: "Your description is pulled from your site automatically.",
+      logoUrl: faviconUrl(normalized),
+    };
+  }, [isExtra, url]);
 
   return (
     <div
@@ -123,10 +146,18 @@ function PurchaseDialog({
           <p className="mt-2 text-xs text-faint">
             That&rsquo;s it — nothing else to fill in. Already listed? This
             upgrades that listing in place, no duplicate. New? We list it
-            automatically, pulling the name, description, and logo straight
+            automatically, pulling the name, description, and favicon straight
             from the site.
           </p>
         </div>
+
+        {isExtra && (
+          <ExtraVisibilityPreview
+            kind={item.kind === "highlight" ? "highlight" : "featured"}
+            sample={previewSample}
+            className="mt-4"
+          />
+        )}
 
         {error && <p className="mt-3 text-sm text-danger">{error}</p>}
 
@@ -298,7 +329,8 @@ export function PricingSections({
           title="Highlight / Pin"
           note="Extra visual emphasis wherever your listing already sits on the board. This never changes your rank — presentation only."
         />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <ExtraVisibilityPreview kind="highlight" className="mb-5" />
+        <div className="grid gap-4 sm:grid-cols-3">
           {HIGHLIGHT_ITEMS.map((item) => (
             <ExtraCard key={item.sku} item={item} onBuy={() => setBuying(item.sku)} />
           ))}
@@ -311,8 +343,11 @@ export function PricingSections({
           title="Featured in Open Section"
           note="For free listings only — a small paid visibility boost inside the open section below the paid tiers. It does not move you into Top 10/20/50."
         />
-        <div className="grid gap-4 sm:max-w-xs">
-          <ExtraCard item={FEATURED_OPEN_ITEM} onBuy={() => setBuying(FEATURED_OPEN_ITEM.sku)} />
+        <ExtraVisibilityPreview kind="featured" className="mb-5" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:max-w-2xl">
+          {FEATURED_OPEN_ITEMS.map((item) => (
+            <ExtraCard key={item.sku} item={item} onBuy={() => setBuying(item.sku)} />
+          ))}
         </div>
       </section>
     </div>
@@ -320,9 +355,12 @@ export function PricingSections({
 }
 
 function ExtraCard({ item, onBuy }: { item: CatalogItem; onBuy: () => void }) {
+  // The section heading already names the option, so the card leads with the
+  // duration — the only thing that differs between these cards.
+  const duration = item.label.split("·")[1]?.trim() ?? item.label;
   return (
     <div className="rounded-2xl border border-border bg-surface p-5">
-      <h3 className="text-sm font-semibold">{item.label}</h3>
+      <h3 className="text-sm font-semibold">{duration}</h3>
       <p className="mt-2 font-display text-2xl font-semibold">
         {formatUsd(item.amountCents)}
       </p>

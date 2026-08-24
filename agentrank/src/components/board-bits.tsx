@@ -94,6 +94,13 @@ export function ShareOnX({ name, rank }: { name: string; rank: number }) {
   );
 }
 
+/**
+ * The listing's favicon, with the name's initials painted underneath as a
+ * permanent backstop. The image only fades in once it has actually decoded,
+ * so a slow, blocked, or transparent favicon degrades to initials instead of
+ * an empty square — `onError` alone isn't enough, since a request that hangs
+ * never fires it.
+ */
 export function LogoBubble({
   name,
   logoUrl,
@@ -102,20 +109,26 @@ export function LogoBubble({
   logoUrl: string | null;
 }) {
   const [broken, setBroken] = useState(false);
-  if (logoUrl && !broken) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- arbitrary external hosts
-      <img
-        src={logoUrl}
-        alt=""
-        onError={() => setBroken(true)}
-        className="h-10 w-10 shrink-0 rounded-xl border border-border object-cover"
-      />
-    );
-  }
+  const [loaded, setLoaded] = useState(false);
   return (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-raised font-display text-sm font-semibold text-muted">
+    <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-raised font-display text-sm font-semibold text-muted">
       {name.slice(0, 2).toUpperCase()}
+      {logoUrl && !broken && (
+        // eslint-disable-next-line @next/next/no-img-element -- arbitrary external hosts
+        <img
+          src={logoUrl}
+          alt=""
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          onError={() => setBroken(true)}
+          // object-contain + padding: favicons are small squares, and
+          // cropping or stretching them looks worse than letting them sit.
+          className={cn(
+            "absolute inset-0 h-full w-full bg-raised object-contain p-1.5 transition-opacity duration-200",
+            loaded ? "opacity-100" : "opacity-0",
+          )}
+        />
+      )}
     </span>
   );
 }

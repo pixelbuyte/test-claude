@@ -43,6 +43,21 @@ export function deriveNameFromUrl(url: string): string {
 }
 
 /**
+ * Favicon URL for any site, derived purely from its address — no scraping,
+ * no upload, works client-side the moment someone types a URL. Google's
+ * service always returns an image (a generic globe when a site has no icon),
+ * so a listing is never left without a logo.
+ */
+export function faviconUrl(url: string, size = 128): string | null {
+  try {
+    const host = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=${size}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Normalizes a URL down to a dedup key (host without "www.", path without a
  * trailing slash, query/hash dropped, lowercased) so buying a placement for
  * a URL that's already listed finds and upgrades it instead of creating a

@@ -18,9 +18,14 @@ decided by who paid more.
    duration. Within a tier, order is **first come, first served**. Placements
    expire automatically.
 3. **Open section** — free listings for anyone, ranked by real outbound
-   clicks. Optional $25 "Featured" badge (24 h).
-4. **Highlight / Pin** ($79 / 24 h, $299 / 7 d) adds visual emphasis only —
-   it never changes rank.
+   clicks. Optional "Featured" badge ($49 / 24 h, $149 / 7 d).
+4. **Highlight / Pin** ($149 / 24 h, $349 / 3 d, $599 / 7 d) adds visual
+   emphasis only — it never changes rank.
+
+Both extras carry a live preview on the pricing page and inside the buy
+dialog (`src/components/listing-preview.tsx`) that renders a real board row
+in its normal, highlighted, and featured states, so buyers can see exactly
+what the money buys before paying.
 
 All of this is enforced in code: pricing in [`src/lib/pricing.ts`](src/lib/pricing.ts),
 ordering in [`src/lib/ranking.ts`](src/lib/ranking.ts).

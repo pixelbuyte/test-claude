@@ -6,7 +6,7 @@
  */
 
 import type { CategorySlug } from "@/lib/types";
-import { deriveNameFromUrl } from "@/lib/utils";
+import { deriveNameFromUrl, faviconUrl } from "@/lib/utils";
 
 export interface SiteMetadata {
   name: string;
@@ -63,7 +63,9 @@ export async function fetchSiteMetadata(url: string): Promise<SiteMetadata> {
   const fallback: SiteMetadata = {
     name: deriveNameFromUrl(url),
     description: "",
-    logoUrl: null,
+    // Even when the page can't be fetched, the favicon service still gives
+    // the listing a real logo — never a blank square.
+    logoUrl: faviconUrl(url),
   };
 
   const controller = new AbortController();
@@ -106,22 +108,24 @@ export async function fetchSiteMetadata(url: string): Promise<SiteMetadata> {
       META_CONTENT("description", "name"),
       META_CONTENT_REVERSED("description", "name"),
     ]);
-    const ogImage = firstMatch(html, [
-      META_CONTENT("og:image", "property"),
-      META_CONTENT_REVERSED("og:image", "property"),
-    ]);
-    const iconHref = firstMatch(html, [
-      /<link[^>]+rel=["'](?:shortcut icon|icon|apple-touch-icon)["'][^>]+href=["']([^"']+)["']/i,
-      /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut icon|icon|apple-touch-icon)["']/i,
-    ]);
+    // A site's own icon is used when we can find one (apple-touch-icon first
+    // — it's the highest-resolution square a site publishes). og:image is
+    // deliberately NOT used: it's a wide social banner and looks wrong
+    // cropped into the board's small square logo slot.
+    const iconHref =
+      firstMatch(html, [
+        /<link[^>]+rel=["']apple-touch-icon(?:-precomposed)?["'][^>]+href=["']([^"']+)["']/i,
+        /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon(?:-precomposed)?["']/i,
+      ]) ??
+      firstMatch(html, [
+        /<link[^>]+rel=["'](?:shortcut icon|icon)["'][^>]+href=["']([^"']+)["']/i,
+        /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut icon|icon)["']/i,
+      ]);
 
     const name = (title ?? "").slice(0, 60).trim() || fallback.name;
     const trimmedDescription = (description ?? "").slice(0, 120);
-    const logoUrl = ogImage
-      ? resolveUrl(finalUrl, ogImage)
-      : iconHref
-        ? resolveUrl(finalUrl, iconHref)
-        : null;
+    const logoUrl =
+      (iconHref ? resolveUrl(finalUrl, iconHref) : null) ?? faviconUrl(finalUrl);
 
     return { name, description: trimmedDescription, logoUrl };
   } catch {

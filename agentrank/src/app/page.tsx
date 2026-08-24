@@ -127,9 +127,9 @@ export default async function HomePage() {
               3 · Open section
             </h3>
             <p className="mt-2 text-sm text-muted">
-              Anyone can list any site, tool, or profile for free, forever.
-              Free listings rank by real outbound clicks. An optional $25
-              “Featured” badge adds 24 hours of extra visibility.
+              Anyone can list any site, tool, or profile for free, forever —
+              just paste the link. Free listings rank by real outbound clicks,
+              and an optional “Featured” badge adds extra visibility.
             </p>
           </div>
         </div>
