@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { PricingSections } from "@/components/pricing-client";
-import { getActiveListings } from "@/lib/db";
+import { getActiveListings, getPermanentRankOwners } from "@/lib/db";
 import type { Tier } from "@/lib/pricing";
 import { countActiveBoosts } from "@/lib/ranking";
 
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
 };
 
 export default async function PricingPage() {
-  const listings = await getActiveListings().catch(() => []);
+  const [listings, permanentOwners] = await Promise.all([
+    getActiveListings().catch(() => []),
+    getPermanentRankOwners().catch(() => ({})),
+  ]);
   const now = new Date();
-  const takenRanks = listings
-    .map((l) => l.permanentRank)
-    .filter((r): r is number => r !== null);
   const tierCounts: Record<Tier, number> = {
     top10: countActiveBoosts(listings, "top10", now),
     top20: countActiveBoosts(listings, "top20", now),
@@ -37,7 +37,7 @@ export default async function PricingPage() {
           design.
         </p>
       </div>
-      <PricingSections takenRanks={takenRanks} tierCounts={tierCounts} />
+      <PricingSections permanentOwners={permanentOwners} tierCounts={tierCounts} />
     </div>
   );
 }

@@ -35,6 +35,9 @@ export type BoardEntry =
       /** The unsold permanent rank this placeholder represents (1–5). */
       permanentRank: number;
       priceCents: number;
+      /** False when the rank is held by a non-active (pending/rejected)
+       * listing — still unavailable, but with nobody to publicly credit. */
+      available: boolean;
     };
 
 export type Placement =
@@ -63,8 +66,17 @@ export function isFeaturedOpen(listing: Listing, now: Date): boolean {
 /**
  * Orders active listings into the public board. Pure and deterministic:
  * (listings, now) → entries with global rank numbers.
+ *
+ * `permanentRankHeldBy` covers ranks held by a non-active (pending/rejected)
+ * listing — those don't appear in `listings` (which is active-only) but are
+ * still unavailable in the database, so the placeholder must say
+ * "unavailable" rather than falsely inviting a purchase that would 409.
  */
-export function rankBoard(listings: Listing[], now: Date): BoardEntry[] {
+export function rankBoard(
+  listings: Listing[],
+  now: Date,
+  permanentRankHeldBy: Partial<Record<number, unknown>> = {},
+): BoardEntry[] {
   const active = listings.filter((l) => l.status === "active");
   const entries: BoardEntry[] = [];
   const placed = new Set<string>();
@@ -88,6 +100,7 @@ export function rankBoard(listings: Listing[], now: Date): BoardEntry[] {
         rank: rank++,
         permanentRank: item.rank!,
         priceCents: item.amountCents,
+        available: permanentRankHeldBy[item.rank!] === undefined,
       });
     }
   }

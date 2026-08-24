@@ -55,6 +55,23 @@ create unique index if not exists listings_permanent_rank_key
   where permanent_rank is not null;
 
 create index if not exists listings_status_idx on listings (status);
+
+-- Dedup key for "is this URL already listed": host without www, path
+-- without a trailing slash, query/hash dropped, lowercased. Mirrors
+-- urlMatchKey() in src/lib/utils.ts — keep the two in sync. Added via
+-- ALTER (not inline in CREATE TABLE) so it also lands on a database that
+-- was already provisioned before this column existed — `create table if
+-- not exists` is a no-op on an existing table and would otherwise skip it.
+alter table listings add column if not exists url_key text generated always as (
+  lower(
+    regexp_replace(
+      regexp_replace(regexp_replace(url, '[?#].*$', ''), '^https?://(www\.)?', ''),
+      '/+$', ''
+    )
+  )
+) stored;
+
+create index if not exists listings_url_key_idx on listings (url_key);
 create index if not exists listings_boost_idx
   on listings (boost_tier, boost_expires_at)
   where boost_tier is not null;

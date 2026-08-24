@@ -4,8 +4,10 @@ import { isAdmin } from "@/lib/admin-auth";
 import {
   clearPlacements,
   DemoModeError,
+  setListingCategory,
   setListingStatus,
 } from "@/lib/db";
+import { CATEGORIES } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -13,13 +15,13 @@ export async function POST(req: NextRequest) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Not authorized." }, { status: 401 });
   }
-  let body: { action?: string; id?: string };
+  let body: { action?: string; id?: string; category?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
-  const { action, id } = body;
+  const { action, id, category } = body;
   if (!id) {
     return NextResponse.json({ error: "Missing listing id." }, { status: 400 });
   }
@@ -37,6 +39,12 @@ export async function POST(req: NextRequest) {
         break;
       case "clear_placements":
         await clearPlacements(id);
+        break;
+      case "set_category":
+        if (!CATEGORIES.some((c) => c.slug === category)) {
+          return NextResponse.json({ error: "Unknown category." }, { status: 400 });
+        }
+        await setListingCategory(id, category!);
         break;
       default:
         return NextResponse.json({ error: "Unknown action." }, { status: 400 });

@@ -177,7 +177,12 @@ export function Board({
                   </Link>
                 )}
               {entry.type === "open_slot" ? (
-                <OpenSlotRow rank={entry.rank} priceCents={entry.priceCents} permanentRank={entry.permanentRank} />
+                <OpenSlotRow
+                  rank={entry.rank}
+                  priceCents={entry.priceCents}
+                  permanentRank={entry.permanentRank}
+                  available={entry.available}
+                />
               ) : (
                 <ListingRow entry={entry} index={i} />
               )}
@@ -193,16 +198,15 @@ function OpenSlotRow({
   rank,
   permanentRank,
   priceCents,
+  available,
 }: {
   rank: number;
   permanentRank: number;
   priceCents: number;
+  available: boolean;
 }) {
-  return (
-    <Link
-      href={`/pricing#permanent`}
-      className="group flex items-center gap-4 border-b border-border px-4 py-4 transition-colors last:border-b-0 hover:bg-raised sm:px-6"
-    >
+  const content = (
+    <>
       <span className="w-9 shrink-0 text-center font-display text-lg font-semibold text-faint tabular-nums">
         {rank}
       </span>
@@ -211,15 +215,36 @@ function OpenSlotRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium text-muted">
-          Rank #{permanentRank} is available
+          {available ? `Rank #${permanentRank} is available` : `Rank #${permanentRank} — unavailable`}
         </span>
         <span className="block text-xs text-faint">
-          Own this position permanently — fixed one-time price
+          {available
+            ? "Own this position permanently — fixed one-time price"
+            : "Held by a listing pending review — not purchasable right now"}
         </span>
       </span>
-      <span className="shrink-0 rounded-full border border-gold/40 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-gold">
-        Claim · {formatUsd(priceCents)}
-      </span>
+      {available && (
+        <span className="shrink-0 rounded-full border border-gold/40 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-gold">
+          Claim · {formatUsd(priceCents)}
+        </span>
+      )}
+    </>
+  );
+
+  if (!available) {
+    return (
+      <div className="flex items-center gap-4 border-b border-border px-4 py-4 opacity-60 last:border-b-0 sm:px-6">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/pricing#permanent`}
+      className="group flex items-center gap-4 border-b border-border px-4 py-4 transition-colors last:border-b-0 hover:bg-raised sm:px-6"
+    >
+      {content}
     </Link>
   );
 }

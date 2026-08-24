@@ -7,6 +7,7 @@ import {
   demoMode,
   getActiveListings,
   getLiveVisitorCount,
+  getPermanentRankOwners,
   getTotalRevenueCents,
 } from "@/lib/db";
 import {
@@ -22,8 +23,11 @@ import { rankBoard } from "@/lib/ranking";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const listings = await getActiveListings();
-  const entries = rankBoard(listings, new Date());
+  const [listings, permanentOwners] = await Promise.all([
+    getActiveListings(),
+    getPermanentRankOwners().catch(() => ({})),
+  ]);
+  const entries = rankBoard(listings, new Date(), permanentOwners);
   const liveVisitors = await getLiveVisitorCount().catch(() => 0);
   const showRevenue = process.env.NEXT_PUBLIC_SHOW_REVENUE === "true" || demoMode();
   const totalRevenueCents = showRevenue

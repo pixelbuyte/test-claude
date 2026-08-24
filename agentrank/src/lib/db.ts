@@ -9,6 +9,7 @@ import { getCatalogItem, TIER_CAPACITY, type Tier } from "@/lib/pricing";
 import { isDbConfigured, supabaseAdmin } from "@/lib/supabase";
 import { demoListings, demoVisitorCount, DEMO_REVENUE_CENTS } from "@/lib/demo-data";
 import type { Listing, Payment, SubmitListingInput } from "@/lib/types";
+import { urlMatchKey } from "@/lib/utils";
 
 export class DemoModeError extends Error {
   constructor() {
@@ -88,6 +89,71 @@ export async function getListing(id: string): Promise<Listing | null> {
     .maybeSingle();
   if (error) throw error;
   return data ? rowToListing(data) : null;
+}
+
+/**
+ * Finds any listing (regardless of status) whose URL matches, ignoring
+ * protocol/www/trailing-slash/query differences — this is what makes buying
+ * a placement for an already-listed URL upgrade it in place instead of
+ * creating a duplicate.
+ */
+export async function findListingByUrl(url: string): Promise<Listing | null> {
+  const key = urlMatchKey(url);
+  if (demoMode()) {
+    return demoListings().find((l) => urlMatchKey(l.url) === key) ?? null;
+  }
+  const { data, error } = await supabaseAdmin()
+    .from("listings")
+    .select("*")
+    .eq("url_key", key)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? rowToListing(data) : null;
+}
+
+export interface PermanentRankOwner {
+  id: string;
+  name: string;
+  status: Listing["status"];
+  clickCount: number;
+}
+
+/** Every row currently holding a permanent rank (1–5), any status — lets the
+ * pricing/board pages tell "available" apart from "held by an inactive
+ * listing", which the naive active-only check would render as available. */
+export async function getPermanentRankOwners(): Promise<
+  Record<number, PermanentRankOwner>
+> {
+  if (demoMode()) {
+    const out: Record<number, PermanentRankOwner> = {};
+    for (const l of demoListings()) {
+      if (l.permanentRank !== null) {
+        out[l.permanentRank] = {
+          id: l.id,
+          name: l.name,
+          status: l.status,
+          clickCount: l.clickCount,
+        };
+      }
+    }
+    return out;
+  }
+  const { data, error } = await supabaseAdmin()
+    .from("listings")
+    .select("id, name, status, click_count, permanent_rank")
+    .not("permanent_rank", "is", null);
+  if (error) throw error;
+  const out: Record<number, PermanentRankOwner> = {};
+  for (const row of data) {
+    out[row.permanent_rank as number] = {
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      clickCount: row.click_count ?? 0,
+    };
+  }
+  return out;
 }
 
 export async function getLiveVisitorCount(): Promise<number> {
@@ -375,6 +441,18 @@ export async function setListingStatus(
   const { error } = await supabaseAdmin()
     .from("listings")
     .update({ status })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function setListingCategory(
+  id: string,
+  category: string,
+): Promise<void> {
+  if (demoMode()) throw new DemoModeError();
+  const { error } = await supabaseAdmin()
+    .from("listings")
+    .update({ category })
     .eq("id", id);
   if (error) throw error;
 }

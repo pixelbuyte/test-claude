@@ -25,6 +25,41 @@ export function isEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) && value.length <= 254;
 }
 
+/** Turns a URL into a clean fallback display name, e.g.
+ * "https://www.acme-ai.com/product" -> "Acme Ai". Used when metadata
+ * scraping can't find a real title. */
+export function deriveNameFromUrl(url: string): string {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    const label = host.split(".")[0] || host;
+    const words = label
+      .split(/[-_]+/)
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1));
+    return words.length ? words.join(" ") : host;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Normalizes a URL down to a dedup key (host without "www.", path without a
+ * trailing slash, query/hash dropped, lowercased) so buying a placement for
+ * a URL that's already listed finds and upgrades it instead of creating a
+ * duplicate. Matches the `url_key` generated column in supabase/schema.sql —
+ * keep the two in sync. Not a security boundary, just fuzzy matching.
+ */
+export function urlMatchKey(url: string): string {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, "");
+    const path = u.pathname.replace(/\/+$/, "");
+    return `${host}${path}`.toLowerCase();
+  } catch {
+    return url.trim().toLowerCase();
+  }
+}
+
 export function timeLeft(expiresAtIso: string, now: Date): string {
   const ms = new Date(expiresAtIso).getTime() - now.getTime();
   if (ms <= 0) return "expired";

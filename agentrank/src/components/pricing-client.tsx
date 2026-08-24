@@ -1,10 +1,19 @@
 "use client";
 
-import { Check, Crown, Loader2, ShieldCheck, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  Crown,
+  Loader2,
+  MousePointerClick,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
   CATALOG,
+  FEATURED_OPEN_ITEM,
   formatUsd,
   HIGHLIGHT_ITEMS,
   PERMANENT_ITEMS,
@@ -14,14 +23,7 @@ import {
   type CatalogItem,
   type Tier,
 } from "@/lib/pricing";
-import { CATEGORIES } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-interface PickerListing {
-  id: string;
-  name: string;
-  url: string;
-}
 
 /* ────────────────────────── Purchase dialog ────────────────────────── */
 
@@ -33,29 +35,9 @@ function PurchaseDialog({
   onClose: () => void;
 }) {
   const item = CATALOG.find((i) => i.sku === sku)!;
-  const [mode, setMode] = useState<"existing" | "new">("existing");
-  const [listings, setListings] = useState<PickerListing[] | null>(null);
-  const [listingId, setListingId] = useState("");
-  const [form, setForm] = useState({
-    name: "",
-    url: "",
-    description: "",
-    category: "ai_agents",
-    ownerEmail: "",
-  });
+  const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/listings")
-      .then((r) => r.json())
-      .then((data: { listings?: PickerListing[] }) => {
-        const list = data.listings ?? [];
-        setListings(list);
-        if (list.length === 0) setMode("new");
-      })
-      .catch(() => setListings([]));
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -69,14 +51,10 @@ function PurchaseDialog({
     setBusy(true);
     setError(null);
     try {
-      const body =
-        mode === "existing"
-          ? { sku: item.sku, listingId }
-          : { sku: item.sku, newListing: form };
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ sku: item.sku, url }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) {
@@ -91,10 +69,7 @@ function PurchaseDialog({
     }
   };
 
-  const canSubmit =
-    mode === "existing"
-      ? listingId !== ""
-      : form.name.trim().length >= 2 && form.url.trim().length > 3;
+  const canSubmit = url.trim().length > 3;
 
   return (
     <div
@@ -110,7 +85,7 @@ function PurchaseDialog({
           <div>
             <h3 className="font-display text-lg font-semibold">{item.label}</h3>
             <p className="mt-1 text-sm text-muted">
-              You are buying exactly this, at a fixed price of{" "}
+              Fixed price of{" "}
               <span className="font-semibold text-foreground">
                 {formatUsd(item.amountCents)}
               </span>
@@ -121,104 +96,37 @@ function PurchaseDialog({
             type="button"
             aria-label="Close"
             onClick={onClose}
-            autoFocus
             className="rounded-full border border-border p-1.5 text-muted hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="mt-5 flex gap-2 text-sm">
-          <button
-            type="button"
-            onClick={() => setMode("existing")}
-            disabled={listings?.length === 0}
-            className={cn(
-              "flex-1 rounded-lg border px-3 py-2 transition-colors disabled:opacity-40",
-              mode === "existing"
-                ? "border-transparent bg-accent text-accent-fg"
-                : "border-border text-muted hover:text-foreground",
-            )}
+        <div className="mt-5">
+          <label
+            htmlFor="pd-url"
+            className="text-xs font-medium tracking-wide text-faint uppercase"
           >
-            Existing listing
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("new")}
-            className={cn(
-              "flex-1 rounded-lg border px-3 py-2 transition-colors",
-              mode === "new"
-                ? "border-transparent bg-accent text-accent-fg"
-                : "border-border text-muted hover:text-foreground",
-            )}
-          >
-            New listing
-          </button>
+            Your site URL
+          </label>
+          <input
+            id="pd-url"
+            autoFocus
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && canSubmit && !busy) checkout();
+            }}
+            placeholder="acme.ai"
+            className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none placeholder:text-faint focus:border-border-strong"
+          />
+          <p className="mt-2 text-xs text-faint">
+            That&rsquo;s it — nothing else to fill in. Already listed? This
+            upgrades that listing in place, no duplicate. New? We list it
+            automatically, pulling the name, description, and logo straight
+            from the site.
+          </p>
         </div>
-
-        {mode === "existing" ? (
-          <div className="mt-4">
-            <label
-              htmlFor="pd-listing"
-              className="text-xs font-medium tracking-wide text-faint uppercase"
-            >
-              Apply the placement to
-            </label>
-            <select
-              id="pd-listing"
-              value={listingId}
-              onChange={(e) => setListingId(e.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-border-strong"
-            >
-              <option value="">
-                {listings === null ? "Loading listings…" : "Choose your listing…"}
-              </option>
-              {(listings ?? []).map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-            <p className="mt-2 text-xs text-faint">
-              Buying for a listing that is already on the board upgrades it in
-              place — no duplicates are ever created.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-4 space-y-3">
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Product name"
-              maxLength={60}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none placeholder:text-faint focus:border-border-strong"
-            />
-            <input
-              value={form.url}
-              onChange={(e) => setForm({ ...form, url: e.target.value })}
-              placeholder="Website or social link"
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none placeholder:text-faint focus:border-border-strong"
-            />
-            <input
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Short description (120 chars max)"
-              maxLength={120}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none placeholder:text-faint focus:border-border-strong"
-            />
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-border-strong"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c.slug} value={c.slug}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
         {error && <p className="mt-3 text-sm text-danger">{error}</p>}
 
@@ -246,11 +154,18 @@ function PurchaseDialog({
 
 /* ────────────────────────── Pricing sections ────────────────────────── */
 
+export interface PermanentOwnerInfo {
+  id: string;
+  name: string;
+  status: "pending" | "active" | "rejected";
+  clickCount: number;
+}
+
 export function PricingSections({
-  takenRanks,
+  permanentOwners,
   tierCounts,
 }: {
-  takenRanks: number[];
+  permanentOwners: Record<number, PermanentOwnerInfo>;
   tierCounts: Record<Tier, number>;
 }) {
   const [buying, setBuying] = useState<string | null>(null);
@@ -269,7 +184,9 @@ export function PricingSections({
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {PERMANENT_ITEMS.map((item) => {
-            const taken = takenRanks.includes(item.rank!);
+            const owner = permanentOwners[item.rank!];
+            const ownedActive = owner?.status === "active" ? owner : null;
+            const heldInactive = owner && owner.status !== "active";
             return (
               <div
                 key={item.sku}
@@ -289,19 +206,41 @@ export function PricingSections({
                 <span className="mt-1 text-xs text-faint">
                   one-time · permanent
                 </span>
-                <button
-                  type="button"
-                  disabled={taken}
-                  onClick={() => setBuying(item.sku)}
-                  className={cn(
-                    "mt-5 rounded-full px-4 py-2 text-sm font-medium transition-opacity",
-                    taken
-                      ? "cursor-not-allowed border border-border text-faint"
-                      : "bg-accent text-accent-fg hover:opacity-90",
-                  )}
-                >
-                  {taken ? "Owned" : "Claim this rank"}
-                </button>
+
+                {ownedActive ? (
+                  <>
+                    <a
+                      href={`/go/${ownedActive.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-5 flex items-center gap-1.5 rounded-full border border-border px-3 py-2 text-sm font-medium transition-colors hover:border-border-strong hover:bg-raised"
+                      title={`Visit ${ownedActive.name}`}
+                    >
+                      <span className="min-w-0 flex-1 truncate">
+                        {ownedActive.name}
+                      </span>
+                      <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-faint" />
+                    </a>
+                    <p className="mt-2 flex items-center gap-1 text-xs text-faint">
+                      <MousePointerClick className="h-3.5 w-3.5" />
+                      {ownedActive.clickCount.toLocaleString("en-US")} clicks
+                    </p>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={Boolean(heldInactive)}
+                    onClick={() => setBuying(item.sku)}
+                    className={cn(
+                      "mt-5 rounded-full px-4 py-2 text-sm font-medium transition-opacity",
+                      heldInactive
+                        ? "cursor-not-allowed border border-border text-faint"
+                        : "bg-accent text-accent-fg hover:opacity-90",
+                    )}
+                  >
+                    {heldInactive ? "Unavailable" : "Claim this rank"}
+                  </button>
+                )}
               </div>
             );
           })}
@@ -353,35 +292,47 @@ export function PricingSections({
         </div>
       </section>
 
-      {/* Extras */}
-      <section id="extras" className="scroll-mt-24">
+      {/* Highlight / Pin — visual emphasis only, sold separately from tiers */}
+      <section id="highlight" className="scroll-mt-24">
         <SectionHeading
-          title="Extra visibility"
-          note="Visual emphasis only — a highlight never changes your rank."
+          title="Highlight / Pin"
+          note="Extra visual emphasis wherever your listing already sits on the board. This never changes your rank — presentation only."
         />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[...HIGHLIGHT_ITEMS, CATALOG.find((i) => i.kind === "featured_open")!].map(
-            (item) => (
-              <div
-                key={item.sku}
-                className="rounded-2xl border border-border bg-surface p-5"
-              >
-                <h3 className="text-sm font-semibold">{item.label}</h3>
-                <p className="mt-2 font-display text-2xl font-semibold">
-                  {formatUsd(item.amountCents)}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setBuying(item.sku)}
-                  className="mt-4 w-full rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-border-strong hover:bg-raised"
-                >
-                  Buy
-                </button>
-              </div>
-            ),
-          )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {HIGHLIGHT_ITEMS.map((item) => (
+            <ExtraCard key={item.sku} item={item} onBuy={() => setBuying(item.sku)} />
+          ))}
         </div>
       </section>
+
+      {/* Featured in Open Section — an add-on for free listings, not a tier */}
+      <section id="featured-open" className="scroll-mt-24">
+        <SectionHeading
+          title="Featured in Open Section"
+          note="For free listings only — a small paid visibility boost inside the open section below the paid tiers. It does not move you into Top 10/20/50."
+        />
+        <div className="grid gap-4 sm:max-w-xs">
+          <ExtraCard item={FEATURED_OPEN_ITEM} onBuy={() => setBuying(FEATURED_OPEN_ITEM.sku)} />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ExtraCard({ item, onBuy }: { item: CatalogItem; onBuy: () => void }) {
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-5">
+      <h3 className="text-sm font-semibold">{item.label}</h3>
+      <p className="mt-2 font-display text-2xl font-semibold">
+        {formatUsd(item.amountCents)}
+      </p>
+      <button
+        type="button"
+        onClick={onBuy}
+        className="mt-4 w-full rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-border-strong hover:bg-raised"
+      >
+        Buy
+      </button>
     </div>
   );
 }
