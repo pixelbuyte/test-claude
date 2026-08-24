@@ -28,7 +28,9 @@ export const metadata: Metadata = {
   description:
     "Claim a timed top spot on the internet's most honest leaderboard. Pay-to-feature spotlight inspired by Super Chat + Outbid, but your reign has a clock.",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
   },
   openGraph: {
     title: "SuperSpot — Pay to be seen",
@@ -58,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`dark ${sans.variable} ${display.variable} ${mono.variable}`}
     >
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body className="min-h-screen font-sans">
