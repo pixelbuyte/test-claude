@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin:0; font-family:'Inter Tight', system-ui, sans-serif; }
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+</style>
+</head>
+<body>
+<div style="width:1400px;height:1000px;background:radial-gradient(ellipse 1100px 800px at 50% 42%,#1b1e26 0%,#0e0f13 62%,#08090b 100%);position:relative;box-sizing:border-box;padding:44px;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.24em;color:#8fe8ff;text-transform:uppercase;">Component design</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:32px;margin-top:6px;color:#e7e9ee;">Cue Node — the kite module</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a3;margin-top:6px;">The physical part, not the suit — this is what actually sits in the palm, sole and waist mounts</div>
+  </div>
+
+  <!-- ============ HERO SHOT ============ -->
+  <svg viewBox="0 0 600 640" style="position:absolute;left:90px;top:170px;width:520px;height:555px;">
+    <defs>
+      <filter id="softGlow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="22"/></filter>
+      <filter id="crispGlow" x="-150%" y="-150%" width="400%" height="400%">
+        <feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <radialGradient id="housingGrad" cx="35%" cy="22%" r="75%">
+        <stop offset="0%" stop-color="#33373f"/>
+        <stop offset="55%" stop-color="#1c1e24"/>
+        <stop offset="100%" stop-color="#101114"/>
+      </radialGradient>
+      <radialGradient id="lensGrad" cx="42%" cy="18%" r="80%">
+        <stop offset="0%" stop-color="#e8fbff"/>
+        <stop offset="35%" stop-color="#bff2ff"/>
+        <stop offset="100%" stop-color="#4fb8d6"/>
+      </radialGradient>
+      <linearGradient id="rimHi" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+        <stop offset="40%" stop-color="#ffffff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+
+    <ellipse cx="300" cy="600" rx="150" ry="20" fill="#000" opacity="0.4"/>
+
+    <!-- ambient glow bloom behind the whole module -->
+    <polygon points="300,60 470,270 300,530 130,270" fill="#8fe8ff" opacity="0.35" filter="url(#softGlow)"/>
+
+    <!-- housing (outer kite shell, physical material) -->
+    <polygon points="300,50 480,275 300,545 120,275" fill="url(#housingGrad)" stroke="#000" stroke-width="4"/>
+    <polygon points="300,50 480,275 300,545 120,275" fill="none" stroke="url(#rimHi)" stroke-width="4"/>
+
+    <!-- seam line where lens meets housing -->
+    <polygon points="300,86 448,276 300,504 152,276" fill="none" stroke="#000" stroke-width="2" opacity="0.5"/>
+
+    <!-- lens / glow face -->
+    <g filter="url(#crispGlow)">
+      <polygon points="300,96 438,276 300,494 162,276" fill="url(#lensGrad)"/>
+    </g>
+
+    <!-- etched circuit lines on the lens -->
+    <g stroke="#0e2a33" stroke-width="2" opacity="0.55">
+      <path d="M300,276 L216,236" fill="none"/>
+      <path d="M300,276 L216,316" fill="none"/>
+      <path d="M300,276 L384,236" fill="none"/>
+      <path d="M300,276 L384,316" fill="none"/>
+      <path d="M300,276 L262,180" fill="none"/>
+      <path d="M300,276 L338,180" fill="none"/>
+      <path d="M300,276 L300,150" fill="none"/>
+    </g>
+    <circle cx="300" cy="276" r="10" fill="#e8fbff"/>
+    <circle cx="300" cy="276" r="26" fill="none" stroke="#e8fbff" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- housing screws / mount pins, bottom point (garment-facing side) -->
+    <circle cx="270" cy="500" r="6" fill="#0a0b0e" stroke="#3a3f4a" stroke-width="1.5"/>
+    <circle cx="330" cy="500" r="6" fill="#0a0b0e" stroke="#3a3f4a" stroke-width="1.5"/>
+
+    <!-- top highlight sheen -->
+    <ellipse cx="248" cy="150" rx="70" ry="110" fill="#ffffff" opacity="0.08"/>
+  </svg>
+
+  <!-- dimension callouts -->
+  <div style="position:absolute;left:110px;top:130px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6b7280;">~38mm tall · sealed silicone housing</div>
+
+  <!-- ============ EXPLODED STACK ============ -->
+  <div style="position:absolute;left:760px;top:160px;width:600px;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:#8fe8ff;text-transform:uppercase;margin-bottom:22px;">Layer stack, top to bottom</div>
+
+    <div style="display:flex;flex-direction:column;gap:34px;">
+
+      <div style="display:flex;align-items:center;gap:22px;">
+        <svg width="84" height="84" viewBox="-46 -50 92 100" style="flex:none;">
+          <polygon points="0,-46 66,-4 0,72 -66,-4" fill="#bff2ff" opacity="0.85" stroke="#000" stroke-width="2"/>
+          <circle r="4" fill="#0a0b0e"/>
+        </svg>
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:#e7e9ee;">Diffuser lens</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a3;line-height:1.5;margin-top:4px;max-width:420px;">Translucent polymer cap. Spreads the LED into an even glow, not a point source.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:22px;">
+        <svg width="84" height="84" viewBox="-40 -44 80 88" style="flex:none;">
+          <polygon points="0,-40 58,-3 0,62 -58,-3" fill="#14151a" stroke="#000" stroke-width="2"/>
+          <circle cx="0" cy="-3" r="7" fill="#ffe8a3"/>
+          <circle cx="-22" cy="-14" r="4" fill="#ffb3b3"/>
+          <circle cx="22" cy="-14" r="4" fill="#b3ffc2"/>
+          <circle cx="-22" cy="14" r="4" fill="#b3d4ff"/>
+          <circle cx="22" cy="14" r="4" fill="#ffffff"/>
+        </svg>
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:#e7e9ee;">RGB + white LED array</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a3;line-height:1.5;margin-top:4px;max-width:420px;">One fixed-color LED for a locked colorway, or RGB for a user-set glow.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:22px;">
+        <svg width="84" height="84" viewBox="-38 -42 76 84" style="flex:none;">
+          <polygon points="0,-38 54,-3 0,58 -54,-3" fill="#173a1f" stroke="#000" stroke-width="2"/>
+          <path d="M-30,-8 L30,-8 M-24,4 L24,4 M-18,16 L18,16 M0,-30 L0,40" stroke="#6fe08a" stroke-width="1.4" opacity="0.85"/>
+          <circle cx="0" cy="-3" r="3" fill="#e7e9ee"/>
+        </svg>
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:#e7e9ee;">Flex-PCB substrate</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a3;line-height:1.5;margin-top:4px;max-width:420px;">Carries LED and driver traces. Flexes with the garment instead of cracking.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:22px;">
+        <svg width="84" height="84" viewBox="-40 -40 80 80" style="flex:none;">
+          <circle r="34" fill="#2c3038" stroke="#000" stroke-width="2"/>
+          <circle r="34" fill="none" stroke="#8fe8ff" stroke-width="1" opacity="0.4"/>
+          <circle r="14" fill="#0a0b0e"/>
+          <path d="M-46,0 L-58,0 M46,0 L58,0" stroke="#8fe8ff" stroke-width="2" opacity="0.5"/>
+        </svg>
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:#e7e9ee;">Haptic actuator (LRA)</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a3;line-height:1.5;margin-top:4px;max-width:420px;">Mounted directly behind the module on palm/sole nodes. ~5–15 ms rise time.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;bottom:26px;width:1400px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#565c68;letter-spacing:.06em;">
+    SAME MODULE AT THREE SIZES — LARGER AT THE WAIST (CORE HUB), SMALLER AT PALM AND SOLE (CUE NODES)
+  </div>
+</div>
+</body>
+</html>

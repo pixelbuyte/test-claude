@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin:0; font-family:'Inter Tight', system-ui, sans-serif; }
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+</style>
+</head>
+<body>
+<div style="width:1900px;height:880px;background:radial-gradient(ellipse 1500px 780px at 50% 42%,#1b1e26 0%,#0e0f13 62%,#08090b 100%);position:relative;box-sizing:border-box;padding:40px 50px;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.24em;color:#8fe8ff;text-transform:uppercase;">Component design · form-factor study</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:32px;margin-top:6px;color:#e7e9ee;">Cue Node — the housing doesn't have to be a kite</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8b93a3;margin-top:6px;">Five candidate shapes for the same internal stack, judged on function first</div>
+  </div>
+
+  <svg viewBox="0 0 1800 300" style="width:1800px;height:300px;display:block;margin:36px auto 0;">
+    <defs>
+      <filter id="crispGlow" x="-150%" y="-150%" width="400%" height="400%">
+        <feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="softGlow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="18"/></filter>
+      <radialGradient id="housingGrad" cx="35%" cy="22%" r="75%">
+        <stop offset="0%" stop-color="#33373f"/>
+        <stop offset="55%" stop-color="#1c1e24"/>
+        <stop offset="100%" stop-color="#101114"/>
+      </radialGradient>
+      <radialGradient id="lensGrad" cx="42%" cy="18%" r="80%">
+        <stop offset="0%" stop-color="#e8fbff"/>
+        <stop offset="35%" stop-color="#bff2ff"/>
+        <stop offset="100%" stop-color="#4fb8d6"/>
+      </radialGradient>
+    </defs>
+
+    <!-- 1: KITE -->
+    <g transform="translate(180,150)">
+      <polygon points="0,-95 48,-4 0,80 -48,-4" fill="#8fe8ff" opacity="0.3" filter="url(#softGlow)"/>
+      <polygon points="0,-65 48,-4 0,80 -48,-4" fill="url(#housingGrad)" stroke="#000" stroke-width="3"/>
+      <polygon points="0,-50 38,-4 0,60 -38,-4" fill="url(#lensGrad)" filter="url(#crispGlow)"/>
+      <g stroke="#0e2a33" stroke-width="1.4" opacity="0.5">
+        <path d="M0,10 L-22,-14"/><path d="M0,10 L22,-14"/><path d="M0,10 L0,-40"/><path d="M0,10 L-14,40"/><path d="M0,10 L14,40"/>
+      </g>
+      <circle cy="10" r="6" fill="#e8fbff"/>
+    </g>
+
+    <!-- 2: DISC -->
+    <g transform="translate(540,150)">
+      <circle r="70" fill="#8fe8ff" opacity="0.3" filter="url(#softGlow)"/>
+      <circle r="65" fill="url(#housingGrad)" stroke="#000" stroke-width="3"/>
+      <circle r="48" fill="url(#lensGrad)" filter="url(#crispGlow)"/>
+      <g stroke="#0e2a33" stroke-width="1.4" opacity="0.5">
+        <path d="M0,0 L-30,-18"/><path d="M0,0 L30,-18"/><path d="M0,0 L0,-36"/><path d="M0,0 L-24,22"/><path d="M0,0 L24,22"/>
+      </g>
+      <circle r="6" fill="#e8fbff"/>
+    </g>
+
+    <!-- 3: HEXAGON -->
+    <g transform="translate(900,150)">
+      <polygon points="0,-78 60,-39 60,39 0,78 -60,39 -60,-39" fill="#8fe8ff" opacity="0.3" filter="url(#softGlow)"/>
+      <polygon points="0,-64 52,-32 52,32 0,64 -52,32 -52,-32" fill="url(#housingGrad)" stroke="#000" stroke-width="3"/>
+      <polygon points="0,-48 40,-24 40,24 0,48 -40,24 -40,-24" fill="url(#lensGrad)" filter="url(#crispGlow)"/>
+      <g stroke="#0e2a33" stroke-width="1.4" opacity="0.5">
+        <path d="M0,0 L0,-38"/><path d="M0,0 L32,-19"/><path d="M0,0 L32,19"/><path d="M0,0 L0,38"/><path d="M0,0 L-32,19"/><path d="M0,0 L-32,-19"/>
+      </g>
+      <circle r="6" fill="#e8fbff"/>
+    </g>
+
+    <!-- 4: CAPSULE -->
+    <g transform="translate(1260,150)">
+      <rect x="-42" y="-90" width="84" height="180" rx="42" fill="#8fe8ff" opacity="0.3" filter="url(#softGlow)"/>
+      <rect x="-36" y="-78" width="72" height="156" rx="36" fill="url(#housingGrad)" stroke="#000" stroke-width="3"/>
+      <rect x="-26" y="-58" width="52" height="116" rx="26" fill="url(#lensGrad)" filter="url(#crispGlow)"/>
+      <g stroke="#0e2a33" stroke-width="1.4" opacity="0.5">
+        <path d="M0,0 L0,-46"/><path d="M0,0 L0,46"/><path d="M0,0 L-16,-20"/><path d="M0,0 L16,20"/>
+      </g>
+      <circle r="6" fill="#e8fbff"/>
+    </g>
+
+    <!-- 5: TEARDROP / SHIELD -->
+    <g transform="translate(1620,150)">
+      <path d="M0,-92 C38,-56 56,-14 56,26 A56,54 0 1,1 -56,26 C-56,-14 -38,-56 0,-92 Z" fill="#8fe8ff" opacity="0.3" filter="url(#softGlow)"/>
+      <path d="M0,-76 C31,-46 46,-12 46,22 A46,44 0 1,1 -46,22 C-46,-12 -31,-46 0,-76 Z" fill="url(#housingGrad)" stroke="#000" stroke-width="3"/>
+      <path d="M0,-58 C24,-35 35,-9 35,17 A35,34 0 1,1 -35,17 C-35,-9 -24,-35 0,-58 Z" fill="url(#lensGrad)" filter="url(#crispGlow)"/>
+      <g stroke="#0e2a33" stroke-width="1.4" opacity="0.5">
+        <path d="M0,17 L0,-30"/><path d="M0,17 L-18,30"/><path d="M0,17 L18,30"/>
+      </g>
+      <circle cy="17" r="6" fill="#e8fbff"/>
+    </g>
+  </svg>
+
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:20px;width:1800px;margin-left:auto;margin-right:auto;">
+
+    <div style="padding:0 20px;text-align:center;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:#e7e9ee;">Kite</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8b93a3;line-height:1.6;margin-top:6px;">Strongest brand read, reads as "hero tech" at a glance. Four sharp corners are fatigue points under repeated flex.</div>
+      <div style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:#ffd76a;">KEEP — WAIST HUB ONLY</div>
+    </div>
+
+    <div style="padding:0 20px;text-align:center;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:#e7e9ee;">Disc</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8b93a3;line-height:1.6;margin-top:6px;">No orientation to get wrong, even pressure against skin, drops onto any off-the-shelf round LRA with zero custom tooling.</div>
+      <div style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:#8fe8ff;">RECOMMENDED — PALM + SOLE</div>
+    </div>
+
+    <div style="padding:0 20px;text-align:center;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:#e7e9ee;">Hexagon</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8b93a3;line-height:1.6;margin-top:6px;">Tiles edge-to-edge if a future build gangs multiple sensors together. Six flex points is worse fatigue-wise than the disc's zero.</div>
+      <div style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:#6b7280;">SHELVED</div>
+    </div>
+
+    <div style="padding:0 20px;text-align:center;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:#e7e9ee;">Capsule</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8b93a3;line-height:1.6;margin-top:6px;">Lowest profile, bends beautifully along the palm crease. Has a "right way up" — a real failure mode during a fast glove change.</div>
+      <div style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:#6b7280;">SHELVED</div>
+    </div>
+
+    <div style="padding:0 20px;text-align:center;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:#e7e9ee;">Teardrop</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8b93a3;line-height:1.6;margin-top:6px;">The point could double as a literal directional cue. A molded point that thin is the first thing that tears on repeated flex.</div>
+      <div style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:#6b7280;">SHELVED</div>
+    </div>
+
+  </div>
+
+  <div style="max-width:1100px;margin:44px auto 0;padding:18px 22px;background:#15171c;border:1px solid #262a33;border-left:3px solid #8fe8ff;border-radius:6px;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#8fe8ff;text-transform:uppercase;">Recommendation</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#c7ccd6;line-height:1.65;margin-top:8px;">
+      Split the housing by mechanical role instead of using one shape everywhere. The four flex-critical, skin-contact
+      nodes — both palms, both soles — go to the <span style="color:#e7e9ee;">disc</span>: it's the boring, correct
+      choice where durability and comfort matter more than silhouette. The <span style="color:#e7e9ee;">kite</span> stays
+      exactly where it already earns its keep — the waist core hub, which barely flexes and is the single most visible
+      point on the suit. Same internal stack (diffuser, LED, flex-PCB, actuator) in both housings.
+    </div>
+  </div>
+</div>
+</body>
+</html>
