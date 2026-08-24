@@ -7,6 +7,7 @@ import FeaturedGrid, { FeaturedEntry } from "@/components/FeaturedGrid";
 import Leaderboard from "@/components/Leaderboard";
 import HowItWorks from "@/components/HowItWorks";
 import MoneyRules from "@/components/MoneyRules";
+import Reveal from "@/components/Reveal";
 import ShareButtons from "@/components/ShareButtons";
 import { Listing, Duration } from "@/lib/types";
 
@@ -64,7 +65,7 @@ export default function Home() {
           </p>
 
           <h1
-            className="deal mt-6 font-display text-[3.5rem] uppercase leading-[0.82] tracking-crush sm:text-[7rem] lg:text-[8.5rem]"
+            className="deal mt-6 font-display uppercase leading-[0.8] tracking-crush text-[clamp(3.25rem,15.5vw,13rem)]"
             style={{ animationDelay: "60ms" }}
           >
             Pay to sit
@@ -102,7 +103,7 @@ export default function Home() {
           )}
         </section>
 
-        <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
+        <Reveal as="section" className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
           <p className="rule-label mb-5">Permanent — never expires</p>
           {data ? (
             <Leaderboard
@@ -114,15 +115,15 @@ export default function Home() {
           ) : (
             <div className="panel h-80 animate-pulse" />
           )}
-        </section>
+        </Reveal>
 
-        <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
+        <Reveal as="section" className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
           <MoneyRules totalCents={data?.revenueCents ?? 0} />
-        </section>
+        </Reveal>
 
-        <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
+        <Reveal as="section" className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
           <HowItWorks />
-        </section>
+        </Reveal>
 
         <footer className="mx-auto mt-24 max-w-6xl border-t border-edge px-4 py-10 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-4">

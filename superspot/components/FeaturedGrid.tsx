@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Listing, FeaturedClaim, Duration } from "@/lib/types";
 import CountdownTimer from "./CountdownTimer";
 import ClaimModal from "./ClaimModal";
@@ -108,6 +108,25 @@ function Status({ entry, onRefresh }: { entry: FeaturedEntry; onRefresh: () => v
   );
 }
 
+/**
+ * A price that changes while you're looking at it is the whole drama of
+ * this page, so it pulses once when the polled value moves.
+ */
+function useBump(value: number) {
+  const prev = useRef(value);
+  const [bump, setBump] = useState(false);
+
+  useEffect(() => {
+    if (prev.current === value) return;
+    prev.current = value;
+    setBump(true);
+    const id = setTimeout(() => setBump(false), 460);
+    return () => clearTimeout(id);
+  }, [value]);
+
+  return bump;
+}
+
 /** The whole price row is the button — big money, hard edge, no rounding. */
 function Bid({
   entry,
@@ -120,11 +139,12 @@ function Bid({
 }) {
   const taken = !!entry.claim;
   const price = taken ? entry.stealPriceCents ?? entry.openPriceCents : entry.openPriceCents;
+  const bumping = useBump(price);
 
   return (
     <button
       onClick={onOpen}
-      className={`group/b flex w-full items-center gap-3 border-t px-1 pt-3 text-left transition-colors ${
+      className={`group/b press flex w-full items-center gap-3 border-t px-1 pt-3 text-left ${
         taken ? "border-edge hover:border-hot" : "border-edge hover:border-acid"
       }`}
     >
@@ -138,11 +158,11 @@ function Bid({
       <span
         className={`font-display leading-none tracking-crush ${
           big ? "text-4xl" : "text-2xl"
-        } ${taken ? "text-hot" : "text-acid"} group-hover/b:glow`}
+        } ${taken ? "text-hot" : "text-acid"} ${bumping ? "bump" : ""} group-hover/b:glow`}
       >
         {money(price)}
       </span>
-      <span className="num ml-auto text-lg text-dust transition-transform group-hover/b:translate-x-1">
+      <span className="num ml-auto text-lg text-dust transition-transform duration-200 group-hover/b:translate-x-1.5">
         →
       </span>
     </button>
@@ -163,7 +183,7 @@ function HeroSlot({
   const l = entry.listing;
 
   return (
-    <div className="deal panel panel-lift-acid relative flex flex-col justify-between overflow-hidden p-5 sm:p-6 lg:col-span-2">
+    <div className="deal panel panel-lift-acid relative flex flex-col justify-between overflow-hidden p-5 transition-transform duration-300 hover:-translate-y-0.5 sm:p-6 lg:col-span-2">
       {/* The rank numeral is architecture, not decoration — it's the
           biggest thing on the panel and it bleeds off the corner. */}
       <span className="ghost-rank pointer-events-none absolute -right-4 top-1/2 -translate-y-1/2 text-[11rem] sm:text-[15rem]">
@@ -235,7 +255,7 @@ function Slot({
 
   return (
     <div
-      className="deal panel panel-lift relative flex flex-col justify-between overflow-hidden p-4"
+      className="deal panel panel-lift relative flex flex-col justify-between overflow-hidden p-4 transition-transform duration-300 hover:-translate-y-0.5"
       style={{ animationDelay: `${delay}ms` }}
     >
       <span className="ghost-rank pointer-events-none absolute -right-3 top-1/2 -translate-y-1/2 text-[6.5rem]">

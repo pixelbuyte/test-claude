@@ -280,7 +280,7 @@ export default function ClaimModal({
           <button
             onClick={submit}
             disabled={submitting}
-            className="w-full num border border-acid bg-acid py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#07070a] transition-all hover:shadow-[4px_4px_0_0_var(--edge-hot)] disabled:opacity-40"
+            className="w-full num press border border-acid bg-acid py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#07070a] hover:shadow-[4px_4px_0_0_var(--edge-hot)] disabled:opacity-40"
           >
             {submitting ? "Processing…" : `Pay ${money(chargeCents)} & go live`}
           </button>

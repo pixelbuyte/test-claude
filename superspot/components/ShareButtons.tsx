@@ -12,7 +12,7 @@ export default function ShareButtons({ text }: { text: string }) {
   )}&url=${encodeURIComponent(url)}`;
 
   const cls =
-    "num border border-edge px-3.5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-ash transition-all hover:border-acid hover:text-acid hover:shadow-[3px_3px_0_0_var(--edge)]";
+    "num press border border-edge px-3.5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-ash hover:border-acid hover:text-acid hover:shadow-[3px_3px_0_0_var(--edge)]";
 
   return (
     <div className="flex items-center gap-2">
