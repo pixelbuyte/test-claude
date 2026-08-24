@@ -1,4 +1,4 @@
--- AgentRank schema. Run this once in the Supabase SQL editor (or via
+-- UPrank schema. Run this once in the Supabase SQL editor (or via
 -- `supabase db push`). Expiry is enforced at query time by the app's ranking
 -- engine, so the board is always correct even without any cron job; the
 -- cleanup function below is optional tidying.
@@ -13,12 +13,25 @@ create table if not exists categories (
 );
 
 insert into categories (slug, name, sort) values
-  ('ai_agents', 'AI Agents', 1),
-  ('workflow_automation', 'Workflow Automation', 2),
-  ('customer_support', 'Customer Support Agents', 3),
-  ('coding_agents', 'Coding Agents', 4),
-  ('sales_agents', 'Sales Agents', 5),
-  ('other', 'Other', 6)
+  ('saas_tools', 'SaaS & Tools', 1),
+  ('ai_automation', 'AI & Automation', 2),
+  ('directories', 'Directories & Marketplaces', 3),
+  ('communities', 'Communities & Forums', 4),
+  ('content', 'Blogs & Content', 5),
+  ('business', 'Business & Services', 6),
+  ('other', 'Other', 7)
+on conflict (slug) do nothing;
+
+-- Categories from the AI-agents-only launch, kept (not dropped) purely so
+-- `listings.category`'s foreign key stays valid for any row still using one
+-- of them — they're deliberately absent from src/lib/types.ts CATEGORIES,
+-- so the app never offers or creates them going forward.
+insert into categories (slug, name, sort) values
+  ('ai_agents', 'AI Agents (legacy)', 90),
+  ('workflow_automation', 'Workflow Automation (legacy)', 91),
+  ('customer_support', 'Customer Support Agents (legacy)', 92),
+  ('coding_agents', 'Coding Agents (legacy)', 93),
+  ('sales_agents', 'Sales Agents (legacy)', 94)
 on conflict (slug) do nothing;
 
 -- ── Listings ───────────────────────────────────────────────────────────────

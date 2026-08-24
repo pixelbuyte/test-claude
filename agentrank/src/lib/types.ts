@@ -1,11 +1,12 @@
 import type { Tier } from "@/lib/pricing";
 
 export const CATEGORIES = [
-  { slug: "ai_agents", name: "AI Agents" },
-  { slug: "workflow_automation", name: "Workflow Automation" },
-  { slug: "customer_support", name: "Customer Support Agents" },
-  { slug: "coding_agents", name: "Coding Agents" },
-  { slug: "sales_agents", name: "Sales Agents" },
+  { slug: "saas_tools", name: "SaaS & Tools" },
+  { slug: "ai_automation", name: "AI & Automation" },
+  { slug: "directories", name: "Directories & Marketplaces" },
+  { slug: "communities", name: "Communities & Forums" },
+  { slug: "content", name: "Blogs & Content" },
+  { slug: "business", name: "Business & Services" },
   { slug: "other", name: "Other" },
 ] as const;
 

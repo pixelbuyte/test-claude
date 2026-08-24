@@ -12,7 +12,7 @@ export function SubmitForm() {
     url: "",
     description: "",
     logoUrl: "",
-    category: "ai_agents",
+    category: "saas_tools",
     ownerEmail: "",
   });
   const [busy, setBusy] = useState(false);
@@ -91,7 +91,7 @@ export function SubmitForm() {
           maxLength={60}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="e.g. Acme Support Agent"
+          placeholder="e.g. Acme"
           className={field}
         />
       </div>

@@ -73,8 +73,9 @@ export async function fetchSiteMetadata(url: string): Promise<SiteMetadata> {
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; AgentRankBot/1.0; +https://agentrank.app/rules)",
+        "User-Agent": `Mozilla/5.0 (compatible; UPrankBot/1.0; +${
+          process.env.NEXT_PUBLIC_SITE_URL ?? "https://uprank.app"
+        }/rules)`,
         Accept: "text/html,application/xhtml+xml",
       },
     });
@@ -131,10 +132,11 @@ export async function fetchSiteMetadata(url: string): Promise<SiteMetadata> {
 }
 
 const CATEGORY_KEYWORDS: [RegExp, CategorySlug][] = [
-  [/\b(support|helpdesk|help desk|ticket(?:ing)?|customer service)\b/i, "customer_support"],
-  [/\b(sales|crm|lead gen|outbound|pipeline|prospecting)\b/i, "sales_agents"],
-  [/\b(code|coding|developer|pull request|code review|github|ide)\b/i, "coding_agents"],
-  [/\b(workflow|automat(?:e|ion)|integration|zapier|no.?code)\b/i, "workflow_automation"],
+  [/\b(community|forum|discord|slack|meetup)\b/i, "communities"],
+  [/\b(blog|newsletter|magazine|news|articles?)\b/i, "content"],
+  [/\b(directory|marketplace|catalog|listings?)\b/i, "directories"],
+  [/\bai\b|\bagents?\b|\bautomat(?:e|ion)\b|\bworkflow\b|\bchatbot\b|\bassistant\b|\bllm\b|\bgpt\b/i, "ai_automation"],
+  [/\b(agency|consulting|studio|services|firm)\b/i, "business"],
 ];
 
 /** Cheap keyword heuristic so auto-created listings don't all land in one
@@ -144,5 +146,5 @@ export function guessCategory(name: string, description: string): CategorySlug {
   for (const [pattern, slug] of CATEGORY_KEYWORDS) {
     if (pattern.test(text)) return slug;
   }
-  return "ai_agents";
+  return "saas_tools";
 }

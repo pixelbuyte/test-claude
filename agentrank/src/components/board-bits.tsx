@@ -74,7 +74,7 @@ export function ShareOnX({ name, rank }: { name: string; rank: number }) {
   const share = () => {
     const site =
       typeof window !== "undefined" ? window.location.origin : "";
-    const text = `${name} is ranked #${rank} on AgentRank — the fixed-price leaderboard for AI agents. ${site}`;
+    const text = `${name} is ranked #${rank} on UPrank — the fixed-price leaderboard for any site. ${site}`;
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
       "_blank",

@@ -46,7 +46,7 @@ export default async function HomePage() {
         </p>
         <h1 className="mt-6 max-w-3xl font-display text-4xl leading-[1.08] font-semibold tracking-tight sm:text-6xl">
           The public leaderboard for{" "}
-          <span className="text-gold">AI agents</span> &amp; automation tools.
+          <span className="text-gold">any site or tool</span>.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-muted">
           Every placement has a clear, published price — a permanent rank or a
@@ -127,7 +127,7 @@ export default async function HomePage() {
               3 · Open section
             </h3>
             <p className="mt-2 text-sm text-muted">
-              Anyone can list an AI agent, tool, or profile for free, forever.
+              Anyone can list any site, tool, or profile for free, forever.
               Free listings rank by real outbound clicks. An optional $25
               “Featured” badge adds 24 hours of extra visibility.
             </p>

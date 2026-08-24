@@ -1,5 +1,5 @@
 /**
- * The AgentRank fixed-price catalog — the single source of truth for every
+ * The UPrank fixed-price catalog — the single source of truth for every
  * purchasable option on the board.
  *
  * Islamic-permissible by design: every option is a fixed price for a fixed
@@ -7,7 +7,7 @@
  * timed listings is NEVER decided by who paid more (see src/lib/ranking.ts).
  *
  * The stripe.* ids below are real objects created in the connected Stripe
- * account (metadata.app = "agentrank"). The app looks prices up here on the
+ * account (metadata.app = "uprank"). The app looks prices up here on the
  * server — the client can never set an amount.
  */
 

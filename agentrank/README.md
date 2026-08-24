@@ -1,8 +1,8 @@
-# AgentRank
+# UPrank
 
-**The fixed-price public leaderboard for AI agents & automation tools.**
+**The fixed-price public leaderboard for any site or tool.**
 
-AgentRank is a pay-to-rank board designed to be *Islamic-permissible*: there
+UPrank is a pay-to-rank board designed to be *Islamic-permissible*: there
 is **no bidding, no auction, and no price competition of any kind**. Every
 placement is a published fixed price for a fixed rank or a fixed duration —
 like buying a sponsored ad slot. Rank among timed listings is **never**
@@ -25,6 +25,23 @@ decided by who paid more.
 All of this is enforced in code: pricing in [`src/lib/pricing.ts`](src/lib/pricing.ts),
 ordering in [`src/lib/ranking.ts`](src/lib/ranking.ts).
 
+## Buying a placement
+
+Every buy dialog asks for exactly one thing: **the site's URL**. On checkout,
+the server (`src/app/api/checkout/route.ts`) looks that URL up:
+
+- **Already listed?** The placement is applied to that listing in place —
+  never a duplicate.
+- **New?** A listing is created automatically. Its name, description, and
+  logo are scraped from the page (`src/lib/site-metadata.ts`, with a
+  hostname-derived fallback if the fetch fails or times out), and a starting
+  category is guessed from keywords in the scraped text — correctable
+  anytime from `/admin`.
+
+Categories are general-purpose (SaaS & Tools, AI & Automation, Directories &
+Marketplaces, Communities & Forums, Blogs & Content, Business & Services,
+Other) — any kind of site or tool fits somewhere.
+
 ## Stack
 
 - **Next.js 16** (App Router) + TypeScript + Tailwind CSS v4
@@ -44,7 +61,7 @@ the full board, and buy buttons fall back to the live Stripe Payment Links.
 
 ```bash
 git clone <this-repo>
-cd agentrank
+cd agentrank  # the app's directory name is unchanged; only the brand is UPrank
 npm install
 cp .env.example .env.local
 npm run dev

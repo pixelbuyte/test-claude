@@ -1,5 +1,5 @@
 /**
- * The AgentRank ranking engine.
+ * The UPrank ranking engine.
  *
  * Strict ordering rules — enforced here and nowhere else:
  *
