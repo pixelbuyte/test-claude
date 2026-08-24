@@ -40,7 +40,7 @@ export default function CountdownTimer({
 
   return (
     <span
-      className={`num ${urgent ? "text-red-400 animate-pulseglow" : ""} ${className ?? ""}`}
+      className={`num ${urgent ? "text-hot animate-blink" : ""} ${className ?? ""}`}
     >
       {format(remaining)}
     </span>

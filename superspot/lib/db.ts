@@ -18,6 +18,8 @@ type Store = {
   featured: Map<number, FeaturedClaim>; // spot -> active claim
   settings: AdminSettings;
   revenueCents: number;
+  /** Stripe event ids already applied, so webhook retries don't double-credit. */
+  processedEvents: Set<string>;
 };
 
 const g = globalThis as unknown as { __superspotStore?: Store };
@@ -74,15 +76,17 @@ function seed(): Store {
 
   // Two of the five featured spots start pre-claimed so the countdown /
   // "steal" mechanic is visible immediately without any setup.
-  const demoFeatured: Array<[string, string, string, number, Duration, number]> = [
-    ["https://www.indiehackers.com", "Indie Hackers", "Learn how developers grow to $10k/mo+.", 1, 24, 3200],
-    ["https://www.ycombinator.com", "Y Combinator", "Make something people want.", 3, 12, 6300],
+  // Click counts included: a featured spot showing 0 clicks actively argues
+  // against the product, and these are seeded placeholders like the board.
+  const demoFeatured: Array<[string, string, string, number, Duration, number, number]> = [
+    ["https://www.indiehackers.com", "Indie Hackers", "Learn how developers grow to $10k/mo+.", 1, 24, 3200, 412],
+    ["https://www.ycombinator.com", "Y Combinator", "Make something people want.", 3, 12, 6300, 188],
   ];
 
   const featured = new Map<number, FeaturedClaim>();
   const now = Date.now();
-  for (const [url, title, description, spot, duration, amountCents] of demoFeatured) {
-    const l = makeListing({ url, title, description });
+  for (const [url, title, description, spot, duration, amountCents, clicks] of demoFeatured) {
+    const l = makeListing({ url, title, description, clicks });
     listings.set(l.id, l);
     const startedAt = now - Math.round(duration * 60 * 60 * 1000 * 0.35); // already ~35% elapsed
     const expiresAt = startedAt + duration * 60 * 60 * 1000;
@@ -101,7 +105,13 @@ function seed(): Store {
     seedSites.reduce((sum, s) => sum + s[3], 0) +
     demoFeatured.reduce((sum, d) => sum + d[5], 0);
 
-  return { listings, featured, settings: DEFAULT_SETTINGS, revenueCents };
+  return {
+    listings,
+    featured,
+    settings: DEFAULT_SETTINGS,
+    revenueCents,
+    processedEvents: new Set<string>(),
+  };
 }
 
 function store(): Store {
@@ -199,6 +209,21 @@ export function bumpPermanentBoard(listingId: string, amountCents: number) {
 
 export function getRevenueCents(): number {
   return store().revenueCents;
+}
+
+/**
+ * Claim a Stripe event id for processing. Returns false if this event was
+ * already applied — Stripe retries deliveries until it gets a 2xx, and
+ * without this guard a retry would credit the same payment twice.
+ *
+ * In-memory means this resets on redeploy; back it with the `processed_events`
+ * table in schema.sql when you swap this store for Postgres.
+ */
+export function claimEventOnce(eventId: string): boolean {
+  const s = store();
+  if (s.processedEvents.has(eventId)) return false;
+  s.processedEvents.add(eventId);
+  return true;
 }
 
 // --- Settings -------------------------------------------------------------

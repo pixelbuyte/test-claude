@@ -8,11 +8,13 @@ export default function RevenueCounter({ cents }: { cents: number }) {
   });
 
   return (
-    <span className="num inline-flex items-baseline gap-2 text-[11px]">
-      <span className="hidden uppercase tracking-[0.14em] text-ink-faint sm:inline">
-        Paid out
+    <span className="flex items-baseline gap-2">
+      <span className="num hidden text-[10px] uppercase tracking-[0.2em] text-dust sm:inline">
+        Spent here
       </span>
-      <span className="font-semibold text-cash">{dollars}</span>
+      <span className="font-display text-xl leading-none tracking-crush text-acid">
+        {dollars}
+      </span>
     </span>
   );
 }

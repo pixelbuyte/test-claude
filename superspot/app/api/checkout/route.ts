@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { getSettings, getFeatured, getOrCreateListing, claimSpot, bumpPermanentBoard } from "@/lib/db";
-import { containsBannedContent, minStealPriceCents, priceForSpot } from "@/lib/pricing";
+import {
+  containsBannedContent,
+  minStealPriceCents,
+  priceForSpot,
+  normalizeAmountCents,
+  MIN_AMOUNT_CENTS,
+  MAX_AMOUNT_CENTS,
+} from "@/lib/pricing";
 import { Duration } from "@/lib/types";
 
 type Body = {
@@ -14,10 +21,14 @@ type Body = {
   favicon?: string | null;
   spot?: number;
   durationHours?: Duration;
-  amountCents?: number; // required for "permanent" mode (custom bid)
+  /** Buyer-chosen amount. Required for "permanent"; optional for "featured",
+   *  where it may exceed the asking price but never undercut it. */
+  amountCents?: number;
 };
 
-const MIN_PERMANENT_BID_CENTS = 500;
+function money(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Body;
@@ -56,22 +67,55 @@ export async function POST(req: NextRequest) {
     }
     const openPrice = priceForSpot(settings, spot, duration);
     const existing = getFeatured().find((f) => f.spot === spot);
+
+    let floor: number;
     if (existing?.claim) {
       const stealPrice = minStealPriceCents(
         settings,
         existing.claim.amountCents,
         existing.claim.startedAt,
         existing.claim.expiresAt,
-        Date.now()
+        Date.now(),
+        spot
       );
-      amountCents = Math.max(openPrice, stealPrice);
+      floor = Math.max(openPrice, stealPrice);
       description = `Steal Spot #${spot} for ${duration}h`;
     } else {
-      amountCents = openPrice;
+      floor = openPrice;
       description = `Claim Spot #${spot} for ${duration}h`;
     }
+
+    // Paying over the asking price is allowed and meaningful: the steal price
+    // is prorated from what the holder paid, so overpaying makes the spot
+    // costlier to take. Undercutting the floor is not.
+    if (body.amountCents === undefined || body.amountCents === null) {
+      amountCents = floor;
+    } else {
+      const chosen = normalizeAmountCents(body.amountCents);
+      if (chosen === null) {
+        return NextResponse.json(
+          { error: `Enter an amount between ${money(MIN_AMOUNT_CENTS)} and ${money(MAX_AMOUNT_CENTS)}.` },
+          { status: 400 }
+        );
+      }
+      if (chosen < floor) {
+        return NextResponse.json(
+          { error: `This spot costs at least ${money(floor)} right now.` },
+          { status: 400 }
+        );
+      }
+      amountCents = chosen;
+    }
   } else {
-    amountCents = Math.max(MIN_PERMANENT_BID_CENTS, Math.round(body.amountCents ?? 0));
+    // Permanent board is pure pay-what-you-want — any amount ranks you.
+    const chosen = normalizeAmountCents(body.amountCents);
+    if (chosen === null) {
+      return NextResponse.json(
+        { error: `Enter an amount between ${money(MIN_AMOUNT_CENTS)} and ${money(MAX_AMOUNT_CENTS)}.` },
+        { status: 400 }
+      );
+    }
+    amountCents = chosen;
     description = `Bid on the SuperSpot leaderboard for ${target.hostname}`;
   }
 

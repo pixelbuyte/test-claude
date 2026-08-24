@@ -7,6 +7,8 @@ import { AdminSettings, Duration } from "@/lib/types";
 export default function AdminPage() {
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [saved, setSaved] = useState(false);
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState<string | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
   const [newCategory, setNewCategory] = useState("");
 
@@ -14,24 +16,37 @@ export default function AdminPage() {
     fetch("/api/admin/settings")
       .then((r) => r.json())
       .then(setSettings);
+    // Kept in sessionStorage only — never persisted to disk or sent anywhere
+    // but this app's own settings endpoint.
+    try {
+      setPassword(sessionStorage.getItem("superspot-admin") ?? "");
+    } catch {}
   }, []);
 
   async function save(next: AdminSettings) {
     setSettings(next);
     setSaved(false);
+    setAuthError(null);
     const res = await fetch("/api/admin/settings", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-admin-password": password },
       body: JSON.stringify(next),
     });
     const updated = await res.json();
+    if (!res.ok) {
+      setAuthError(updated.error ?? "Could not save.");
+      return;
+    }
+    try {
+      sessionStorage.setItem("superspot-admin", password);
+    } catch {}
     setSettings(updated);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   }
 
   if (!settings) {
-    return <div className="mx-auto max-w-3xl px-6 py-20 text-center text-ink-faint">Loading…</div>;
+    return <div className="mx-auto max-w-3xl px-6 py-20 text-center text-dust">Loading…</div>;
   }
 
   return (
@@ -39,21 +54,36 @@ export default function AdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Admin</h1>
-          <p className="text-sm text-ink-mute">
-            Base prices, durations, and content filters. No auth on this demo route — lock it down before going live.
+          <p className="text-sm text-ash">
+            Base prices, durations, and content filters. Saving requires the
+            admin password set as ADMIN_PASSWORD on the deployment.
           </p>
         </div>
-        <Link href="/" className="text-sm underline hover:text-cash">
+        <Link href="/" className="text-sm underline hover:text-acid">
           ← Back
         </Link>
       </div>
 
-      <section className="surface mt-8 rounded-lg p-6">
+      <div className="panel mt-6 p-4">
+        <label className="num text-[11px] uppercase tracking-[0.14em] text-dust">
+          Admin password
+        </label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="required to save changes"
+          className="num mt-2 w-full border border-edge bg-panel-2 px-3 py-2 text-sm outline-none transition-colors focus:border-acid"
+        />
+        {authError && <p className="mt-2 text-sm text-hot">{authError}</p>}
+      </div>
+
+      <section className="panel mt-8 p-6">
         <h2 className="font-semibold">Base prices (6h rate, per spot)</h2>
         <div className="mt-4 grid grid-cols-5 gap-3">
           {[1, 2, 3, 4, 5].map((spot) => (
             <div key={spot}>
-              <label className="text-xs text-ink-faint">Spot #{spot}</label>
+              <label className="text-xs text-dust">Spot #{spot}</label>
               <input
                 type="number"
                 value={(settings.basePricesCents[spot] ?? 0) / 100}
@@ -66,19 +96,19 @@ export default function AdminPage() {
                     },
                   })
                 }
-                className="mt-1 w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
+                className="mt-1 w-full border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
               />
             </div>
           ))}
         </div>
       </section>
 
-      <section className="surface mt-6 rounded-lg p-6">
+      <section className="panel mt-6 p-6">
         <h2 className="font-semibold">Duration multipliers</h2>
         <div className="mt-4 grid grid-cols-4 gap-3">
           {([6, 12, 24, 72] as Duration[]).map((d) => (
             <div key={d}>
-              <label className="text-xs text-ink-faint">{d}h</label>
+              <label className="text-xs text-dust">{d}h</label>
               <input
                 type="number"
                 step="0.1"
@@ -92,17 +122,17 @@ export default function AdminPage() {
                     },
                   })
                 }
-                className="mt-1 w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
+                className="mt-1 w-full border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
               />
             </div>
           ))}
         </div>
         <div className="mt-4">
-          <label className="text-xs text-ink-faint">Max duration allowed (hours)</label>
+          <label className="text-xs text-dust">Max duration allowed (hours)</label>
           <select
             value={settings.maxDurationHours}
             onChange={(e) => save({ ...settings, maxDurationHours: Number(e.target.value) as Duration })}
-            className="mt-1 w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
+            className="mt-1 w-full border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
           >
             {[6, 12, 24, 72].map((d) => (
               <option key={d} value={d}>
@@ -113,23 +143,23 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <section className="surface mt-6 rounded-lg p-6">
+      <section className="panel mt-6 p-6">
         <h2 className="font-semibold">Steal / outbid premium</h2>
-        <p className="text-sm text-ink-mute">
+        <p className="text-sm text-ash">
           Percent above the current occupant's remaining value required to take their spot early.
         </p>
         <input
           type="number"
           value={settings.outbidPremiumPct}
           onChange={(e) => save({ ...settings, outbidPremiumPct: Number(e.target.value) })}
-          className="mt-3 w-32 rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
+          className="mt-3 w-32 border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
         />
         <span className="ml-2 text-sm">%</span>
       </section>
 
-      <section className="surface mt-6 rounded-lg p-6">
+      <section className="panel mt-6 p-6">
         <h2 className="font-semibold">Banned keywords</h2>
-        <p className="text-sm text-ink-mute">
+        <p className="text-sm text-ash">
           Any listing whose URL, title, or description contains one of these is rejected at checkout.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -155,7 +185,7 @@ export default function AdminPage() {
             value={newKeyword}
             onChange={(e) => setNewKeyword(e.target.value)}
             placeholder="add a keyword…"
-            className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
+            className="w-full border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
           />
           <button
             onClick={() => {
@@ -163,14 +193,14 @@ export default function AdminPage() {
               save({ ...settings, bannedKeywords: [...settings.bannedKeywords, newKeyword.trim()] });
               setNewKeyword("");
             }}
-            className="rounded-md bg-cash px-4 text-sm font-semibold text-[#04120a] hover:bg-cash-bright"
+            className="num border border-acid bg-acid px-4 text-[11px] uppercase tracking-[0.18em] text-[#07070a]"
           >
             Add
           </button>
         </div>
       </section>
 
-      <section className="surface mt-6 rounded-lg p-6">
+      <section className="panel mt-6 p-6">
         <h2 className="font-semibold">Banned categories</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {settings.bannedCategories.map((cat) => (
@@ -195,7 +225,7 @@ export default function AdminPage() {
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
             placeholder="add a category…"
-            className="w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
+            className="w-full border border-black/10 dark:border-white/10 bg-white dark:bg-black/30 px-2 py-1.5 text-sm"
           />
           <button
             onClick={() => {
@@ -203,7 +233,7 @@ export default function AdminPage() {
               save({ ...settings, bannedCategories: [...settings.bannedCategories, newCategory.trim()] });
               setNewCategory("");
             }}
-            className="rounded-md bg-cash px-4 text-sm font-semibold text-[#04120a] hover:bg-cash-bright"
+            className="num border border-acid bg-acid px-4 text-[11px] uppercase tracking-[0.18em] text-[#07070a]"
           >
             Add
           </button>
