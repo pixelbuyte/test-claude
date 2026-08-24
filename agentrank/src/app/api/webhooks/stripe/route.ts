@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   const session = event.data.object as Stripe.Checkout.Session;
   const sku = session.metadata?.sku;
   const listingId = session.metadata?.listing_id;
-  if (session.metadata?.app !== "agentrank" || !sku || !listingId) {
+  if (session.metadata?.app !== "uprank" || !sku || !listingId) {
     // Not one of ours (e.g. a manual Payment Link purchase) — acknowledge.
     return NextResponse.json({ received: true });
   }

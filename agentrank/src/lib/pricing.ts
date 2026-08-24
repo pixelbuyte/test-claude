@@ -1,5 +1,5 @@
 /**
- * The AgentRank fixed-price catalog — the single source of truth for every
+ * The UPrank fixed-price catalog — the single source of truth for every
  * purchasable option on the board.
  *
  * Islamic-permissible by design: every option is a fixed price for a fixed
@@ -7,7 +7,7 @@
  * timed listings is NEVER decided by who paid more (see src/lib/ranking.ts).
  *
  * The stripe.* ids below are real objects created in the connected Stripe
- * account (metadata.app = "agentrank"). The app looks prices up here on the
+ * account (metadata.app = "uprank"). The app looks prices up here on the
  * server — the client can never set an amount.
  */
 
@@ -303,24 +303,36 @@ export const CATALOG: CatalogItem[] = [
     sku: "highlight_24h",
     kind: "highlight",
     label: "Highlight / Pin · 24 hours",
-    amountCents: 7900,
+    amountCents: 14900,
     durationHours: 24,
     stripe: {
       productId: "prod_V8F3ToxiYnHeau",
-      priceId: "price_1U7yZ0RrTdDFA54j7zZDIgD7",
-      paymentLinkUrl: "https://buy.stripe.com/28E9AVfEp9Au5CqbfD7ok0p",
+      priceId: "price_1U85y7RrTdDFA54jyhpG24Ji",
+      paymentLinkUrl: "https://buy.stripe.com/6oU8wR4ZLfYS4ym3Nb7ok0s",
+    },
+  },
+  {
+    sku: "highlight_3d",
+    kind: "highlight",
+    label: "Highlight / Pin · 3 days",
+    amountCents: 34900,
+    durationHours: 72,
+    stripe: {
+      productId: "prod_V8Mh86Z4lHIDXv",
+      priceId: "price_1U85yQRrTdDFA54jOvkGzrtk",
+      paymentLinkUrl: "https://buy.stripe.com/28E6oJ4ZLdQK8OC83r7ok0t",
     },
   },
   {
     sku: "highlight_7d",
     kind: "highlight",
     label: "Highlight / Pin · 7 days",
-    amountCents: 29900,
+    amountCents: 59900,
     durationHours: 168,
     stripe: {
       productId: "prod_V8F3b5ljqvzB8v",
-      priceId: "price_1U7yZ6RrTdDFA54jJHzPC6M3",
-      paymentLinkUrl: "https://buy.stripe.com/28E5kF2RDeUOfd06Zn7ok0q",
+      priceId: "price_1U85y9RrTdDFA54jIsvdeqPk",
+      paymentLinkUrl: "https://buy.stripe.com/9B600lbo9eUO6Guabz7ok0u",
     },
   },
 
@@ -329,12 +341,24 @@ export const CATALOG: CatalogItem[] = [
     sku: "featured_open_24h",
     kind: "featured_open",
     label: "Featured in Open Section · 24 hours",
-    amountCents: 2500,
+    amountCents: 4900,
     durationHours: 24,
     stripe: {
       productId: "prod_V8F3LcCISZcLkC",
-      priceId: "price_1U7yZCRrTdDFA54jUCsdeTvD",
-      paymentLinkUrl: "https://buy.stripe.com/6oU5kFfEpcMGe8W0AZ7ok0r",
+      priceId: "price_1U85yHRrTdDFA54jJCZbRUo9",
+      paymentLinkUrl: "https://buy.stripe.com/bJe4gBbo95keaWKabz7ok0v",
+    },
+  },
+  {
+    sku: "featured_open_7d",
+    kind: "featured_open",
+    label: "Featured in Open Section · 7 days",
+    amountCents: 14900,
+    durationHours: 168,
+    stripe: {
+      productId: "prod_V8Mh6uRFWKKu3j",
+      priceId: "price_1U85yYRrTdDFA54j0m451Or1",
+      paymentLinkUrl: "https://buy.stripe.com/9B63cx63PbIC6GubfD7ok0w",
     },
   },
 ];
@@ -368,6 +392,6 @@ export const PERMANENT_ITEMS = CATALOG.filter((i) => i.kind === "permanent");
 export const TIER_ITEMS = (tier: Tier) =>
   CATALOG.filter((i) => i.kind === "tier_boost" && i.tier === tier);
 export const HIGHLIGHT_ITEMS = CATALOG.filter((i) => i.kind === "highlight");
-export const FEATURED_OPEN_ITEM = CATALOG.find(
+export const FEATURED_OPEN_ITEMS = CATALOG.filter(
   (i) => i.kind === "featured_open",
-)!;
+);

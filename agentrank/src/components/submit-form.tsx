@@ -2,25 +2,30 @@
 
 import { CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { CATEGORIES } from "@/lib/types";
+import { ExtraVisibilityPreview } from "@/components/listing-preview";
+import { deriveNameFromUrl, faviconUrl, normalizeUrl } from "@/lib/utils";
 
 export function SubmitForm() {
-  const [form, setForm] = useState({
-    name: "",
-    url: "",
-    description: "",
-    logoUrl: "",
-    category: "ai_agents",
-    ownerEmail: "",
-  });
+  const [url, setUrl] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<"active" | "pending" | null>(null);
 
   const field =
     "w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-faint focus:border-border-strong";
+
+  const preview = useMemo(() => {
+    const normalized = normalizeUrl(url);
+    if (!normalized) return undefined;
+    return {
+      name: deriveNameFromUrl(normalized),
+      description: "Your description is pulled from your site automatically.",
+      logoUrl: faviconUrl(normalized),
+    };
+  }, [url]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +35,7 @@ export function SubmitForm() {
       const res = await fetch("/api/listings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ url, ownerEmail }),
       });
       const data = (await res.json()) as {
         listing?: { status: string };
@@ -81,100 +86,47 @@ export function SubmitForm() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <div>
-        <label htmlFor="sf-name" className="mb-1.5 block text-sm font-medium">
-          Name
-        </label>
-        <input
-          id="sf-name"
-          required
-          minLength={2}
-          maxLength={60}
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="e.g. Acme Support Agent"
-          className={field}
-        />
-      </div>
-      <div>
         <label htmlFor="sf-url" className="mb-1.5 block text-sm font-medium">
-          Link — website, X, LinkedIn, YouTube, Discord…
+          Your link — website, X, LinkedIn, YouTube, Discord…
         </label>
         <input
           id="sf-url"
           required
-          value={form.url}
-          onChange={(e) => setForm({ ...form, url: e.target.value })}
-          placeholder="acme.ai or x.com/acme"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="acme.com or x.com/acme"
           className={field}
         />
+        <p className="mt-2 text-xs text-faint">
+          That&rsquo;s all we need. Your name, description, and favicon are
+          pulled from the site automatically.
+        </p>
       </div>
-      <div>
-        <label htmlFor="sf-desc" className="mb-1.5 block text-sm font-medium">
-          Short description{" "}
-          <span className="font-normal text-faint">
-            ({120 - form.description.length} left)
-          </span>
-        </label>
-        <input
-          id="sf-desc"
-          required
-          maxLength={120}
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          placeholder="What does it do, in one sentence?"
-          className={field}
-        />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="sf-category" className="mb-1.5 block text-sm font-medium">
-            Category
-          </label>
-          <select
-            id="sf-category"
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className={field}
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="sf-logo" className="mb-1.5 block text-sm font-medium">
-            Logo URL <span className="font-normal text-faint">(optional)</span>
-          </label>
-          <input
-            id="sf-logo"
-            value={form.logoUrl}
-            onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
-            placeholder="https://…/logo.png"
-            className={field}
-          />
-        </div>
-      </div>
+
       <div>
         <label htmlFor="sf-email" className="mb-1.5 block text-sm font-medium">
-          Email <span className="font-normal text-faint">(optional — for upgrade receipts)</span>
+          Email{" "}
+          <span className="font-normal text-faint">
+            (optional — for upgrade receipts)
+          </span>
         </label>
         <input
           id="sf-email"
           type="email"
-          value={form.ownerEmail}
-          onChange={(e) => setForm({ ...form, ownerEmail: e.target.value })}
+          value={ownerEmail}
+          onChange={(e) => setOwnerEmail(e.target.value)}
           placeholder="you@company.com"
           className={field}
         />
       </div>
 
+      <ExtraVisibilityPreview kind="featured" sample={preview} />
+
       {error && <p className="text-sm text-danger">{error}</p>}
 
       <button
         type="submit"
-        disabled={busy}
+        disabled={busy || url.trim().length < 4}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3.5 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {busy && <Loader2 className="h-4 w-4 animate-spin" />}

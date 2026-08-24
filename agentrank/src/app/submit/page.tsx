@@ -5,7 +5,7 @@ import { SubmitForm } from "@/components/submit-form";
 export const metadata: Metadata = {
   title: "List for free",
   description:
-    "Add your AI agent, automation tool, or social profile to the AgentRank open section — completely free.",
+    "Add your site, tool, or social profile to the UPrank open section — completely free.",
 };
 
 export default function SubmitPage() {
@@ -15,8 +15,8 @@ export default function SubmitPage() {
         List for free
       </h1>
       <p className="mt-3 text-muted">
-        Add your AI agent, automation tool, X handle, LinkedIn, YouTube,
-        Discord — anything. Free listings live in the open section and rank by
+        Add your site, tool, X handle, LinkedIn, YouTube, Discord — anything.
+        Free listings live in the open section and rank by
         real outbound clicks. You can buy a timed placement or a permanent rank
         for the same listing later, without ever creating a duplicate.
       </p>

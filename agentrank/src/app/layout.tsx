@@ -22,11 +22,11 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "AgentRank — the fixed-price leaderboard for AI agents",
-    template: "%s · AgentRank",
+    default: "UPrank — the fixed-price leaderboard for any site",
+    template: "%s · UPrank",
   },
   description:
-    "A transparent, fixed-price public ranking board for AI agents and automation tools. No auctions, no outbidding — permanent slots and timed tier placements at clear prices.",
+    "A transparent, fixed-price public ranking board for any website or tool. No auctions, no outbidding — permanent slots and timed tier placements at clear prices.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

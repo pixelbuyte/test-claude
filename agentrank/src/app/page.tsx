@@ -7,6 +7,7 @@ import {
   demoMode,
   getActiveListings,
   getLiveVisitorCount,
+  getPermanentRankOwners,
   getTotalRevenueCents,
 } from "@/lib/db";
 import {
@@ -22,8 +23,11 @@ import { rankBoard } from "@/lib/ranking";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const listings = await getActiveListings();
-  const entries = rankBoard(listings, new Date());
+  const [listings, permanentOwners] = await Promise.all([
+    getActiveListings(),
+    getPermanentRankOwners().catch(() => ({})),
+  ]);
+  const entries = rankBoard(listings, new Date(), permanentOwners);
   const liveVisitors = await getLiveVisitorCount().catch(() => 0);
   const showRevenue = process.env.NEXT_PUBLIC_SHOW_REVENUE === "true" || demoMode();
   const totalRevenueCents = showRevenue
@@ -42,7 +46,7 @@ export default async function HomePage() {
         </p>
         <h1 className="mt-6 max-w-3xl font-display text-4xl leading-[1.08] font-semibold tracking-tight sm:text-6xl">
           The public leaderboard for{" "}
-          <span className="text-gold">AI agents</span> &amp; automation tools.
+          <span className="text-gold">any site or tool</span>.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-muted">
           Every placement has a clear, published price — a permanent rank or a
@@ -123,9 +127,9 @@ export default async function HomePage() {
               3 · Open section
             </h3>
             <p className="mt-2 text-sm text-muted">
-              Anyone can list an AI agent, tool, or profile for free, forever.
-              Free listings rank by real outbound clicks. An optional $25
-              “Featured” badge adds 24 hours of extra visibility.
+              Anyone can list any site, tool, or profile for free, forever —
+              just paste the link. Free listings rank by real outbound clicks,
+              and an optional “Featured” badge adds extra visibility.
             </p>
           </div>
         </div>

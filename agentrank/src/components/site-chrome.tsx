@@ -26,7 +26,7 @@ export function SiteHeader() {
             <TrendingUp className="h-4.5 w-4.5" strokeWidth={2.4} />
           </span>
           <span className="font-display text-lg font-semibold tracking-tight">
-            AgentRank
+            UPrank
           </span>
         </Link>
 
@@ -89,8 +89,8 @@ export function SiteFooter() {
     <footer className="mt-24 border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p>
-          <span className="font-medium text-foreground">AgentRank</span> — the
-          fixed-price leaderboard for AI agents &amp; automation tools.
+          <span className="font-medium text-foreground">UPrank</span> — the
+          fixed-price leaderboard for any site or tool.
         </p>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <Link href="/rules" className="hover:text-foreground">

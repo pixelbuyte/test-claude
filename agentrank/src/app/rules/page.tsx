@@ -5,7 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Rules & how ranking works",
   description:
-    "AgentRank is not an auction. All prices are fixed and public — you buy a specific rank or a place in a tier for a fixed time.",
+    "UPrank is not an auction. All prices are fixed and public — you buy a specific rank or a place in a tier for a fixed time.",
 };
 
 const PRINCIPLES = [
@@ -31,7 +31,7 @@ const PRINCIPLES = [
   },
   {
     title: "The open section is free, forever",
-    body: "Anyone can list an AI agent, automation tool, website, or social profile at no cost. Free listings rank by real outbound clicks — genuine interest, not payment. The optional $25 Featured badge adds visibility inside the open section for 24 hours; it does not move a listing into a paid tier.",
+    body: "Anyone can list any website, tool, or social profile at no cost — just paste the link and the name, description, and favicon are pulled from the site automatically. Free listings rank by real outbound clicks — genuine interest, not payment. The optional Featured badge adds visibility inside the open section; it does not move a listing into a paid tier.",
   },
   {
     title: "Highlights never change rank",
@@ -58,7 +58,7 @@ export default function RulesPage() {
         Rules &amp; how ranking works
       </h1>
       <p className="mt-4 text-lg text-muted">
-        AgentRank exists to make paid visibility{" "}
+        UPrank exists to make paid visibility{" "}
         <span className="text-foreground">fair, transparent, and simple</span>.
         Everything below is enforced in code, not just policy.
       </p>

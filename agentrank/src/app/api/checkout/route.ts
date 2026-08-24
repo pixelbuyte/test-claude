@@ -4,60 +4,34 @@ import {
   createListing,
   demoMode,
   DemoModeError,
+  findListingByUrl,
   getActiveListings,
-  getListing,
   isPermanentRankTaken,
   recordPendingPayment,
 } from "@/lib/db";
 import { getCatalogItem, TIER_CAPACITY, TIER_LABEL, type Tier } from "@/lib/pricing";
 import { countActiveBoosts } from "@/lib/ranking";
+import { fetchSiteMetadata, guessCategory } from "@/lib/site-metadata";
 import { isStripeConfigured, siteUrl, stripe } from "@/lib/stripe";
-import { CATEGORIES, type SubmitListingInput } from "@/lib/types";
-import { isEmail, normalizeUrl } from "@/lib/utils";
+import { normalizeUrl } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
 interface CheckoutBody {
   sku?: string;
-  listingId?: string;
-  newListing?: {
-    name?: string;
-    url?: string;
-    description?: string;
-    category?: string;
-    ownerEmail?: string;
-  };
+  url?: string;
 }
 
-function parseNewListing(
-  raw: NonNullable<CheckoutBody["newListing"]>,
-): SubmitListingInput | { error: string } {
-  const name = (raw.name ?? "").trim();
-  const url = normalizeUrl(raw.url ?? "");
-  const description = (raw.description ?? "").trim();
-  const category = CATEGORIES.find((c) => c.slug === raw.category)?.slug ?? "other";
-  if (name.length < 2 || name.length > 60) {
-    return { error: "Name must be 2–60 characters." };
-  }
-  if (!url) return { error: "Enter a valid link (website or social profile)." };
-  if (description.length > 120) {
-    return { error: "Description must be 120 characters or fewer." };
-  }
-  const ownerEmail = raw.ownerEmail?.trim();
-  return {
-    name,
-    url,
-    description,
-    category,
-    ownerEmail: ownerEmail && isEmail(ownerEmail) ? ownerEmail : undefined,
-  };
-}
+const TIER_PRIORITY: Record<Tier, number> = { top10: 3, top20: 2, top50: 1 };
 
 /**
  * Creates a Stripe Checkout Session for one fixed-price catalog item.
  * Prices come exclusively from the server-side catalog — the client sends a
- * SKU, never an amount. Availability is checked here and re-checked by the
- * webhook before the purchase is applied.
+ * SKU, never an amount. The buyer only ever supplies a URL: if it's already
+ * listed the placement upgrades that listing in place, otherwise a new
+ * listing is created automatically with its name/description/logo scraped
+ * from the site. Availability is re-checked by the webhook before the
+ * purchase is applied.
  */
 export async function POST(req: NextRequest) {
   let body: CheckoutBody;
@@ -89,26 +63,72 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const url = normalizeUrl(body.url ?? "");
+  if (!url) {
+    return NextResponse.json(
+      { error: "Enter a valid site URL — e.g. acme.ai or x.com/acme." },
+      { status: 400 },
+    );
+  }
+
   try {
-    const listings = await getActiveListings();
-    const now = new Date();
+    const existing = await findListingByUrl(url);
+
+    if (existing?.status === "rejected") {
+      return NextResponse.json(
+        {
+          error:
+            "This site was previously removed from the board and can't buy placements. Contact support.",
+        },
+        { status: 409 },
+      );
+    }
 
     if (item.kind === "permanent") {
-      // Any-status check: a rank held by a pending/rejected listing is still
-      // owned in the DB and would only produce a conflict at webhook time.
-      if (await isPermanentRankTaken(item.rank!)) {
+      // Buying the rank you already hold is a harmless no-op — only block
+      // when someone ELSE holds it (any status, since a rank held by a
+      // pending/rejected row is still unavailable in the DB).
+      const alreadyMine = existing?.permanentRank === item.rank;
+      if (!alreadyMine && (await isPermanentRankTaken(item.rank!))) {
         return NextResponse.json(
           { error: `Permanent Rank #${item.rank} is already owned.` },
           { status: 409 },
         );
       }
     }
+
+    if (item.kind === "tier_boost" && existing) {
+      if (existing.permanentRank !== null) {
+        return NextResponse.json(
+          {
+            error:
+              "This site already holds a permanent rank — a tier boost would have no effect.",
+          },
+          { status: 409 },
+        );
+      }
+      const now = new Date();
+      const activeBoost =
+        existing.boostTier !== null &&
+        existing.boostExpiresAt !== null &&
+        new Date(existing.boostExpiresAt) > now;
+      if (activeBoost && TIER_PRIORITY[item.tier!] < TIER_PRIORITY[existing.boostTier!]) {
+        return NextResponse.json(
+          {
+            error: `This site already holds an active ${TIER_LABEL[existing.boostTier!]} placement — buying a lower tier would downgrade it.`,
+          },
+          { status: 409 },
+        );
+      }
+    }
+
     if (item.kind === "tier_boost") {
       const tier = item.tier!;
-      const excludeSelf = body.listingId
-        ? listings.filter((l) => l.id !== body.listingId)
+      const listings = await getActiveListings();
+      const excludeSelf = existing
+        ? listings.filter((l) => l.id !== existing.id)
         : listings;
-      if (countActiveBoosts(excludeSelf, tier, now) >= TIER_CAPACITY[tier]) {
+      if (countActiveBoosts(excludeSelf, tier, new Date()) >= TIER_CAPACITY[tier]) {
         return NextResponse.json(
           {
             error: `The ${TIER_LABEL[tier]} tier is currently full. Slots free up automatically as boosts expire.`,
@@ -118,63 +138,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Attach the purchase to an existing listing, or create one now so the
-    // buyer never ends up with a duplicate.
-    let listingId = body.listingId ?? null;
-    if (listingId) {
-      const existing = await getListing(listingId);
-      if (!existing) {
-        return NextResponse.json({ error: "Listing not found." }, { status: 404 });
-      }
-      if (existing.status === "rejected") {
-        return NextResponse.json(
-          { error: "This listing was rejected and cannot buy placements." },
-          { status: 409 },
-        );
-      }
-      if (item.kind === "tier_boost") {
-        if (existing.permanentRank !== null) {
-          return NextResponse.json(
-            {
-              error:
-                "This listing already holds a permanent rank — a tier boost would have no effect.",
-            },
-            { status: 409 },
-          );
-        }
-        const priority: Record<Tier, number> = { top10: 3, top20: 2, top50: 1 };
-        const activeBoost =
-          existing.boostTier !== null &&
-          existing.boostExpiresAt !== null &&
-          new Date(existing.boostExpiresAt) > now;
-        if (activeBoost && priority[item.tier!] < priority[existing.boostTier!]) {
-          return NextResponse.json(
-            {
-              error: `This listing already holds an active ${TIER_LABEL[existing.boostTier!]} placement — buying a lower tier would downgrade it.`,
-            },
-            { status: 409 },
-          );
-        }
-      }
+    // Attach the purchase to the listing already at this URL, or create one
+    // automatically — the buyer never has to fill out a form or risk a
+    // duplicate.
+    let listingId: string;
+    if (existing) {
+      listingId = existing.id;
     } else {
-      if (!body.newListing) {
-        return NextResponse.json(
-          { error: "Choose an existing listing or provide listing details." },
-          { status: 400 },
-        );
-      }
-      const parsed = parseNewListing(body.newListing);
-      if ("error" in parsed) {
-        return NextResponse.json({ error: parsed.error }, { status: 400 });
-      }
-      const created = await createListing(parsed);
+      const meta = await fetchSiteMetadata(url);
+      const created = await createListing({
+        name: meta.name,
+        url,
+        description: meta.description,
+        logoUrl: meta.logoUrl ?? undefined,
+        category: guessCategory(meta.name, meta.description),
+      });
       listingId = created.id;
     }
 
     const session = await stripe().checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: item.stripe.priceId, quantity: 1 }],
-      metadata: { app: "agentrank", sku: item.sku, listing_id: listingId },
+      metadata: { app: "uprank", sku: item.sku, listing_id: listingId },
       success_url: `${siteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl()}/pricing`,
     });

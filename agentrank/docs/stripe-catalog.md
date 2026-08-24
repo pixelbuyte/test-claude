@@ -52,9 +52,16 @@ hand from the admin dashboard.
 
 | Package | Fixed price | Payment link |
 |---|---|---|
-| Highlight / Pin · 24 hours | $79 | https://buy.stripe.com/28E9AVfEp9Au5CqbfD7ok0p |
-| Highlight / Pin · 7 days | $299 | https://buy.stripe.com/28E5kF2RDeUOfd06Zn7ok0q |
-| Featured in Open Section · 24 hours | $25 | https://buy.stripe.com/6oU5kFfEpcMGe8W0AZ7ok0r |
+| Highlight / Pin · 24 hours | $149 | https://buy.stripe.com/6oU8wR4ZLfYS4ym3Nb7ok0s |
+| Highlight / Pin · 3 days | $349 | https://buy.stripe.com/28E6oJ4ZLdQK8OC83r7ok0t |
+| Highlight / Pin · 7 days | $599 | https://buy.stripe.com/9B600lbo9eUO6Guabz7ok0u |
+| Featured in Open Section · 24 hours | $49 | https://buy.stripe.com/bJe4gBbo95keaWKabz7ok0v |
+| Featured in Open Section · 7 days | $149 | https://buy.stripe.com/9B63cx63PbIC6GubfD7ok0w |
+
+The extras were repriced upward on 2026-08-24. Stripe prices are immutable,
+so each carries a **new** Price object and a **new** payment link; the three
+superseded links (the old $79 / $299 / $25 ones) were deactivated in Stripe
+so nobody can still buy at the old rate.
 
 ## Changing prices
 

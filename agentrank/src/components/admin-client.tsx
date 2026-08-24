@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { formatUsd, getCatalogItem, TIER_LABEL } from "@/lib/pricing";
-import type { Listing, Payment } from "@/lib/types";
+import { CATEGORIES, type Listing, type Payment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function AdminLogin() {
@@ -78,12 +78,16 @@ export function AdminDashboard({
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const act = async (action: string, id: string) => {
+  const act = async (
+    action: string,
+    id: string,
+    extra?: Record<string, string>,
+  ) => {
     setBusyId(id);
     await fetch("/api/admin/actions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, id }),
+      body: JSON.stringify({ action, id, ...extra }),
     });
     setBusyId(null);
     router.refresh();
@@ -116,6 +120,7 @@ export function AdminDashboard({
               <tr className="border-b border-border text-left text-xs tracking-wide text-faint uppercase">
                 <th className="px-4 py-3 font-medium">Listing</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Category</th>
                 <th className="px-4 py-3 font-medium">Placement</th>
                 <th className="px-4 py-3 font-medium">Clicks</th>
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -139,6 +144,22 @@ export function AdminDashboard({
                     >
                       {l.status}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={l.category}
+                      disabled={busyId === l.id}
+                      onChange={(e) =>
+                        act("set_category", l.id, { category: e.target.value })
+                      }
+                      className="rounded-lg border border-border bg-surface px-2 py-1 text-xs outline-none focus:border-border-strong disabled:opacity-50"
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c.slug} value={c.slug}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td
                     className="px-4 py-3 text-xs text-muted"
