@@ -2,7 +2,7 @@
 
 import { ArrowRight, Crown, Globe, Loader2, Timer } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import {
   formatUsd,
@@ -27,6 +27,7 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const urlRef = useRef<HTMLInputElement>(null);
 
   const availablePermanent = useMemo(
     () => PERMANENT_ITEMS.filter((i) => !takenRanks.includes(i.rank!)),
@@ -51,6 +52,14 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
 
   const go = async () => {
     if (!active) return;
+    // The button stays live even with an empty field: a greyed-out button
+    // that also hides the price reads as broken, and pointing at the one
+    // field we need is a shorter path than making people work out why.
+    if (url.trim().length < 4) {
+      setError("Paste your link first — that's all we need.");
+      urlRef.current?.focus();
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -199,10 +208,11 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
           <Globe className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-faint" />
           <input
             id="hero-url"
+            ref={urlRef}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && url.trim().length > 3 && !busy) go();
+              if (e.key === "Enter" && !busy) go();
             }}
             placeholder="Your site URL or @handle"
             className="w-full rounded-2xl border border-border bg-background py-3.5 pr-4 pl-11 text-sm outline-none placeholder:text-faint focus:border-border-strong"
@@ -215,7 +225,7 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
       <button
         type="button"
         onClick={go}
-        disabled={busy || url.trim().length < 4 || !active}
+        disabled={busy || !active}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {busy ? (

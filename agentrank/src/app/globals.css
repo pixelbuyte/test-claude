@@ -3,23 +3,28 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ── Palette ───────────────────────────────────────────────────────────────
-   Warm, light-first and deliberately restrained. The base is a warm cream
-   rather than clinical white or flat black: warm neutrals read as
-   approachable and lower the "am I about to get scammed" feeling on a page
-   that asks for real money. Coral carries the energy of red without its
-   alarm, and is reserved for the primary action and prices.
+   Chosen by building four full-page variations and comparing them side by
+   side (see docs/design-variations.md). The base is a warm cream rather than
+   clinical white or flat black: warm neutrals read as approachable and take
+   the edge off a page that is asking for real money.
 
-   Only four working hues, each with exactly one job, so the board stays
-   colour-coded without becoming confusing:
-     coral  (--accent)  → the thing you click, and money
-     amber  (--gold)    → permanent / highlighted, the premium tier
-     cyan   (--tier20)  → mid timed tier
-     green  (--success) → live, available, confirmed
-   The lowest tier is intentionally neutral slate — least premium, least ink.
+   Hues are split by *meaning*, which is what keeps the board colour-coded
+   without becoming a fruit salad:
 
-   Body text on the base clears WCAG AA: --foreground on --background is
-   ~15:1 and --muted is ~5.3:1. --accent-strong exists because the coral CTA
-   fill is too light to also serve as price text on cream. */
+     warm  → money and status
+             coral  (--accent) is the thing you click and the price you pay
+             amber  (--gold)   is the permanent Top 5, the premium placement
+     cool  → the timed-tier ladder, descending
+             blue   (--tier10) → teal (--tier20) → slate (--tier50)
+     green (--success) → live, available, confirmed
+
+   So nothing warm is ever a tier and nothing cool is ever a button, and the
+   eye can sort the page before it reads a word of it.
+
+   Every pair below clears WCAG AA at the size it is actually used, including
+   each tier's own text on its own soft tint, and white on the coral button
+   fill. --accent-strong exists because a coral bright enough to be a good
+   button fill is too light to also serve as price text on cream. */
 :root {
   --background: #f8f4ef;
   --foreground: #1a1714;
@@ -30,16 +35,16 @@
   --muted: #6d6458;
   --faint: #9a8e80;
 
-  --gold: #a06a05;
+  --gold: #976405;
   --gold-soft: rgba(214, 158, 46, 0.14);
-  --tier10: #c0492b;
-  --tier10-soft: rgba(226, 105, 74, 0.12);
+  --tier10: #1d4ed8;
+  --tier10-soft: rgba(29, 78, 216, 0.1);
   --tier20: #0e7490;
   --tier20-soft: rgba(14, 116, 144, 0.1);
   --tier50: #566370;
   --tier50-soft: rgba(86, 99, 112, 0.1);
 
-  --accent: #e2694a;
+  --accent: #d24622;
   --accent-fg: #ffffff;
   --accent-soft: rgba(226, 105, 74, 0.12);
   --accent-strong: #b8412a;
@@ -61,8 +66,8 @@
 
   --gold: #e8b45c;
   --gold-soft: rgba(232, 180, 92, 0.12);
-  --tier10: #f08361;
-  --tier10-soft: rgba(240, 131, 97, 0.13);
+  --tier10: #8ab0f7;
+  --tier10-soft: rgba(138, 176, 247, 0.13);
   --tier20: #4cb8d4;
   --tier20-soft: rgba(76, 184, 212, 0.12);
   --tier50: #98a4b0;
@@ -190,11 +195,39 @@ body {
   z-index: 1;
 }
 
+/* The hero sits on a soft warm wash rather than the flat page colour, so the
+   claim card reads as lifted off the page instead of pasted onto it. Two
+   very low-opacity radials only — enough for depth, not enough to fight the
+   text contrast underneath. */
+.hero-wash {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-wash::before {
+  content: "";
+  position: absolute;
+  inset: -4rem 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      60rem 32rem at 78% 12%,
+      color-mix(in srgb, var(--accent) 11%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      46rem 28rem at 8% 0%,
+      color-mix(in srgb, var(--gold) 12%, transparent),
+      transparent 68%
+    );
+}
+
 /* Soft pulse on the live-visitors dot. */
 @keyframes live-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--tier50) 55%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 55%, transparent);
   }
   60% {
     box-shadow: 0 0 0 6px transparent;

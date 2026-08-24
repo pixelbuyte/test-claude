@@ -20,9 +20,16 @@ function iso(offsetMs: number, now: number): string {
   return new Date(now + offsetMs).toISOString();
 }
 
-/** Seed rows: real sites, and click counts in a believable early-days band
- * (a few hundred each) rather than implausible five-figure numbers. The live
- * counter then increments from whatever a listing is already sitting at. */
+/**
+ * Seed rows: real sites, with click counts in a believable early-days band
+ * (a couple of hundred each) rather than implausible five-figure numbers.
+ *
+ * These counts are fixed. Demo mode has no database, so there is nowhere to
+ * record a click, and inventing movement here would contradict the promise on
+ * /rules that click counts are real outbound clicks. Once Supabase is
+ * configured, `increment_click` takes over and every listing counts up from
+ * whatever it is already sitting at.
+ */
 interface Seed {
   id: string;
   name: string;
