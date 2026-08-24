@@ -262,7 +262,9 @@ function ListingRow({
       className={cn(
         "row-in relative flex flex-col gap-3 border-b border-border px-4 py-4 transition-colors last:border-b-0 sm:flex-row sm:items-center sm:gap-4 sm:px-6",
         placement.kind === "permanent" && "bg-gold-soft/50",
-        highlighted && "bg-gold-soft ring-1 ring-gold/30 ring-inset",
+        // A paid Highlight / Pin: gold tint plus a light-gold shimmer that
+        // travels around the row (see .highlight-orbit in globals.css).
+        highlighted && "highlight-orbit bg-gold-soft",
         "hover:bg-raised",
       )}
       style={{ animationDelay: `${Math.min(index, 20) * 35}ms` }}

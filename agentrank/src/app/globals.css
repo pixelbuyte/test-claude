@@ -104,6 +104,58 @@ body {
   animation: row-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ── Highlight / Pin ───────────────────────────────────────────────────────
+   A light-gold shimmer that travels around the row's edge. Built from a
+   conic gradient whose angle is animated via @property, masked down to just
+   the border so only a moving arc of gold is visible. Where @property isn't
+   supported the gradient still paints a static gold arc, and the row keeps
+   its gold tint, ring and glow — so it degrades to a still highlight rather
+   than to nothing. */
+@property --uprank-orbit-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes uprank-orbit {
+  to {
+    --uprank-orbit-angle: 360deg;
+  }
+}
+
+.highlight-orbit {
+  position: relative;
+  isolation: isolate;
+  box-shadow: 0 0 28px -10px var(--gold);
+}
+
+.highlight-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--uprank-orbit-angle),
+    transparent 0deg,
+    color-mix(in srgb, var(--gold) 55%, white) 30deg,
+    var(--gold) 55deg,
+    transparent 110deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: uprank-orbit 4.5s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Soft pulse on the live-visitors dot. */
 @keyframes live-pulse {
   0%,
@@ -124,6 +176,10 @@ body {
     animation: none;
   }
   .live-dot {
+    animation: none;
+  }
+  /* Keep the gold edge, drop the travelling motion. */
+  .highlight-orbit::after {
     animation: none;
   }
   html {

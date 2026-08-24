@@ -4,14 +4,18 @@ import { ChevronDown, Eye, MousePointerClick } from "lucide-react";
 import { useId, useState } from "react";
 
 import { LogoBubble, PlacementBadge } from "@/components/board-bits";
-import { cn } from "@/lib/utils";
+import { cn, faviconUrl } from "@/lib/utils";
 
 /**
  * Live "what am I actually buying?" preview for the Extra Visibility options.
  *
- * The rows below are built from the very same LogoBubble / PlacementBadge
+ * The rows are built from the very same LogoBubble / PlacementBadge
  * components the real board renders, with the same spacing and colour tokens,
  * so the preview cannot drift away from the real thing.
+ *
+ * The example rows use well-known sites purely so the favicons and copy look
+ * like a real board instead of placeholder text — the panel is labelled as an
+ * example so nobody reads them as actual listings or endorsements.
  */
 
 export type PreviewState = "normal" | "highlight" | "featured";
@@ -20,12 +24,34 @@ export interface PreviewSample {
   name: string;
   description: string;
   logoUrl: string | null;
+  clickCount?: number;
+  category?: string;
 }
 
-const FALLBACK_SAMPLE: PreviewSample = {
-  name: "Your site",
-  description: "Your description is pulled from your site automatically.",
-  logoUrl: null,
+/** The row the buyer is shown "becoming" — replaced by their own site in the
+ * buy dialog as soon as they type a URL. */
+const DEFAULT_SUBJECT: PreviewSample = {
+  name: "Stripe",
+  description: "Financial infrastructure to grow your revenue.",
+  logoUrl: faviconUrl("https://stripe.com"),
+  clickCount: 1876,
+  category: "SaaS & Tools",
+};
+
+const NEIGHBOUR_ABOVE: PreviewSample = {
+  name: "GitHub",
+  description: "Build and ship software on a single, collaborative platform.",
+  logoUrl: faviconUrl("https://github.com"),
+  clickCount: 2140,
+  category: "SaaS & Tools",
+};
+
+const NEIGHBOUR_BELOW: PreviewSample = {
+  name: "Notion",
+  description: "One workspace for your docs, projects, and knowledge.",
+  logoUrl: faviconUrl("https://notion.so"),
+  clickCount: 1502,
+  category: "SaaS & Tools",
 };
 
 const STATE_LABEL: Record<PreviewState, string> = {
@@ -37,44 +63,29 @@ const STATE_LABEL: Record<PreviewState, string> = {
 const STATE_NOTE: Record<PreviewState, string> = {
   normal: "How a free listing looks by default.",
   highlight:
-    "A warm highlight band and gold edge make the row stand out — the rank number is unchanged.",
+    "A soft gold tint plus a light-gold shimmer that travels around the row — the rank number is unchanged.",
   featured:
     "A gold “Featured” badge sits next to your name, and you sort above other free listings.",
 };
-
-/** A dimmed neighbouring row, so the emphasis is visible in context. */
-function NeighbourRow({ rank, name }: { rank: number; name: string }) {
-  return (
-    <div className="flex items-center gap-3 px-3 py-3 opacity-45 sm:gap-4 sm:px-4">
-      <span className="w-6 shrink-0 text-center font-display text-base font-semibold text-muted tabular-nums">
-        {rank}
-      </span>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-raised font-display text-sm font-semibold text-muted">
-        {name.slice(0, 2).toUpperCase()}
-      </span>
-      <div className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-semibold">{name}</span>
-        <span className="mt-1 block h-2 w-2/3 max-w-40 rounded-full bg-border" />
-      </div>
-    </div>
-  );
-}
 
 function PreviewRow({
   sample,
   state,
   rank,
+  dimmed = false,
 }: {
   sample: PreviewSample;
   state: PreviewState;
   rank: number;
+  dimmed?: boolean;
 }) {
   const highlighted = state === "highlight";
   return (
     <div
       className={cn(
         "relative flex items-center gap-3 px-3 py-3 transition-colors duration-300 sm:gap-4 sm:px-4",
-        highlighted && "bg-gold-soft ring-1 ring-gold/30 ring-inset",
+        highlighted && "highlight-orbit bg-gold-soft",
+        dimmed && "opacity-45",
       )}
     >
       <span className="w-6 shrink-0 text-center font-display text-base font-semibold text-muted tabular-nums">
@@ -94,10 +105,10 @@ function PreviewRow({
           {sample.description}
         </p>
         <p className="mt-1 flex items-center gap-3 text-xs text-faint">
-          <span>SaaS &amp; Tools</span>
+          <span>{sample.category ?? "SaaS & Tools"}</span>
           <span className="inline-flex items-center gap-1">
             <MousePointerClick className="h-3.5 w-3.5" />
-            128
+            {(sample.clickCount ?? 128).toLocaleString("en-US")}
           </span>
         </p>
       </div>
@@ -123,7 +134,7 @@ export function ExtraVisibilityPreview({
     kind === "highlight" ? "highlight" : "featured",
   );
   const panelId = useId();
-  const row = sample ?? FALLBACK_SAMPLE;
+  const subject = sample ?? DEFAULT_SUBJECT;
 
   return (
     <div className={className}>
@@ -171,16 +182,17 @@ export function ExtraVisibilityPreview({
           </div>
 
           <div className="mt-3 overflow-hidden rounded-xl border border-border bg-surface">
-            <NeighbourRow rank={12} name="Another listing" />
+            <PreviewRow sample={NEIGHBOUR_ABOVE} state="normal" rank={12} dimmed />
             <div className="border-y border-border">
-              <PreviewRow sample={row} state={state} rank={13} />
+              <PreviewRow sample={subject} state={state} rank={13} />
             </div>
-            <NeighbourRow rank={14} name="Something else" />
+            <PreviewRow sample={NEIGHBOUR_BELOW} state="normal" rank={14} dimmed />
           </div>
 
           <p className="mt-2 text-xs text-faint">{STATE_NOTE[state]}</p>
           <p className="mt-1 text-xs text-faint">
             Visual emphasis only — neither option changes your rank number.
+            Example rows only; these are not real listings.
           </p>
         </div>
       )}
