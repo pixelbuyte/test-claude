@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   title: "SuperSpot — Pay to be seen",
   description:
     "Claim a timed top spot on the internet's most honest leaderboard. Pay-to-feature spotlight inspired by Super Chat + Outbid, but your reign has a clock.",
+  icons: {
+    icon: "/favicon.svg",
+  },
   openGraph: {
     title: "SuperSpot — Pay to be seen",
     description:
