@@ -147,13 +147,19 @@ export function rankBoard(listings: Listing[], now: Date): BoardEntry[] {
   return entries;
 }
 
-/** Concurrent active boosts per tier — used for capacity checks. */
+/** Concurrent active boosts per tier — used for capacity checks. Permanent
+ * owners are excluded: they are placed in ranks 1–5 regardless, so a stale
+ * boost on one must not consume a tier slot. */
 export function countActiveBoosts(
   listings: Listing[],
   tier: Tier,
   now: Date,
 ): number {
   return listings.filter(
-    (l) => l.status === "active" && l.boostTier === tier && hasActiveBoost(l, now),
+    (l) =>
+      l.status === "active" &&
+      l.permanentRank === null &&
+      l.boostTier === tier &&
+      hasActiveBoost(l, now),
   ).length;
 }

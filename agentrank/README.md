@@ -127,5 +127,10 @@ npm run dev
   even with no cron running.
 - A partial unique index guarantees a permanent rank can never be assigned
   twice; a losing race is flagged `conflict` for a full refund.
-- Tier capacity (5/10/30) is checked at checkout **and** re-checked at
-  webhook time.
+- Tier capacity (5/10/30) is checked at checkout and claimed atomically at
+  webhook time by a Postgres function holding an advisory lock — two
+  concurrent buyers can never oversell a tier.
+- The webhook claims each payment exactly once before applying it, so
+  Stripe's at-least-once delivery can never double-extend a placement.
+- A cheap purchase can never downgrade another listing's active higher-tier
+  placement, and payment never reinstates a rejected listing.

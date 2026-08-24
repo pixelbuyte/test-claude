@@ -20,9 +20,10 @@ export function Countdown({ expiresAt }: { expiresAt: string }) {
     hour: "numeric",
     minute: "2-digit",
   });
+  const remaining = timeLeft(expiresAt, now);
   return (
     <span title={`Until ${exact}`} suppressHydrationWarning>
-      {timeLeft(expiresAt, now)} left
+      {remaining === "expired" ? "expired" : `${remaining} left`}
     </span>
   );
 }

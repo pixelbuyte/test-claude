@@ -42,7 +42,7 @@ export interface Payment {
   listingId: string | null;
   sku: string;
   amountCents: number;
-  status: "pending" | "completed" | "conflict" | "refunded";
+  status: "pending" | "completed" | "conflict" | "failed" | "refunded";
   stripeSessionId: string | null;
   createdAt: string;
   completedAt: string | null;

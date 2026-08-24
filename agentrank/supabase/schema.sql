@@ -68,7 +68,7 @@ create table if not exists payments (
   sku text not null,
   amount_cents integer not null,
   status text not null default 'pending'
-    check (status in ('pending', 'completed', 'conflict', 'refunded')),
+    check (status in ('pending', 'completed', 'conflict', 'failed', 'refunded')),
   created_at timestamptz not null default now(),
   completed_at timestamptz
 );
@@ -80,6 +80,8 @@ create table if not exists presence (
   anon_id text primary key,
   seen_at timestamptz not null default now()
 );
+
+create index if not exists presence_seen_idx on presence (seen_at);
 
 -- ── Settings (free-form key/value for future toggles) ──────────────────────
 create table if not exists settings (
@@ -105,6 +107,44 @@ begin
      and status = 'active'
   returning url into target;
   return target;
+end;
+$$;
+
+-- ── Atomic tier-boost claim ────────────────────────────────────────────────
+-- Capacity check and boost write in one serialized step, so two webhooks
+-- racing for the last slot in a tier can never both win. The advisory lock
+-- keys on the tier name and is released when the transaction ends.
+create or replace function apply_tier_boost(
+  p_listing_id uuid,
+  p_tier text,
+  p_capacity integer,
+  p_started_at timestamptz,
+  p_expires_at timestamptz
+) returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform pg_advisory_xact_lock(hashtext('agentrank_boost_' || p_tier));
+  if (
+    select count(*)
+      from listings
+     where status = 'active'
+       and boost_tier = p_tier
+       and boost_expires_at > now()
+       and permanent_rank is null
+       and id <> p_listing_id
+  ) >= p_capacity then
+    return false;
+  end if;
+  update listings
+     set boost_tier = p_tier,
+         boost_started_at = p_started_at,
+         boost_expires_at = p_expires_at,
+         status = 'active'
+   where id = p_listing_id;
+  return true;
 end;
 $$;
 
@@ -151,6 +191,15 @@ alter table categories enable row level security;
 
 create policy "public can read active listings" on listings
   for select using (status = 'active');
+
+-- owner_email is customer PII: column-level grants keep it out of reach of
+-- the anon/authenticated roles even though the row policy allows the row.
+revoke select on listings from anon, authenticated;
+grant select (
+  id, name, url, description, logo_url, category, status,
+  permanent_rank, boost_tier, boost_started_at, boost_expires_at,
+  highlight_expires_at, featured_open_expires_at, click_count, created_at
+) on listings to anon, authenticated;
 
 create policy "public can read categories" on categories
   for select using (true);

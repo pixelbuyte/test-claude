@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createListing, DemoModeError, getActiveListings } from "@/lib/db";
 import { CATEGORIES } from "@/lib/types";
-import { normalizeUrl } from "@/lib/utils";
+import { isEmail, normalizeUrl } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -61,6 +61,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const ownerEmail = body.ownerEmail?.trim();
+  if (ownerEmail && !isEmail(ownerEmail)) {
+    return NextResponse.json(
+      { error: "That email address doesn't look valid." },
+      { status: 400 },
+    );
+  }
+
   try {
     const listing = await createListing({
       name,
@@ -68,7 +76,7 @@ export async function POST(req: NextRequest) {
       description,
       logoUrl: logoUrl ?? undefined,
       category,
-      ownerEmail: body.ownerEmail?.trim() || undefined,
+      ownerEmail: ownerEmail || undefined,
     });
     return NextResponse.json({
       listing: { id: listing.id, status: listing.status },

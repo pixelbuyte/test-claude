@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
-import { applyPurchase, completePayment, getListing } from "@/lib/db";
+import {
+  applyPurchase,
+  claimPayment,
+  getListing,
+  markPayment,
+  releasePaymentClaim,
+} from "@/lib/db";
 import { sendPurchaseConfirmation } from "@/lib/email";
 import { stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
 /**
- * Stripe webhook: on checkout.session.completed the purchase is verified,
- * marked complete exactly once, and applied to the listing (permanent rank,
- * tier boost, highlight, or featured badge). If availability was lost in a
- * race, the payment is flagged "conflict" for the admin to refund — a rank
- * is never double-assigned.
+ * Stripe webhook. Flow, in order, per paid session:
+ *
+ *   1. Claim the payment row (pending → completed) — the atomic idempotency
+ *      gate. Duplicate deliveries find nothing to claim and stop here, so a
+ *      retried event can never extend a boost or highlight twice.
+ *   2. Apply the purchase. A genuine availability loss (rank won by someone
+ *      else, tier full, rejected listing) downgrades the payment to
+ *      "conflict" for the admin to refund — never double-sold. A transient
+ *      failure releases the claim and returns 500 so Stripe retries.
+ *
+ * checkout.session.completed with payment_status "unpaid" (delayed payment
+ * methods) is acked and left pending; async_payment_succeeded fulfills it
+ * later and async_payment_failed marks it "failed".
  */
 export async function POST(req: NextRequest) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -37,7 +51,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature." }, { status: 400 });
   }
 
-  if (event.type !== "checkout.session.completed") {
+  const relevant =
+    event.type === "checkout.session.completed" ||
+    event.type === "checkout.session.async_payment_succeeded" ||
+    event.type === "checkout.session.async_payment_failed";
+  if (!relevant) {
     return NextResponse.json({ received: true });
   }
 
@@ -48,34 +66,48 @@ export async function POST(req: NextRequest) {
     // Not one of ours (e.g. a manual Payment Link purchase) — acknowledge.
     return NextResponse.json({ received: true });
   }
-  if (session.payment_status !== "paid") {
-    return NextResponse.json({ received: true });
-  }
 
   try {
-    const result = await applyPurchase({ sku, listingId });
+    if (event.type === "checkout.session.async_payment_failed") {
+      await markPayment(session.id, "failed");
+      return NextResponse.json({ received: true });
+    }
 
-    const { alreadyProcessed } = await completePayment({
-      stripeSessionId: session.id,
-      status: result.ok ? "completed" : "conflict",
-    });
+    if (session.payment_status !== "paid") {
+      // Delayed payment method: async_payment_succeeded will fulfill later.
+      return NextResponse.json({ received: true });
+    }
+
+    const { alreadyProcessed } = await claimPayment(session.id);
+    if (alreadyProcessed) {
+      return NextResponse.json({ received: true });
+    }
+
+    let result;
+    try {
+      result = await applyPurchase({ sku, listingId });
+    } catch (err) {
+      // Transient failure: hand the claim back so Stripe's retry re-runs it.
+      await releasePaymentClaim(session.id);
+      throw err;
+    }
 
     if (!result.ok) {
       console.error(
-        `Purchase conflict for session ${session.id}: ${result.reason}`,
+        `Purchase conflict for session ${session.id}: ${result.reason} — refund this payment.`,
       );
+      await markPayment(session.id, "conflict");
+      return NextResponse.json({ received: true });
     }
 
-    if (result.ok && !alreadyProcessed) {
-      const email = session.customer_details?.email;
-      if (email) {
-        const listing = await getListing(listingId);
-        await sendPurchaseConfirmation({
-          to: email,
-          sku,
-          listingName: listing?.name ?? "your listing",
-        });
-      }
+    const email = session.customer_details?.email;
+    if (email) {
+      const listing = await getListing(listingId);
+      await sendPurchaseConfirmation({
+        to: email,
+        sku,
+        listingName: listing?.name ?? "your listing",
+      });
     }
 
     return NextResponse.json({ received: true });

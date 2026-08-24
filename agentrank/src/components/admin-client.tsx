@@ -140,7 +140,10 @@ export function AdminDashboard({
                       {l.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted">
+                  <td
+                    className="px-4 py-3 text-xs text-muted"
+                    suppressHydrationWarning
+                  >
                     {placementSummary(l)}
                   </td>
                   <td className="px-4 py-3 tabular-nums">{l.clickCount}</td>
@@ -202,7 +205,10 @@ export function AdminDashboard({
               )}
               {payments.map((p) => (
                 <tr key={p.id}>
-                  <td className="px-4 py-3 text-xs text-muted">
+                  <td
+                    className="px-4 py-3 text-xs text-muted"
+                    suppressHydrationWarning
+                  >
                     {new Date(p.createdAt).toLocaleString()}
                   </td>
                   <td className="px-4 py-3">
@@ -217,7 +223,9 @@ export function AdminDashboard({
                         "text-xs font-medium",
                         p.status === "completed" && "text-tier50",
                         p.status === "pending" && "text-gold",
-                        (p.status === "conflict" || p.status === "refunded") &&
+                        (p.status === "conflict" ||
+                          p.status === "failed" ||
+                          p.status === "refunded") &&
                           "text-danger",
                       )}
                     >

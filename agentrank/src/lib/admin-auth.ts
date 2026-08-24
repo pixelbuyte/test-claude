@@ -7,12 +7,19 @@ export function adminConfigured(): boolean {
   return Boolean(process.env.ADMIN_PASSWORD);
 }
 
-/** Deterministic session token derived from the admin password, so the
- * password itself never lives in a cookie. */
-export function adminToken(): string {
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function sign(payload: string): string {
   return createHmac("sha256", process.env.ADMIN_PASSWORD ?? "")
-    .update("agentrank-admin-v1")
+    .update(`agentrank-admin-v2:${payload}`)
     .digest("hex");
+}
+
+/** Expiring session token: "<expiresAtMs>.<hmac>". The password itself never
+ * lives in a cookie, and a stolen cookie stops working after the TTL. */
+export function adminToken(now = Date.now()): string {
+  const expiresAt = String(now + SESSION_TTL_MS);
+  return `${expiresAt}.${sign(expiresAt)}`;
 }
 
 export function passwordMatches(candidate: string): boolean {
@@ -25,8 +32,12 @@ export async function isAdmin(): Promise<boolean> {
   if (!adminConfigured()) return false;
   const store = await cookies();
   const value = store.get(ADMIN_COOKIE)?.value ?? "";
-  const expected = adminToken();
-  const a = Buffer.from(value);
-  const b = Buffer.from(expected);
+  const [expiresAt, mac] = value.split(".");
+  if (!expiresAt || !mac) return false;
+  if (!/^\d{1,16}$/.test(expiresAt) || Number(expiresAt) < Date.now()) {
+    return false;
+  }
+  const a = Buffer.from(mac);
+  const b = Buffer.from(sign(expiresAt));
   return a.length === b.length && timingSafeEqual(a, b);
 }

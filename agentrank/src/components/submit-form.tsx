@@ -81,8 +81,11 @@ export function SubmitForm() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-sm font-medium">Name</label>
+        <label htmlFor="sf-name" className="mb-1.5 block text-sm font-medium">
+          Name
+        </label>
         <input
+          id="sf-name"
           required
           minLength={2}
           maxLength={60}
@@ -93,10 +96,11 @@ export function SubmitForm() {
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium">
+        <label htmlFor="sf-url" className="mb-1.5 block text-sm font-medium">
           Link — website, X, LinkedIn, YouTube, Discord…
         </label>
         <input
+          id="sf-url"
           required
           value={form.url}
           onChange={(e) => setForm({ ...form, url: e.target.value })}
@@ -105,13 +109,14 @@ export function SubmitForm() {
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium">
+        <label htmlFor="sf-desc" className="mb-1.5 block text-sm font-medium">
           Short description{" "}
           <span className="font-normal text-faint">
             ({120 - form.description.length} left)
           </span>
         </label>
         <input
+          id="sf-desc"
           required
           maxLength={120}
           value={form.description}
@@ -122,8 +127,11 @@ export function SubmitForm() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-sm font-medium">Category</label>
+          <label htmlFor="sf-category" className="mb-1.5 block text-sm font-medium">
+            Category
+          </label>
           <select
+            id="sf-category"
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
             className={field}
@@ -136,10 +144,11 @@ export function SubmitForm() {
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium">
+          <label htmlFor="sf-logo" className="mb-1.5 block text-sm font-medium">
             Logo URL <span className="font-normal text-faint">(optional)</span>
           </label>
           <input
+            id="sf-logo"
             value={form.logoUrl}
             onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
             placeholder="https://…/logo.png"
@@ -148,10 +157,11 @@ export function SubmitForm() {
         </div>
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium">
+        <label htmlFor="sf-email" className="mb-1.5 block text-sm font-medium">
           Email <span className="font-normal text-faint">(optional — for upgrade receipts)</span>
         </label>
         <input
+          id="sf-email"
           type="email"
           value={form.ownerEmail}
           onChange={(e) => setForm({ ...form, ownerEmail: e.target.value })}

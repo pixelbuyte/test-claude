@@ -20,6 +20,11 @@ export function normalizeUrl(input: string): string | null {
   }
 }
 
+/** Light-touch email shape check for an optional field — not RFC-complete. */
+export function isEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) && value.length <= 254;
+}
+
 export function timeLeft(expiresAtIso: string, now: Date): string {
   const ms = new Date(expiresAtIso).getTime() - now.getTime();
   if (ms <= 0) return "expired";

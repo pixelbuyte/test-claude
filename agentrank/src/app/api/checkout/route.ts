@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   createListing,
+  demoMode,
   DemoModeError,
   getActiveListings,
   getListing,
+  isPermanentRankTaken,
   recordPendingPayment,
 } from "@/lib/db";
-import { getCatalogItem, TIER_CAPACITY, TIER_LABEL } from "@/lib/pricing";
+import { getCatalogItem, TIER_CAPACITY, TIER_LABEL, type Tier } from "@/lib/pricing";
 import { countActiveBoosts } from "@/lib/ranking";
 import { isStripeConfigured, siteUrl, stripe } from "@/lib/stripe";
 import { CATEGORIES, type SubmitListingInput } from "@/lib/types";
-import { normalizeUrl } from "@/lib/utils";
+import { isEmail, normalizeUrl } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -41,12 +43,13 @@ function parseNewListing(
   if (description.length > 120) {
     return { error: "Description must be 120 characters or fewer." };
   }
+  const ownerEmail = raw.ownerEmail?.trim();
   return {
     name,
     url,
     description,
     category,
-    ownerEmail: raw.ownerEmail?.trim() || undefined,
+    ownerEmail: ownerEmail && isEmail(ownerEmail) ? ownerEmail : undefined,
   };
 }
 
@@ -69,10 +72,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unknown package." }, { status: 400 });
   }
 
-  // Without Stripe/Supabase configured, fall back to the matching Stripe
-  // Payment Link so the buy buttons still work on a fresh deployment.
-  if (!isStripeConfigured()) {
+  // Fully unconfigured (demo mode, no Stripe): fall back to the matching
+  // Stripe Payment Link — a manual sales channel where the buyer identifies
+  // their listing and the owner applies the placement by hand.
+  if (!isStripeConfigured() && demoMode()) {
     return NextResponse.json({ url: item.stripe.paymentLinkUrl, fallback: true });
+  }
+  // Half-configured deployments must never take money they can't fulfill.
+  if (!isStripeConfigured() || demoMode()) {
+    return NextResponse.json(
+      {
+        error:
+          "Payments are not fully configured on this deployment (Stripe and Supabase are both required).",
+      },
+      { status: 503 },
+    );
   }
 
   try {
@@ -80,8 +94,9 @@ export async function POST(req: NextRequest) {
     const now = new Date();
 
     if (item.kind === "permanent") {
-      const taken = listings.some((l) => l.permanentRank === item.rank);
-      if (taken) {
+      // Any-status check: a rank held by a pending/rejected listing is still
+      // owned in the DB and would only produce a conflict at webhook time.
+      if (await isPermanentRankTaken(item.rank!)) {
         return NextResponse.json(
           { error: `Permanent Rank #${item.rank} is already owned.` },
           { status: 409 },
@@ -110,6 +125,36 @@ export async function POST(req: NextRequest) {
       const existing = await getListing(listingId);
       if (!existing) {
         return NextResponse.json({ error: "Listing not found." }, { status: 404 });
+      }
+      if (existing.status === "rejected") {
+        return NextResponse.json(
+          { error: "This listing was rejected and cannot buy placements." },
+          { status: 409 },
+        );
+      }
+      if (item.kind === "tier_boost") {
+        if (existing.permanentRank !== null) {
+          return NextResponse.json(
+            {
+              error:
+                "This listing already holds a permanent rank — a tier boost would have no effect.",
+            },
+            { status: 409 },
+          );
+        }
+        const priority: Record<Tier, number> = { top10: 3, top20: 2, top50: 1 };
+        const activeBoost =
+          existing.boostTier !== null &&
+          existing.boostExpiresAt !== null &&
+          new Date(existing.boostExpiresAt) > now;
+        if (activeBoost && priority[item.tier!] < priority[existing.boostTier!]) {
+          return NextResponse.json(
+            {
+              error: `This listing already holds an active ${TIER_LABEL[existing.boostTier!]} placement — buying a lower tier would downgrade it.`,
+            },
+            { status: 409 },
+          );
+        }
       }
     } else {
       if (!body.newListing) {
@@ -144,7 +189,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (err) {
     if (err instanceof DemoModeError) {
-      return NextResponse.json({ url: item.stripe.paymentLinkUrl, fallback: true });
+      return NextResponse.json({ error: err.message }, { status: 503 });
     }
     console.error("Checkout error", err);
     return NextResponse.json(

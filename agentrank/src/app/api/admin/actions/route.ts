@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
         await setListingStatus(id, "active");
         break;
       case "reject":
+        // Clearing placements frees any permanent rank or tier slot the
+        // listing held, so the position becomes sellable again immediately.
+        await clearPlacements(id);
         await setListingStatus(id, "rejected");
         break;
       case "clear_placements":

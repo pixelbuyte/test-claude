@@ -57,6 +57,14 @@ function PurchaseDialog({
       .catch(() => setListings([]));
   }, []);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const checkout = async () => {
     setBusy(true);
     setError(null);
@@ -113,6 +121,7 @@ function PurchaseDialog({
             type="button"
             aria-label="Close"
             onClick={onClose}
+            autoFocus
             className="rounded-full border border-border p-1.5 text-muted hover:text-foreground"
           >
             <X className="h-4 w-4" />
@@ -149,10 +158,14 @@ function PurchaseDialog({
 
         {mode === "existing" ? (
           <div className="mt-4">
-            <label className="text-xs font-medium tracking-wide text-faint uppercase">
+            <label
+              htmlFor="pd-listing"
+              className="text-xs font-medium tracking-wide text-faint uppercase"
+            >
               Apply the placement to
             </label>
             <select
+              id="pd-listing"
               value={listingId}
               onChange={(e) => setListingId(e.target.value)}
               className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-border-strong"

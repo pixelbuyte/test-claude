@@ -6,7 +6,6 @@
  */
 
 import { getCatalogItem, TIER_CAPACITY, type Tier } from "@/lib/pricing";
-import { countActiveBoosts } from "@/lib/ranking";
 import { isDbConfigured, supabaseAdmin } from "@/lib/supabase";
 import { demoListings, demoVisitorCount, DEMO_REVENUE_CENTS } from "@/lib/demo-data";
 import type { Listing, Payment, SubmitListingInput } from "@/lib/types";
@@ -181,6 +180,11 @@ export async function heartbeat(anonId: string): Promise<void> {
     .from("presence")
     .upsert({ anon_id: anonId, seen_at: new Date().toISOString() });
   if (error) throw error;
+  // Opportunistic prune keeps the table bounded even without pg_cron.
+  if (Math.random() < 0.05) {
+    const cutoff = new Date(Date.now() - 3600_000).toISOString();
+    await supabaseAdmin().from("presence").delete().lt("seen_at", cutoff);
+  }
 }
 
 // ── Purchase application (called from the Stripe webhook) ──────────────────
@@ -189,11 +193,31 @@ export type ApplyResult =
   | { ok: true }
   | { ok: false; reason: string };
 
+const TIER_PRIORITY: Record<Tier, number> = { top10: 3, top20: 2, top50: 1 };
+
+/** True when any listing (regardless of status) holds the permanent rank —
+ * a rejected holder still owns the row until an admin clears it. */
+export async function isPermanentRankTaken(rank: number): Promise<boolean> {
+  if (demoMode()) {
+    return demoListings().some((l) => l.permanentRank === rank);
+  }
+  const { count, error } = await supabaseAdmin()
+    .from("listings")
+    .select("id", { count: "exact", head: true })
+    .eq("permanent_rank", rank);
+  if (error) throw error;
+  return (count ?? 0) > 0;
+}
+
 /**
- * Applies a completed purchase to a listing. Availability is re-checked here
- * (not just at checkout) so a race between two buyers can never hand out the
- * same permanent rank or oversell a tier — the loser is flagged "conflict"
- * for the admin to refund.
+ * Applies a paid purchase to a listing.
+ *
+ * Guarantees: a genuine loss of availability (rank taken, tier full, listing
+ * rejected, would-be downgrade) returns ok:false so the webhook flags the
+ * payment "conflict" for a refund; a transient failure THROWS so the webhook
+ * can 500 and let Stripe retry. Rank races are settled by the partial unique
+ * index on permanent_rank; tier capacity races by the apply_tier_boost
+ * function's advisory lock — neither can ever double-sell.
  */
 export async function applyPurchase(params: {
   sku: string;
@@ -206,38 +230,51 @@ export async function applyPurchase(params: {
   const db = supabaseAdmin();
   const listing = await getListing(params.listingId);
   if (!listing) return { ok: false, reason: "Listing not found" };
+  if (listing.status === "rejected") {
+    // Payment never resurrects a moderated-away listing.
+    return { ok: false, reason: "Listing was rejected by moderation" };
+  }
   const now = new Date();
 
   if (item.kind === "permanent") {
-    // The partial unique index on permanent_rank makes the race safe: if two
-    // webhooks try to claim the same rank, the second update errors.
     const { error } = await db
       .from("listings")
       .update({ permanent_rank: item.rank, status: "active" })
       .eq("id", listing.id);
     if (error) {
-      return { ok: false, reason: `Permanent rank ${item.rank} is already owned` };
+      // 23505 = unique_violation on the permanent_rank partial index: the
+      // rank was genuinely won by someone else. Anything else is transient.
+      if (error.code === "23505") {
+        return { ok: false, reason: `Permanent rank ${item.rank} is already owned` };
+      }
+      throw error;
     }
     return { ok: true };
   }
 
   if (item.kind === "tier_boost") {
     const tier = item.tier as Tier;
-    const all = await getActiveListings();
-    const othersInTier = countActiveBoosts(
-      all.filter((l) => l.id !== listing.id),
-      tier,
-      now,
-    );
-    if (othersInTier >= TIER_CAPACITY[tier]) {
-      return { ok: false, reason: `${tier} tier is full` };
+    if (listing.permanentRank !== null) {
+      return {
+        ok: false,
+        reason: "Listing already holds a permanent rank — a tier boost would have no effect",
+      };
     }
-    const sameTierActive =
-      listing.boostTier === tier &&
-      listing.boostExpiresAt &&
+    const activeBoost =
+      listing.boostTier !== null &&
+      listing.boostExpiresAt !== null &&
       new Date(listing.boostExpiresAt) > now;
-    // Same-tier repurchase extends the existing placement and keeps the
-    // listing's first-come queue position; switching tiers starts fresh.
+    if (activeBoost && TIER_PRIORITY[tier] < TIER_PRIORITY[listing.boostTier!]) {
+      // A cheap purchase must never pull an active higher-tier placement
+      // down — that would let anyone sabotage another buyer's slot.
+      return {
+        ok: false,
+        reason: `Listing already holds an active ${listing.boostTier} placement — a ${tier} boost would downgrade it`,
+      };
+    }
+    const sameTierActive = activeBoost && listing.boostTier === tier;
+    // Same-tier repurchase extends the placement and keeps the listing's
+    // first-come queue position; an upgrade starts fresh from now.
     const startedAt = sameTierActive
       ? listing.boostStartedAt
       : now.toISOString();
@@ -247,16 +284,15 @@ export async function applyPurchase(params: {
     const expiresAt = new Date(
       baseMs + item.durationHours! * 3600_000,
     ).toISOString();
-    const { error } = await db
-      .from("listings")
-      .update({
-        boost_tier: tier,
-        boost_started_at: startedAt,
-        boost_expires_at: expiresAt,
-        status: "active",
-      })
-      .eq("id", listing.id);
-    if (error) return { ok: false, reason: error.message };
+    const { data: claimed, error } = await db.rpc("apply_tier_boost", {
+      p_listing_id: listing.id,
+      p_tier: tier,
+      p_capacity: TIER_CAPACITY[tier],
+      p_started_at: startedAt,
+      p_expires_at: expiresAt,
+    });
+    if (error) throw error;
+    if (!claimed) return { ok: false, reason: `${tier} tier is full` };
     return { ok: true };
   }
 
@@ -276,26 +312,57 @@ export async function applyPurchase(params: {
     .from("listings")
     .update({ [column]: expiresAt })
     .eq("id", listing.id);
-  if (error) return { ok: false, reason: error.message };
+  if (error) throw error;
   return { ok: true };
 }
 
-export async function completePayment(params: {
-  stripeSessionId: string;
-  status: "completed" | "conflict";
-}): Promise<{ alreadyProcessed: boolean }> {
+/**
+ * Atomically claims a pending payment (pending → completed). The webhook
+ * claims BEFORE applying the purchase, which makes duplicate Stripe
+ * deliveries no-ops — they see alreadyProcessed and never touch the listing.
+ */
+export async function claimPayment(
+  stripeSessionId: string,
+): Promise<{ alreadyProcessed: boolean }> {
   if (demoMode()) throw new DemoModeError();
   const { data, error } = await supabaseAdmin()
     .from("payments")
     .update({
-      status: params.status,
+      status: "completed",
       completed_at: new Date().toISOString(),
     })
-    .eq("stripe_session_id", params.stripeSessionId)
+    .eq("stripe_session_id", stripeSessionId)
     .eq("status", "pending")
     .select("id");
   if (error) throw error;
   return { alreadyProcessed: (data ?? []).length === 0 };
+}
+
+/** Rolls a claim back to pending so a Stripe retry can process it again
+ * after a transient failure. */
+export async function releasePaymentClaim(stripeSessionId: string): Promise<void> {
+  if (demoMode()) throw new DemoModeError();
+  const { error } = await supabaseAdmin()
+    .from("payments")
+    .update({ status: "pending", completed_at: null })
+    .eq("stripe_session_id", stripeSessionId)
+    .eq("status", "completed");
+  if (error) throw error;
+}
+
+/** Marks a claimed payment with a terminal non-success status
+ * ("conflict" → refund it in Stripe; "failed" → async payment never landed). */
+export async function markPayment(
+  stripeSessionId: string,
+  status: "conflict" | "failed",
+): Promise<void> {
+  if (demoMode()) throw new DemoModeError();
+  const { error } = await supabaseAdmin()
+    .from("payments")
+    .update({ status, completed_at: new Date().toISOString() })
+    .eq("stripe_session_id", stripeSessionId)
+    .neq("status", "refunded");
+  if (error) throw error;
 }
 
 // ── Admin ──────────────────────────────────────────────────────────────────
