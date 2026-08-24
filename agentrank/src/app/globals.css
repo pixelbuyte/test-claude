@@ -2,49 +2,79 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --background: #f7f7f5;
-  --foreground: #16181d;
-  --surface: #ffffff;
-  --surface-raised: #f1f1ee;
-  --border: #e4e4df;
-  --border-strong: #d2d2cc;
-  --muted: #6b7080;
-  --faint: #9aa0ae;
+/* ── Palette ───────────────────────────────────────────────────────────────
+   Warm, light-first and deliberately restrained. The base is a warm cream
+   rather than clinical white or flat black: warm neutrals read as
+   approachable and lower the "am I about to get scammed" feeling on a page
+   that asks for real money. Coral carries the energy of red without its
+   alarm, and is reserved for the primary action and prices.
 
-  --gold: #a06b10;
-  --gold-soft: rgba(176, 124, 32, 0.1);
-  --tier10: #6d5bd0;
-  --tier10-soft: rgba(109, 91, 208, 0.1);
-  --tier20: #0e7ea3;
-  --tier20-soft: rgba(14, 126, 163, 0.1);
-  --tier50: #177a53;
-  --tier50-soft: rgba(23, 122, 83, 0.1);
-  --accent: #16181d;
+   Only four working hues, each with exactly one job, so the board stays
+   colour-coded without becoming confusing:
+     coral  (--accent)  → the thing you click, and money
+     amber  (--gold)    → permanent / highlighted, the premium tier
+     cyan   (--tier20)  → mid timed tier
+     green  (--success) → live, available, confirmed
+   The lowest tier is intentionally neutral slate — least premium, least ink.
+
+   Body text on the base clears WCAG AA: --foreground on --background is
+   ~15:1 and --muted is ~5.3:1. --accent-strong exists because the coral CTA
+   fill is too light to also serve as price text on cream. */
+:root {
+  --background: #f8f4ef;
+  --foreground: #1a1714;
+  --surface: #ffffff;
+  --surface-raised: #f1eae1;
+  --border: #e7ded3;
+  --border-strong: #d5c8b9;
+  --muted: #6d6458;
+  --faint: #9a8e80;
+
+  --gold: #a06a05;
+  --gold-soft: rgba(214, 158, 46, 0.14);
+  --tier10: #c0492b;
+  --tier10-soft: rgba(226, 105, 74, 0.12);
+  --tier20: #0e7490;
+  --tier20-soft: rgba(14, 116, 144, 0.1);
+  --tier50: #566370;
+  --tier50-soft: rgba(86, 99, 112, 0.1);
+
+  --accent: #e2694a;
   --accent-fg: #ffffff;
+  --accent-soft: rgba(226, 105, 74, 0.12);
+  --accent-strong: #b8412a;
+
+  --success: #15803d;
+  --success-soft: rgba(21, 128, 61, 0.12);
   --danger: #b3372f;
 }
 
 .dark {
-  --background: #08090c;
-  --foreground: #e9ebf1;
-  --surface: #0e1016;
-  --surface-raised: #141722;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --muted: #9aa1b4;
-  --faint: #626a7d;
+  --background: #14110f;
+  --foreground: #f0eae3;
+  --surface: #1c1815;
+  --surface-raised: #241f1a;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --muted: #a89c8e;
+  --faint: #7a6f63;
 
-  --gold: #e0b563;
-  --gold-soft: rgba(224, 181, 99, 0.09);
-  --tier10: #a394f7;
-  --tier10-soft: rgba(163, 148, 247, 0.1);
-  --tier20: #55c3ea;
-  --tier20-soft: rgba(85, 195, 234, 0.1);
-  --tier50: #4cd6a0;
-  --tier50-soft: rgba(76, 214, 160, 0.1);
-  --accent: #e9ebf1;
-  --accent-fg: #0b0c10;
+  --gold: #e8b45c;
+  --gold-soft: rgba(232, 180, 92, 0.12);
+  --tier10: #f08361;
+  --tier10-soft: rgba(240, 131, 97, 0.13);
+  --tier20: #4cb8d4;
+  --tier20-soft: rgba(76, 184, 212, 0.12);
+  --tier50: #98a4b0;
+  --tier50-soft: rgba(152, 164, 176, 0.12);
+
+  --accent: #ef7b57;
+  --accent-fg: #1a1008;
+  --accent-soft: rgba(239, 123, 87, 0.15);
+  --accent-strong: #f7a184;
+
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.13);
   --danger: #f0736a;
 }
 
@@ -67,6 +97,10 @@
   --color-tier50-soft: var(--tier50-soft);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), var(--font-geist-sans), sans-serif;

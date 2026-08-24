@@ -72,7 +72,7 @@ export function StatsBar({
       label: "Live right now",
       value: (
         <span className="inline-flex items-center gap-2">
-          <span className="live-dot inline-block h-2 w-2 rounded-full bg-tier50" />
+          <span className="live-dot inline-block h-2 w-2 rounded-full bg-success" />
           {formatCount(live)}
         </span>
       ),

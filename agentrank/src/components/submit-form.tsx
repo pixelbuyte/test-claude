@@ -56,7 +56,7 @@ export function SubmitForm() {
   if (done) {
     return (
       <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-        <CheckCircle2 className="mx-auto h-10 w-10 text-tier50" />
+        <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
         <h2 className="mt-4 font-display text-xl font-semibold">
           {done === "active" ? "You're on the board!" : "Submitted for review"}
         </h2>

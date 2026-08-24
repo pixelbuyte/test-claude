@@ -2,6 +2,7 @@ import { ArrowRight, BadgeCheck, Landmark, Timer } from "lucide-react";
 import Link from "next/link";
 
 import { Board } from "@/components/board";
+import { HeroClaim } from "@/components/hero-claim";
 import { StatsBar } from "@/components/stats";
 import {
   demoMode,
@@ -28,6 +29,7 @@ export default async function HomePage() {
     getPermanentRankOwners().catch(() => ({})),
   ]);
   const entries = rankBoard(listings, new Date(), permanentOwners);
+  const takenRanks = Object.keys(permanentOwners).map(Number);
   const liveVisitors = await getLiveVisitorCount().catch(() => 0);
   const showRevenue = process.env.NEXT_PUBLIC_SHOW_REVENUE === "true" || demoMode();
   const totalRevenueCents = showRevenue
@@ -41,7 +43,7 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 pt-16 pb-12 sm:px-6 sm:pt-24">
         <p className="inline-flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-xs font-medium tracking-wide text-muted">
-          <BadgeCheck className="h-3.5 w-3.5 text-tier50" />
+          <BadgeCheck className="h-3.5 w-3.5 text-success" />
           Fixed prices · fixed durations · no auctions, ever
         </p>
         <h1 className="mt-6 max-w-3xl font-display text-4xl leading-[1.08] font-semibold tracking-tight sm:text-6xl">
@@ -53,26 +55,24 @@ export default async function HomePage() {
           timed spot in a tier. Nobody can outbid you, and money never reorders
           listings inside a tier. Fair, transparent, simple.
         </p>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Link
-            href="/pricing#permanent"
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
-          >
-            Buy a permanent rank
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/pricing#timed"
-            className="rounded-full border border-border px-6 py-3 text-sm font-semibold transition-colors hover:border-border-strong hover:bg-raised"
-          >
-            Buy a timed placement
-          </Link>
-          <Link
-            href="/submit"
-            className="px-2 py-3 text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
-          >
-            or list for free →
-          </Link>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+          <div className="order-2 flex flex-col justify-end gap-3 lg:order-1">
+            <Link
+              href="/submit"
+              className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold transition-colors hover:border-border-strong hover:bg-raised"
+            >
+              List for free
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <p className="max-w-md text-sm text-muted">
+              Free listings sit in the open section below the paid tiers and
+              rank by real outbound clicks — no card, no account.
+            </p>
+          </div>
+          <div className="order-1 lg:order-2">
+            <HeroClaim takenRanks={takenRanks} />
+          </div>
         </div>
       </section>
 
@@ -122,7 +122,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="rounded-2xl border border-border bg-surface p-6">
-            <BadgeCheck className="h-6 w-6 text-tier50" />
+            <BadgeCheck className="h-6 w-6 text-success" />
             <h3 className="mt-4 font-display text-lg font-semibold">
               3 · Open section
             </h3>

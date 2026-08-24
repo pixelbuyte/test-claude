@@ -137,7 +137,7 @@ export function AdminDashboard({
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-xs font-medium",
-                        l.status === "active" && "bg-tier50-soft text-tier50",
+                        l.status === "active" && "bg-success-soft text-success",
                         l.status === "pending" && "bg-gold-soft text-gold",
                         l.status === "rejected" && "text-danger",
                       )}
@@ -242,7 +242,7 @@ export function AdminDashboard({
                     <span
                       className={cn(
                         "text-xs font-medium",
-                        p.status === "completed" && "text-tier50",
+                        p.status === "completed" && "text-success",
                         p.status === "pending" && "text-gold",
                         (p.status === "conflict" ||
                           p.status === "failed" ||

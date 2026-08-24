@@ -33,7 +33,7 @@ export default async function SuccessPage({
 
   return (
     <div className="mx-auto max-w-xl px-4 pt-20 pb-8 text-center sm:px-6">
-      <CheckCircle2 className="mx-auto h-14 w-14 text-tier50" />
+      <CheckCircle2 className="mx-auto h-14 w-14 text-success" />
       <h1 className="mt-6 font-display text-3xl font-semibold tracking-tight">
         Payment received — thank you!
       </h1>

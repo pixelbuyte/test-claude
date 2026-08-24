@@ -299,7 +299,7 @@ export function PricingSections({
                   <span
                     className={cn(
                       "text-xs",
-                      free > 0 ? "text-tier50" : "text-danger",
+                      free > 0 ? "text-success" : "text-danger",
                     )}
                   >
                     {free > 0
@@ -399,7 +399,7 @@ function PriceRow({
   return (
     <li className="flex items-center justify-between gap-3 py-2.5">
       <span className="flex items-center gap-2 text-sm">
-        <Check className="h-3.5 w-3.5 text-tier50" />
+        <Check className="h-3.5 w-3.5 text-success" />
         {duration}
       </span>
       <span className="flex items-center gap-3">

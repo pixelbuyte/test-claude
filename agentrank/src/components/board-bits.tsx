@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, Crown, Share, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { Placement } from "@/lib/ranking";
 import { TIER_LABEL } from "@/lib/pricing";
@@ -110,15 +110,24 @@ export function LogoBubble({
 }) {
   const [broken, setBroken] = useState(false);
   const [loaded, setLoaded] = useState(false);
+
+  // The <img> is server-rendered, so the browser frequently finishes loading
+  // it BEFORE React hydrates and attaches onLoad — in which case that event
+  // never fires and the image would stay invisible forever. A ref callback
+  // runs on mount and catches the already-complete case.
+  const captureLoadedState = useCallback((node: HTMLImageElement | null) => {
+    if (node?.complete && node.naturalWidth > 0) setLoaded(true);
+  }, []);
+
   return (
     <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-raised font-display text-sm font-semibold text-muted">
       {name.slice(0, 2).toUpperCase()}
       {logoUrl && !broken && (
         // eslint-disable-next-line @next/next/no-img-element -- arbitrary external hosts
         <img
+          ref={captureLoadedState}
           src={logoUrl}
           alt=""
-          loading="lazy"
           onLoad={() => setLoaded(true)}
           onError={() => setBroken(true)}
           // object-contain + padding: favicons are small squares, and
