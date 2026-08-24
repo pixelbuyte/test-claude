@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f7f7f5;
+  --foreground: #16181d;
+  --surface: #ffffff;
+  --surface-raised: #f1f1ee;
+  --border: #e4e4df;
+  --border-strong: #d2d2cc;
+  --muted: #6b7080;
+  --faint: #9aa0ae;
+
+  --gold: #a06b10;
+  --gold-soft: rgba(176, 124, 32, 0.1);
+  --tier10: #6d5bd0;
+  --tier10-soft: rgba(109, 91, 208, 0.1);
+  --tier20: #0e7ea3;
+  --tier20-soft: rgba(14, 126, 163, 0.1);
+  --tier50: #177a53;
+  --tier50-soft: rgba(23, 122, 83, 0.1);
+  --accent: #16181d;
+  --accent-fg: #ffffff;
+  --danger: #b3372f;
+}
+
+.dark {
+  --background: #08090c;
+  --foreground: #e9ebf1;
+  --surface: #0e1016;
+  --surface-raised: #141722;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --muted: #9aa1b4;
+  --faint: #626a7d;
+
+  --gold: #e0b563;
+  --gold-soft: rgba(224, 181, 99, 0.09);
+  --tier10: #a394f7;
+  --tier10-soft: rgba(163, 148, 247, 0.1);
+  --tier20: #55c3ea;
+  --tier20-soft: rgba(85, 195, 234, 0.1);
+  --tier50: #4cd6a0;
+  --tier50-soft: rgba(76, 214, 160, 0.1);
+  --accent: #e9ebf1;
+  --accent-fg: #0b0c10;
+  --danger: #f0736a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-tier10: var(--tier10);
+  --color-tier10-soft: var(--tier10-soft);
+  --color-tier20: var(--tier20);
+  --color-tier20-soft: var(--tier20-soft);
+  --color-tier50: var(--tier50);
+  --color-tier50-soft: var(--tier50-soft);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--gold) 30%, transparent);
+}
+
+/* Subtle entrance for board rows. */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.row-in {
+  animation: row-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Soft pulse on the live-visitors dot. */
+@keyframes live-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--tier50) 55%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+.live-dot {
+  animation: live-pulse 2.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row-in {
+    animation: none;
+  }
+  .live-dot {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
