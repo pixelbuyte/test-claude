@@ -189,7 +189,11 @@ body {
 .highlight-orbit {
   position: relative;
   isolation: isolate;
-  box-shadow: 0 0 28px -10px var(--gold);
+  /* Inset, not an outer glow. The board container is overflow-hidden, so an
+     outer glow is not clipped between rows — it bleeds gold onto the rows
+     above and below, and gold means "permanent tier" here, so a free row
+     ends up looking faintly premium. */
+  box-shadow: inset 0 0 30px -12px var(--gold);
 }
 
 .highlight-orbit::after {

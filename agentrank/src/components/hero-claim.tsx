@@ -275,10 +275,14 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
         </div>
       )}
 
+      {/* With every permanent rank owned there is nothing to buy on this tab,
+          and the message above already offers the rent path — a dead button
+          reading "Choose a spot" would just be a wall. */}
+      {active && (
       <button
         type="button"
         onClick={go}
-        disabled={busy || !active}
+        disabled={busy}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {busy ? (
@@ -286,8 +290,9 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
         ) : (
           <ArrowRight className="h-4 w-4" />
         )}
-        {active ? `Claim for ${formatUsd(active.amountCents)}` : "Choose a spot"}
+        {`Claim for ${formatUsd(active.amountCents)}`}
       </button>
+      )}
 
       <p className="mt-3 text-center text-xs text-faint">
         Already listed? Enter the same URL and it upgrades your listing in
