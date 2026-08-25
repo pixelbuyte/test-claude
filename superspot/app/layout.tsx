@@ -33,10 +33,14 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
+    // The card image itself comes from app/opengraph-image.png (Next's file
+    // convention) — regenerate it with scripts/make-og.mjs.
+    type: "website",
+    url: "https://playlocal.space",
+    siteName: "SuperSpot",
     title: "SuperSpot — Pay to be seen",
     description:
       "5 featured spots. Timed reigns. Steal the crown early if you dare. No accounts, just pay and paste your link.",
-    type: "website",
   },
   twitter: {
     card: "summary_large_image",
