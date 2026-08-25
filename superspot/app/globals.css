@@ -172,3 +172,118 @@ header {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: var(--edge-hot);
 }
+
+/* ── Motion system ─────────────────────────────────────────────────
+   One orchestrated reveal per section beats scattered micro-fidgets.
+   Everything below is opt-in via a class, so nothing moves that isn't
+   deliberately choreographed — and the whole system switches off for
+   anyone who asks their OS for reduced motion (bottom of this file). */
+
+/* Scroll reveal. Elements start displaced and un-inked; <Reveal> adds
+   .is-in when the section crosses into view. Never animates twice. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Physical button feedback: the panel-lift shadow collapses under the
+   press, so the control reads as travelling into the cabinet. */
+.press {
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out,
+    color 0.15s ease-out;
+}
+.press:active {
+  transform: translate(2px, 2px);
+  box-shadow: none !important;
+}
+
+/* Acid wipe that runs across a row on hover — the board reacting to
+   the cursor the way a cabinet reacts to a coin. */
+.sweep::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(204, 255, 0, 0.1),
+    transparent
+  );
+  transform: translateX(-100%);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sweep:hover::before {
+  transform: translateX(100%);
+}
+
+/* A number that just changed value gets one hard acid pulse — the
+   price moving is the single most important event on this page. */
+@keyframes bump {
+  0% { transform: scale(1); }
+  22% { transform: scale(1.12); text-shadow: 0 0 22px currentColor; }
+  100% { transform: scale(1); }
+}
+.bump {
+  animation: bump 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: left center;
+}
+
+/* Share-of-pot bars grow from zero once their row is revealed. */
+.bar {
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition:
+    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease-out;
+}
+.is-in .bar {
+  transform: scaleX(1);
+}
+
+/* Live dot: a slow radar ping rather than a blink, so the header reads
+   as "connected" instead of "error". */
+@keyframes ping {
+  0% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(204, 255, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0); }
+}
+.ping {
+  animation: ping 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Keyboard focus is part of the design, not a browser default. */
+:focus-visible {
+  outline: 2px solid var(--acid);
+  outline-offset: 2px;
+}
+
+/* One switch for the whole system. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .bar {
+    transform: scaleX(1);
+  }
+}

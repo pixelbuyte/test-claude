@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Listing } from "@/lib/types";
 import ClaimModal from "./ClaimModal";
+import Reveal from "./Reveal";
 import SiteIcon from "./SiteIcon";
 
 function money(cents: number) {
@@ -41,7 +42,7 @@ export default function Leaderboard({
         </div>
         <button
           onClick={() => setOpen(true)}
-          className="num border border-acid bg-acid px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#07070a] transition-all hover:shadow-[4px_4px_0_0_var(--edge-hot)]"
+          className="num press border border-acid bg-acid px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#07070a] hover:shadow-[4px_4px_0_0_var(--edge-hot)]"
         >
           Put money down
         </button>
@@ -57,20 +58,28 @@ export default function Leaderboard({
       ) : (
         <ol className="panel divide-y divide-edge">
           {listings.map((l, i) => (
-            <li key={l.id} className="relative overflow-hidden">
+            <Reveal
+              as="li"
+              key={l.id}
+              delay={Math.min(i, 8) * 45}
+              className="relative overflow-hidden"
+            >
               <a
                 href={l.url}
                 target="_blank"
                 rel="noopener noreferrer sponsored"
                 onClick={() => onClick(l.id)}
-                className="group relative flex items-center gap-4 px-4 py-4 transition-colors hover:bg-panel-2 sm:px-5"
+                className="group sweep relative flex items-center gap-4 px-4 py-4 transition-colors hover:bg-panel-2 sm:px-5"
               >
-                {/* Share-of-pot bar: the row itself is the chart. */}
+                {/* Share-of-pot bar: the row itself is the chart. It grows
+                    from zero as the row scrolls in, so the ranking reads as
+                    a result being tallied rather than a static table. */}
                 <span
                   aria-hidden
-                  className="absolute inset-y-0 left-0 transition-opacity group-hover:opacity-80"
+                  className="bar absolute inset-y-0 left-0 transition-opacity group-hover:opacity-80"
                   style={{
                     width: top ? `${(l.totalPaid / top) * 100}%` : 0,
+                    transitionDelay: `${Math.min(i, 8) * 45 + 120}ms`,
                     background:
                       i === 0
                         ? "linear-gradient(90deg, rgba(204,255,0,0.16), transparent)"
@@ -106,7 +115,7 @@ export default function Leaderboard({
                   </p>
                 </div>
               </a>
-            </li>
+            </Reveal>
           ))}
         </ol>
       )}
