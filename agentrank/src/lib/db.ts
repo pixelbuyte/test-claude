@@ -75,6 +75,53 @@ export async function getActiveListings(): Promise<Listing[]> {
   return data.map(rowToListing);
 }
 
+/**
+ * Accumulated real clicks on starter-mode rows since they started serving,
+ * keyed by starter id — written by incrementStarterClick below, one settings
+ * row per id ("starter_click:<id>"). Read with a prefix match rather than
+ * one row per id fetched individually, so the board's single page load stays
+ * a single query no matter how many starter rows are showing.
+ */
+async function getStarterClickDeltas(): Promise<Record<string, number>> {
+  const { data, error } = await supabaseAdmin()
+    .from("settings")
+    .select("key, value")
+    .like("key", "starter_click:%");
+  if (error) throw error;
+  const out: Record<string, number> = {};
+  for (const row of data) {
+    const id = row.key.replace(/^starter_click:/, "");
+    const count = (row.value as { count?: unknown } | null)?.count;
+    out[id] = typeof count === "number" ? count : 0;
+  }
+  return out;
+}
+
+/**
+ * The starter set with real accumulated clicks laid on top of each seed's
+ * starting count, so a click someone actually makes is reflected on the next
+ * page load rather than the number sitting frozen at its seed value forever.
+ */
+export async function getStarterListingsLive(): Promise<Listing[]> {
+  const deltas = await getStarterClickDeltas();
+  return starterListings().map((l) =>
+    deltas[l.id] ? { ...l, clickCount: l.clickCount + deltas[l.id] } : l,
+  );
+}
+
+/**
+ * Atomically bumps a starter row's persisted click count and returns the new
+ * total. Not gated on demoMode()/isDbConfigured() by the caller needing to
+ * check first -- incrementClick already only reaches this for a real,
+ * DB-configured deployment (see the id.startsWith("starter-") branch there).
+ */
+async function incrementStarterClick(id: string): Promise<void> {
+  const { error } = await supabaseAdmin().rpc("increment_starter_click", {
+    p_id: id,
+  });
+  if (error) throw error;
+}
+
 export async function getAllListings(): Promise<Listing[]> {
   if (demoMode()) return demoListings();
   const { data, error } = await supabaseAdmin()
@@ -240,15 +287,30 @@ export async function incrementClick(id: string): Promise<string | null> {
   if (demoMode()) {
     return demoListings().find((l) => l.id === id)?.url ?? null;
   }
-  // A starter-mode row has no real database row to increment against — the
-  // RPC would match nothing, and this would silently bounce the visitor home
-  // instead of redirecting to the site they clicked. Checked by id prefix,
-  // not by re-deriving bootstrap state here: a click can land after the page
-  // that served this row was rendered but the board has since moved past
-  // bootstrap (a real purchase just landed), and this row should still
-  // resolve correctly regardless of what the board would show right now.
+  // A starter-mode row has no real listings row to run the real
+  // increment_click RPC against -- that RPC would match nothing and this
+  // would silently bounce the visitor home instead of redirecting to the
+  // site they clicked. Checked by id prefix, not by re-deriving bootstrap
+  // state here: a click can land after the page that served this row was
+  // rendered but the board has since moved past bootstrap (a real purchase
+  // just landed), and this row should still resolve correctly regardless of
+  // what the board would show right now.
+  //
+  // The click itself is still real, so it's still counted -- just against
+  // its own counter (increment_starter_click / the settings table) instead
+  // of a listings row. If that write fails, the visitor still gets
+  // redirected: a missed count is a rendering detail, a broken "Visit" link
+  // on someone else's click is not an acceptable trade for it.
   if (id.startsWith("starter-")) {
-    return starterListings().find((l) => l.id === id)?.url ?? null;
+    const url = starterListings().find((l) => l.id === id)?.url ?? null;
+    if (url) {
+      try {
+        await incrementStarterClick(id);
+      } catch (err) {
+        console.error("Starter click tracking error", err);
+      }
+    }
+    return url;
   }
   const { data, error } = await supabaseAdmin().rpc("increment_click", {
     listing_id: id,

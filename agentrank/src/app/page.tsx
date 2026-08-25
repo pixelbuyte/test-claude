@@ -9,6 +9,7 @@ import {
   getActiveListings,
   getLiveVisitorCount,
   getPermanentRankOwners,
+  getStarterListingsLive,
   getTotalRevenueCents,
   type PermanentRankOwner,
 } from "@/lib/db";
@@ -40,7 +41,16 @@ export default async function HomePage() {
   // the board on THIS page renders.
   const isBootstrap =
     !demoMode() && listings.length === 0 && Object.keys(permanentOwners).length === 0;
-  const boardListings = isBootstrap ? starterListings() : listings;
+  // getStarterListingsLive() overlays real accumulated clicks on the base
+  // starter set (see incrementStarterClick in db.ts) -- only queried when
+  // actually entering bootstrap, so a normal page load with real listings
+  // costs no extra round trip. Falls back to the base (un-overlaid) starter
+  // set on failure rather than propagating: this read is an enhancement on
+  // top of content that's already synthesized locally, not something the
+  // page should ever 500 over.
+  const boardListings = isBootstrap
+    ? await getStarterListingsLive().catch(() => starterListings())
+    : listings;
   const boardPermanentOwners: Record<number, PermanentRankOwner> = isBootstrap
     ? Object.fromEntries(
         boardListings
