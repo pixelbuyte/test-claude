@@ -207,42 +207,51 @@ function OpenSlotRow({
 }) {
   const content = (
     <>
-      <span className="w-9 shrink-0 text-center font-display text-lg font-semibold text-faint tabular-nums">
-        {rank}
-      </span>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-dashed border-border-strong text-faint">
-        —
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium text-muted">
-          {available ? `Rank #${permanentRank} is available` : `Rank #${permanentRank} — unavailable`}
+      <span className="flex min-w-0 flex-1 items-center gap-4">
+        <span className="w-9 shrink-0 text-center font-display text-lg font-semibold text-faint tabular-nums">
+          {rank}
         </span>
-        <span className="block text-xs text-faint">
-          {available
-            ? "Own this position permanently — fixed one-time price"
-            : "Held by a listing pending review — not purchasable right now"}
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-dashed border-border-strong text-faint">
+          —
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-muted">
+            {available ? `Rank #${permanentRank} is available` : `Rank #${permanentRank} — unavailable`}
+          </span>
+          <span className="block text-xs text-faint">
+            {available
+              ? "Own this position permanently — fixed one-time price"
+              : "Held by a listing pending review — not purchasable right now"}
+          </span>
         </span>
       </span>
       {available && (
-        <span className="shrink-0 rounded-full border border-gold/40 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-gold">
-          Claim · {formatUsd(priceCents)}
+        // pl-13 clears the rank column + gap so the pill lines up under the
+        // dashed bubble once the row has stacked, the same offset ListingRow
+        // uses for its Visit/Share group.
+        <span className="flex shrink-0 pl-13 sm:pl-0">
+          <span className="rounded-full border border-gold/40 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-gold">
+            Claim · {formatUsd(priceCents)}
+          </span>
         </span>
       )}
     </>
   );
 
+  // Stacked until sm, like ListingRow: side by side, the fixed rank column,
+  // bubble and price pill leave the title about 40px on a 360px screen, which
+  // wraps "Rank #1 is available" one word per line.
+  const shell =
+    "flex flex-col gap-3 border-b border-border px-4 py-4 last:border-b-0 sm:flex-row sm:items-center sm:gap-4 sm:px-6";
+
   if (!available) {
-    return (
-      <div className="flex items-center gap-4 border-b border-border px-4 py-4 opacity-60 last:border-b-0 sm:px-6">
-        {content}
-      </div>
-    );
+    return <div className={cn(shell, "opacity-60")}>{content}</div>;
   }
 
   return (
     <Link
       href={`/pricing#permanent`}
-      className="group flex items-center gap-4 border-b border-border px-4 py-4 transition-colors last:border-b-0 hover:bg-raised sm:px-6"
+      className={cn(shell, "group transition-colors hover:bg-raised")}
     >
       {content}
     </Link>
