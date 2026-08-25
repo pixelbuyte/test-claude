@@ -47,7 +47,6 @@ function PurchaseDialog({
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [manualUrl, setManualUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -76,20 +75,9 @@ function PurchaseDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sku: item.sku, url }),
       });
-      const data = (await res.json()) as {
-        url?: string;
-        error?: string;
-        fallback?: boolean;
-      };
+      const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) {
         setError(data.error ?? "Could not start checkout.");
-        setBusy(false);
-        return;
-      }
-      // Same as the hero: a fallback link carries no listing, so the buyer has
-      // to be told their URL travels in the Stripe notes, not automatically.
-      if (data.fallback) {
-        setManualUrl(data.url);
         setBusy(false);
         return;
       }
@@ -187,22 +175,6 @@ function PurchaseDialog({
           </p>
         )}
 
-        {manualUrl && (
-          <div className="mt-3 rounded-2xl border border-gold/40 bg-gold-soft p-4 text-sm">
-            <p className="font-semibold">This deployment takes payment manually.</p>
-            <p className="mt-1 text-muted">
-              Checkout can&rsquo;t attach your link automatically here, so put{" "}
-              <span className="text-foreground">{url}</span> in the notes at
-              Stripe and the placement is applied by hand.
-            </p>
-            <a
-              href={manualUrl}
-              className="mt-3 inline-flex rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-fg hover:opacity-90"
-            >
-              Continue to payment
-            </a>
-          </div>
-        )}
 
         <button
           type="button"
