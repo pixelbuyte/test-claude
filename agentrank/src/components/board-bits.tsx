@@ -63,6 +63,17 @@ export function PlacementBadge({ placement }: { placement: Placement }) {
       </span>
     );
   }
+  // A lapsed boost is deliberately drawn in the neutral border/faint pair
+  // rather than the tier's own colour: the row is no longer in that tier, and
+  // reusing the live blue would say it still is.
+  if (placement.lapsedTier) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold tracking-wide text-faint uppercase">
+        <Clock className="h-3 w-3" />
+        {TIER_LABEL[placement.lapsedTier]} · expired
+      </span>
+    );
+  }
   return (
     <span className="inline-flex items-center rounded-full border border-border px-2.5 py-1 text-[11px] font-medium tracking-wide text-faint uppercase">
       Free

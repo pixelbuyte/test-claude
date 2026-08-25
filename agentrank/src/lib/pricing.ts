@@ -391,6 +391,15 @@ export function formatUsd(cents: number): string {
 export const PERMANENT_ITEMS = CATALOG.filter((i) => i.kind === "permanent");
 export const TIER_ITEMS = (tier: Tier) =>
   CATALOG.filter((i) => i.kind === "tier_boost" && i.tier === tier);
+/**
+ * The cheapest way into a tier — the shortest duration on offer. Used wherever
+ * a tier is advertised as a single number ("from $149") rather than as the
+ * full duration ladder.
+ */
+export function tierFromCents(tier: Tier): number {
+  return Math.min(...TIER_ITEMS(tier).map((i) => i.amountCents));
+}
+
 export const HIGHLIGHT_ITEMS = CATALOG.filter((i) => i.kind === "highlight");
 export const FEATURED_OPEN_ITEMS = CATALOG.filter(
   (i) => i.kind === "featured_open",

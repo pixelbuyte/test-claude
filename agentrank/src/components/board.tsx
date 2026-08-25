@@ -11,7 +11,14 @@ import {
   ShareOnX,
 } from "@/components/board-bits";
 import type { BoardEntry } from "@/lib/ranking";
-import { formatUsd, TIER_CAPACITY, TIER_LABEL, TIER_ITEMS, type Tier } from "@/lib/pricing";
+import {
+  formatUsd,
+  TIER_CAPACITY,
+  TIER_LABEL,
+  TIER_ITEMS,
+  tierFromCents,
+  type Tier,
+} from "@/lib/pricing";
 import { CATEGORIES, categoryName } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -325,7 +332,19 @@ function ListingRow({
           </p>
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-2 pl-13 sm:pl-0">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 pl-13 sm:pl-0">
+        {/* An expired boost means that tier has a slot free again. The button
+            sells the slot rather than renewing this listing: it points at the
+            tier's prices, where a buyer supplies their own URL. */}
+        {placement.kind === "free" && placement.lapsedTier && (
+          <Link
+            href={`/pricing#${placement.lapsedTier}`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold-soft px-3.5 py-1.5 text-[13px] font-semibold text-gold transition-colors hover:border-gold/70"
+          >
+            Buy {TIER_LABEL[placement.lapsedTier]} · from{" "}
+            {formatUsd(tierFromCents(placement.lapsedTier))}
+          </Link>
+        )}
         <ShareOnX name={listing.name} rank={rank} />
         <a
           href={`/go/${listing.id}`}
