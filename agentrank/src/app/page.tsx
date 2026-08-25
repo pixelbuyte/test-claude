@@ -53,9 +53,8 @@ export default async function HomePage() {
               <span className="text-gold">any site or tool</span>.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted">
-              Every placement has a clear, published price — a permanent rank
-              or a timed spot in a tier. Nobody can outbid you, and money never
-              reorders listings inside a tier. Fair, transparent, simple.
+              A fixed, published price for every placement — a permanent
+              rank, or a timed spot in a tier.
             </p>
 
             <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
