@@ -59,6 +59,13 @@
 
   --gold: #7c5204;
   --gold-soft: rgba(214, 158, 46, 0.285);
+  /* The hero headline's accent word only — "any site or tool". Deliberately
+     its own token rather than reusing --gold: --gold also drives the
+     permanent-tier badge, the highlight orbit, and a WCAG-tuned stacked-tint
+     system elsewhere, none of which this is meant to touch. Burnt orange,
+     chosen over the default gold; 4.60:1 on cream, 8.19:1 on the dark
+     ground — both comfortably clear the 3:1 AA floor for text this large. */
+  --headline-accent: #b6510e;
   --tier10: #1d4ed8;
   --tier10-soft: rgba(29, 78, 216, 0.115);
   --tier20: #0e7490;
@@ -89,6 +96,7 @@
 
   --gold: #e8b45c;
   --gold-soft: rgba(232, 180, 92, 0.145);
+  --headline-accent: #f29456;
   --tier10: #8ab0f7;
   --tier10-soft: rgba(138, 176, 247, 0.13);
   --tier20: #4cb8d4;
@@ -117,6 +125,7 @@
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-gold: var(--gold);
+  --color-headline-accent: var(--headline-accent);
   --color-gold-soft: var(--gold-soft);
   --color-tier10: var(--tier10);
   --color-tier10-soft: var(--tier10-soft);
