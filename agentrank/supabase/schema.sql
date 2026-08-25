@@ -233,3 +233,19 @@ grant select (
 
 create policy "public can read categories" on categories
   for select using (true);
+
+-- ── RPC grants ─────────────────────────────────────────────────────────────
+-- Supabase exposes every public function over PostgREST, and by default the
+-- anon role can execute it. All three below are SECURITY DEFINER, so left as
+-- created they are callable by anyone holding the anon key -- which ships in
+-- the browser bundle. apply_tier_boost is the sharp one: it writes a tier
+-- placement, so a stranger could grant themselves a Top 10 spot without
+-- paying. increment_click would let anyone inflate the counts that order the
+-- free section.
+--
+-- The app only ever calls these server-side with the service-role key, and
+-- service_role bypasses grants, so revoking costs the app nothing.
+revoke all on function apply_tier_boost(uuid, text, integer, timestamptz, timestamptz)
+  from public, anon, authenticated;
+revoke all on function increment_click(uuid) from public, anon, authenticated;
+revoke all on function clear_expired_placements() from public, anon, authenticated;
