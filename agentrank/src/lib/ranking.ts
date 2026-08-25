@@ -43,7 +43,17 @@ export type BoardEntry =
 export type Placement =
   | { kind: "permanent"; rank: number }
   | { kind: "boost"; tier: Tier; expiresAt: string }
-  | { kind: "free"; featured: boolean };
+  | {
+      kind: "free";
+      featured: boolean;
+      /**
+       * The tier this listing used to hold, when its boost has run out. A
+       * lapsed boost already drops the row into the free section; carrying the
+       * tier lets the row say so, and lets it advertise the slot that just
+       * came free. Null for a listing that never held one.
+       */
+      lapsedTier: Tier | null;
+    };
 
 const TIER_ORDER: Tier[] = ["top10", "top20", "top50"];
 
@@ -152,7 +162,14 @@ export function rankBoard(
       type: "listing",
       rank: rank++,
       listing,
-      placement: { kind: "free", featured: isFeaturedOpen(listing, now) },
+      placement: {
+        kind: "free",
+        featured: isFeaturedOpen(listing, now),
+        // A permanent owner can carry a stale boostTier without ever having
+        // been in the tier ladder, but permanent owners never reach this
+        // branch, so anything still holding a tier here has genuinely lapsed.
+        lapsedTier: listing.boostTier !== null ? listing.boostTier : null,
+      },
       highlighted: isHighlighted(listing, now),
     });
   }

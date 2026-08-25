@@ -98,7 +98,11 @@ function PreviewRow({
             {sample.name}
           </span>
           <PlacementBadge
-            placement={{ kind: "free", featured: state === "featured" }}
+            placement={{
+              kind: "free",
+              featured: state === "featured",
+              lapsedTier: null,
+            }}
           />
         </div>
         <p className="mt-0.5 truncate text-sm text-muted">

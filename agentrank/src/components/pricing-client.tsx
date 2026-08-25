@@ -303,9 +303,13 @@ export function PricingSections({
           {(["top10", "top20", "top50"] as Tier[]).map((tier) => {
             const free = TIER_CAPACITY[tier] - tierCounts[tier];
             return (
+              // Own anchor per tier: an expired row on the board links
+              // straight to the tier whose slot just came free, rather than
+              // dropping the buyer at the top of all three.
               <div
                 key={tier}
-                className="rounded-2xl border border-border bg-surface p-5"
+                id={tier}
+                className="scroll-mt-24 rounded-2xl border border-border bg-surface p-5"
               >
                 <div className="flex items-baseline justify-between">
                   <h3 className="font-display text-lg font-semibold">
