@@ -50,7 +50,7 @@ export default async function HomePage() {
             </p>
             <h1 className="mt-6 font-display text-4xl leading-[1.06] font-semibold tracking-tight sm:text-6xl">
               The public leaderboard for{" "}
-              <span className="text-gold">any site or tool</span>.
+              <span className="text-headline-accent">any site or tool</span>.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted">
               A fixed, published price for every placement — a permanent
