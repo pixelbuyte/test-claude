@@ -24,8 +24,13 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   // Without a base, Next cannot make OG/canonical URLs absolute and warns at
   // build time. The env var wins so previews describe themselves correctly.
+  //
+  // This must be the host that serves a 200 directly. The apex 308-redirects
+  // to www, and X's crawler does not follow redirects on twitter:image — it
+  // fetches the URL and expects the bytes — so basing these on the apex left
+  // the card imageless even though the image was fine.
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://playlocal.space",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.playlocal.space",
   ),
   title: {
     default: "URank — the fixed-price leaderboard for any site",
