@@ -12,6 +12,7 @@ import {
   demoVisitorCount,
   DEMO_REVENUE_CENTS,
 } from "@/lib/demo-data";
+import { starterListings } from "@/lib/starter-data";
 import type { Listing, Payment, SubmitListingInput } from "@/lib/types";
 import { urlMatchKey } from "@/lib/utils";
 
@@ -238,6 +239,16 @@ export async function incrementClick(id: string): Promise<string | null> {
   // note on SEEDS in demo-data.ts.
   if (demoMode()) {
     return demoListings().find((l) => l.id === id)?.url ?? null;
+  }
+  // A starter-mode row has no real database row to increment against — the
+  // RPC would match nothing, and this would silently bounce the visitor home
+  // instead of redirecting to the site they clicked. Checked by id prefix,
+  // not by re-deriving bootstrap state here: a click can land after the page
+  // that served this row was rendered but the board has since moved past
+  // bootstrap (a real purchase just landed), and this row should still
+  // resolve correctly regardless of what the board would show right now.
+  if (id.startsWith("starter-")) {
+    return starterListings().find((l) => l.id === id)?.url ?? null;
   }
   const { data, error } = await supabaseAdmin().rpc("increment_click", {
     listing_id: id,

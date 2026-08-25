@@ -20,6 +20,8 @@ function iso(offsetMs: number, now: number): string {
   return new Date(now + offsetMs).toISOString();
 }
 
+export { h, iso };
+
 /**
  * Seed rows: real sites, with click counts in a believable early-days band
  * (a couple of hundred each) rather than implausible five-figure numbers.
@@ -30,7 +32,7 @@ function iso(offsetMs: number, now: number): string {
  * configured, `increment_click` takes over and every listing counts up from
  * whatever it is already sitting at.
  */
-interface Seed {
+export interface Seed {
   id: string;
   name: string;
   url: string;
@@ -46,7 +48,7 @@ interface Seed {
   featuredEndsInHours?: number;
 }
 
-const SEEDS: Seed[] = [
+export const SEEDS: Seed[] = [
   // ── Permanent slots (#1, #2 and #5 intentionally unsold) ────────────────
   {
     id: "demo-skinstel",
@@ -267,10 +269,16 @@ const SEEDS: Seed[] = [
   },
 ];
 
-export function demoListings(): Listing[] {
-  const now = Date.now();
-  return SEEDS.map((s) => ({
-    id: s.id,
+/**
+ * Turns one seed into a full Listing. Shared with starter-data.ts so the
+ * bootstrap set (real DB configured, table still empty) is computed the same
+ * way as the demo set instead of a hand-copied duplicate that can drift.
+ * `id` is taken separately from the seed so a caller can remap the
+ * "demo-"/"starter-" namespace without touching SEEDS itself.
+ */
+export function buildListing(s: Seed, id: string, now: number): Listing {
+  return {
+    id,
     name: s.name,
     url: s.url,
     description: s.description,
@@ -296,7 +304,12 @@ export function demoListings(): Listing[] {
         : null,
     clickCount: s.clickCount,
     createdAt: iso(-s.ageDays * 24 * h, now),
-  }));
+  };
+}
+
+export function demoListings(): Listing[] {
+  const now = Date.now();
+  return SEEDS.map((s) => buildListing(s, s.id, now));
 }
 
 /** Deterministic, clearly-synthetic live visitor figure for demo mode. */
