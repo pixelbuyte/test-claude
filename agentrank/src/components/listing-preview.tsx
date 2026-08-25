@@ -104,7 +104,7 @@ function PreviewRow({
         <p className="mt-0.5 truncate text-sm text-muted">
           {sample.description}
         </p>
-        <p className="mt-1 flex items-center gap-3 text-xs text-faint">
+        <p className="mt-1 flex items-center gap-3 text-xs text-muted">
           <span>{sample.category ?? "SaaS & Tools"}</span>
           <span className="inline-flex items-center gap-1">
             <MousePointerClick className="h-3.5 w-3.5" />

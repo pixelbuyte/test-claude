@@ -265,7 +265,11 @@ function ListingRow({
         // A paid Highlight / Pin: gold tint plus a light-gold shimmer that
         // travels around the row (see .highlight-orbit in globals.css).
         highlighted && "highlight-orbit bg-gold-soft",
-        "hover:bg-raised",
+        // Hover must not paint over a tint someone paid for, so a tinted row
+        // deepens its own gold instead of swapping to the neutral raised fill.
+        placement.kind === "permanent" || highlighted
+          ? "hover:bg-gold-soft"
+          : "hover:bg-raised",
       )}
       style={{ animationDelay: `${Math.min(index, 20) * 35}ms` }}
     >
@@ -300,7 +304,7 @@ function ListingRow({
           <p className="mt-0.5 truncate text-sm text-muted">
             {listing.description}
           </p>
-          <p className="mt-1 flex items-center gap-3 text-xs text-faint">
+          <p className="mt-1 flex items-center gap-3 text-xs text-muted">
             <span>{categoryName(listing.category)}</span>
             <span
               className="inline-flex items-center gap-1"

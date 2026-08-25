@@ -111,12 +111,29 @@ export function LogoBubble({
   const [broken, setBroken] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
+  // Reset when the icon changes. The <img> sits at a stable position, so React
+  // reuses the DOM node and only swaps src — without this, state from the
+  // previous icon carries over. That bites hardest in the submit form, where
+  // logoUrl is recomputed from the URL as it is typed: a half-typed domain
+  // fails, sets `broken`, and the real favicon then never appears no matter
+  // what is typed afterwards. Adjusting state during render (rather than in an
+  // effect) is the documented way to do this — React re-renders immediately
+  // without ever painting the stale state.
+  const [renderedUrl, setRenderedUrl] = useState(logoUrl);
+  if (renderedUrl !== logoUrl) {
+    setRenderedUrl(logoUrl);
+    setLoaded(false);
+    setBroken(false);
+  }
+
   // The <img> is server-rendered, so the browser frequently finishes loading
-  // it BEFORE React hydrates and attaches onLoad — in which case that event
-  // never fires and the image would stay invisible forever. A ref callback
-  // runs on mount and catches the already-complete case.
+  // it BEFORE React hydrates and attaches onLoad/onError — in which case
+  // neither event ever fires. A ref callback runs on mount and settles both
+  // cases from the element itself: decoded (naturalWidth > 0) or failed.
   const captureLoadedState = useCallback((node: HTMLImageElement | null) => {
-    if (node?.complete && node.naturalWidth > 0) setLoaded(true);
+    if (!node?.complete) return;
+    if (node.naturalWidth > 0) setLoaded(true);
+    else setBroken(true);
   }, []);
 
   return (
@@ -125,10 +142,17 @@ export function LogoBubble({
       {logoUrl && !broken && (
         // eslint-disable-next-line @next/next/no-img-element -- arbitrary external hosts
         <img
+          key={logoUrl}
           ref={captureLoadedState}
           src={logoUrl}
           alt=""
-          onLoad={() => setLoaded(true)}
+          onLoad={(e) => {
+            // A favicon host that answers 404 with a 1x1 or an empty pixel
+            // would otherwise paint a blank square over the initials.
+            const img = e.currentTarget;
+            if (img.naturalWidth > 1 && img.naturalHeight > 1) setLoaded(true);
+            else setBroken(true);
+          }}
           onError={() => setBroken(true)}
           // object-contain + padding: favicons are small squares, and
           // cropping or stretching them looks worse than letting them sit.

@@ -47,6 +47,7 @@ function PurchaseDialog({
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [manualUrl, setManualUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -55,6 +56,16 @@ function PurchaseDialog({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // Returning from Stripe via the back button restores this from the bfcache
+  // with busy still true, leaving the buy button permanently dead.
+  useEffect(() => {
+    const revive = (e: PageTransitionEvent) => {
+      if (e.persisted) setBusy(false);
+    };
+    window.addEventListener("pageshow", revive);
+    return () => window.removeEventListener("pageshow", revive);
+  }, []);
 
   const checkout = async () => {
     setBusy(true);
@@ -65,9 +76,20 @@ function PurchaseDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sku: item.sku, url }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
+      const data = (await res.json()) as {
+        url?: string;
+        error?: string;
+        fallback?: boolean;
+      };
       if (!res.ok || !data.url) {
         setError(data.error ?? "Could not start checkout.");
+        setBusy(false);
+        return;
+      }
+      // Same as the hero: a fallback link carries no listing, so the buyer has
+      // to be told their URL travels in the Stripe notes, not automatically.
+      if (data.fallback) {
+        setManualUrl(data.url);
         setBusy(false);
         return;
       }
@@ -159,7 +181,28 @@ function PurchaseDialog({
           />
         )}
 
-        {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+        {error && (
+          <p role="alert" aria-live="polite" className="mt-3 text-sm text-danger">
+            {error}
+          </p>
+        )}
+
+        {manualUrl && (
+          <div className="mt-3 rounded-2xl border border-gold/40 bg-gold-soft p-4 text-sm">
+            <p className="font-semibold">This deployment takes payment manually.</p>
+            <p className="mt-1 text-muted">
+              Checkout can&rsquo;t attach your link automatically here, so put{" "}
+              <span className="text-foreground">{url}</span> in the notes at
+              Stripe and the placement is applied by hand.
+            </p>
+            <a
+              href={manualUrl}
+              className="mt-3 inline-flex rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-fg hover:opacity-90"
+            >
+              Continue to payment
+            </a>
+          </div>
+        )}
 
         <button
           type="button"

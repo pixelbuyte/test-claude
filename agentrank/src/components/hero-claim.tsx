@@ -2,7 +2,7 @@
 
 import { ArrowRight, Crown, Globe, Loader2, Timer } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   formatUsd,
@@ -27,7 +27,19 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [manualUrl, setManualUrl] = useState<string | null>(null);
   const urlRef = useRef<HTMLInputElement>(null);
+
+  // Leaving for Stripe does not unmount this component, so coming back via the
+  // browser's back button restores it from the bfcache with busy still true and
+  // the buy button dead. pageshow fires on that restore; nothing else does.
+  useEffect(() => {
+    const revive = (e: PageTransitionEvent) => {
+      if (e.persisted) setBusy(false);
+    };
+    window.addEventListener("pageshow", revive);
+    return () => window.removeEventListener("pageshow", revive);
+  }, []);
 
   const availablePermanent = useMemo(
     () => PERMANENT_ITEMS.filter((i) => !takenRanks.includes(i.rank!)),
@@ -68,9 +80,21 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sku: active.sku, url }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
+      const data = (await res.json()) as {
+        url?: string;
+        error?: string;
+        fallback?: boolean;
+      };
       if (!res.ok || !data.url) {
         setError(data.error ?? "Could not start checkout.");
+        setBusy(false);
+        return;
+      }
+      // A fallback link is a generic Payment Link that carries no listing, so
+      // the URL just typed would be silently dropped and the buyer would have
+      // no idea their placement needs to be applied by hand. Say so first.
+      if (data.fallback) {
+        setManualUrl(data.url);
         setBusy(false);
         return;
       }
@@ -210,17 +234,46 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
             id="hero-url"
             ref={urlRef}
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              if (error) setError(null);
+            }}
+            aria-describedby={error ? "hero-url-error" : undefined}
+            aria-invalid={error ? true : undefined}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !busy) go();
             }}
-            placeholder="Your site URL or @handle"
+            placeholder="acme.com or x.com/acme"
             className="w-full rounded-2xl border border-control-border bg-background py-3.5 pr-4 pl-11 text-sm outline-none placeholder:text-faint"
           />
         </div>
       </div>
 
-      {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+      <p
+        id="hero-url-error"
+        role="alert"
+        aria-live="polite"
+        className={cn("mt-3 text-sm text-danger", !error && "sr-only")}
+      >
+        {error}
+      </p>
+
+      {manualUrl && (
+        <div className="mt-3 rounded-2xl border border-gold/40 bg-gold-soft p-4 text-sm">
+          <p className="font-semibold">This deployment takes payment manually.</p>
+          <p className="mt-1 text-muted">
+            Checkout can&rsquo;t attach your link automatically here, so put{" "}
+            <span className="text-foreground">{url}</span> in the notes at
+            Stripe and the placement is applied by hand.
+          </p>
+          <a
+            href={manualUrl}
+            className="mt-3 inline-flex rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-fg hover:opacity-90"
+          >
+            Continue to payment
+          </a>
+        </div>
+      )}
 
       <button
         type="button"

@@ -34,6 +34,13 @@
    --accent-strong exists because a coral bright enough to be a good button
    fill is too light to also serve as price text on cream.
 
+   --faint is a third text step below --muted, and it clears AA (4.5:1, not
+   3:1 — it is used at 11-14px, which is normal-size text, not large). It is
+   only safe on the untinted surfaces though, so row meta text inside a paid,
+   tinted row uses --muted instead. Pushing --faint dark enough to survive the
+   permanent row's wash would collapse it into --muted and cost a whole step
+   of hierarchy everywhere else, to fix two lines.
+
    --control-border is separate from --border on purpose. --border is a
    decorative hairline for cards and dividers at ~1.2:1; that is fine for a
    divider and useless for the edge of something you are meant to type into,
@@ -47,10 +54,10 @@
   --border: #e7ded3;
   --border-strong: #d5c8b9;
   --control-border: #a08260;
-  --muted: #6d6458;
-  --faint: #9a8e80;
+  --muted: #5b5349;
+  --faint: #73685c;
 
-  --gold: #8c5d05;
+  --gold: #7c5204;
   --gold-soft: rgba(214, 158, 46, 0.285);
   --tier10: #1d4ed8;
   --tier10-soft: rgba(29, 78, 216, 0.115);
@@ -64,7 +71,7 @@
   --accent-soft: rgba(226, 105, 74, 0.12);
   --accent-strong: #b8412a;
 
-  --success: #15803d;
+  --success: #147c3b;
   --success-soft: rgba(21, 128, 61, 0.12);
   --danger: #b3372f;
 }
@@ -77,8 +84,8 @@
   --border: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.18);
   --control-border: #8a7f72;
-  --muted: #a89c8e;
-  --faint: #7a6f63;
+  --muted: #bcb3a8;
+  --faint: #918578;
 
   --gold: #e8b45c;
   --gold-soft: rgba(232, 180, 92, 0.145);
