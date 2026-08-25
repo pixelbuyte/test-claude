@@ -215,7 +215,7 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
               if (e.key === "Enter" && !busy) go();
             }}
             placeholder="Your site URL or @handle"
-            className="w-full rounded-2xl border border-border bg-background py-3.5 pr-4 pl-11 text-sm outline-none placeholder:text-faint focus:border-border-strong"
+            className="w-full rounded-2xl border border-control-border bg-background py-3.5 pr-4 pl-11 text-sm outline-none placeholder:text-faint"
           />
         </div>
       </div>

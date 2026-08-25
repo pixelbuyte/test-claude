@@ -66,3 +66,44 @@ Two changes came out of the comparison and are now in `globals.css`:
 
 The dark theme is a warm dark rather than a neutral one, on the same hue
 assignments, so the code means the same thing in both.
+
+## A second opinion, and what it changed
+
+A separate exploration ran four palettes generated and judged independently of
+the comparison above. Its winner was "Sand & Emerald" — a sand ground with a
+deep bottle-green CTA, bronze for the permanent tier and pine-teal for the mid
+tier. It is a good palette and close to candidate C here.
+
+It was not adopted, for a reason the board makes obvious and abstract judging
+does not: its accent (`#0A6647`) and its Top 10 tier colour (`#0B6B4C`) are the
+same green. That is precisely the collision that disqualified candidate B, where
+the button and the Top 10 badge were both blue — once the CTA hue and a tier hue
+are the same, the colour stops meaning any one thing. Every palette here was
+judged by rendering it on the screen where permanent, highlighted, timed and
+available states appear at once, which is where that flaw shows up.
+
+Two of its arguments were right, though, and are now implemented:
+
+**Tier strength as a redundant channel.** It argued the tier tints should descend
+monotonically in strength as well as change hue, so the ladder survives
+colour-blindness and bad monitors. The palette here originally used a flat ~10%
+tint for every tier and coded rank by hue alone. Tints are now tuned per hue —
+per hue, because equal alpha does not read as equal strength across hues — so
+measured tint-vs-surface contrast descends: 1.266 → 1.193 → 1.136 → 1.080 in
+light, 1.349 → 1.264 → 1.162 → 1.089 in dark, with free rows untinted.
+
+**Control boundaries are not decorative borders.** Its contrast notes drew the
+distinction between hairlines and anything that identifies a control, which WCAG
+1.4.11 requires to reach 3:1. That surfaced a real defect: every text input set
+`outline-none` and signalled focus by swapping `--border` (1.21:1) for
+`--border-strong` (1.50:1). Keyboard focus was effectively invisible across the
+whole app. There is now a 2px `--accent` focus ring on `:focus-visible`
+throughout, a `forced-colors` fallback, and a dedicated `--control-border` at
+3:1 used on inputs only.
+
+One of its recommendations was declined. It argued prices should always be set
+in the foreground colour, because "pricing in green reads as a sales pitch,
+pricing in near-black reads as a fact". That is right, and the price table and
+board rows already follow it. The single exception is the hero's headline price,
+which stays in the accent: there is exactly one of it, it is the offer itself,
+and the emphasis is doing real work rather than decorating a number.

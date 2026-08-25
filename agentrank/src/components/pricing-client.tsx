@@ -141,7 +141,7 @@ function PurchaseDialog({
               if (e.key === "Enter" && canSubmit && !busy) checkout();
             }}
             placeholder="acme.ai"
-            className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none placeholder:text-faint focus:border-border-strong"
+            className="mt-1.5 w-full rounded-lg border border-control-border bg-surface px-3 py-2.5 text-sm outline-none placeholder:text-faint"
           />
           <p className="mt-2 text-xs text-faint">
             That&rsquo;s it — nothing else to fill in. Already listed? This

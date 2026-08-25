@@ -113,7 +113,7 @@ export function Board({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search listings…"
-            className="w-full rounded-full border border-border bg-surface py-2 pr-4 pl-10 text-sm outline-none placeholder:text-faint focus:border-border-strong"
+            className="w-full rounded-full border border-control-border bg-surface py-2 pr-4 pl-10 text-sm outline-none placeholder:text-faint"
           />
         </label>
       </div>

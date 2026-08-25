@@ -21,10 +21,24 @@
    So nothing warm is ever a tier and nothing cool is ever a button, and the
    eye can sort the page before it reads a word of it.
 
-   Every pair below clears WCAG AA at the size it is actually used, including
-   each tier's own text on its own soft tint, and white on the coral button
-   fill. --accent-strong exists because a coral bright enough to be a good
-   button fill is too light to also serve as price text on cream. */
+   The tier tints are ALSO a second, redundant channel: their strength drops
+   monotonically down the ladder (permanent is the heaviest wash, then Top 10,
+   Top 20, Top 50, and free rows carry no tint at all). Alpha is tuned per hue
+   rather than shared, because equal alpha does not read as equal strength
+   across hues — an amber wash at 11% looks lighter than a blue one. So the
+   ladder is legible from fill weight alone, before hue and before the text
+   label, which is what makes it survive colour-blindness and a bad monitor.
+
+   Every pair clears WCAG AA at the size it is actually used, including each
+   tier's own text on its own soft tint AND body and muted text on that tint.
+   --accent-strong exists because a coral bright enough to be a good button
+   fill is too light to also serve as price text on cream.
+
+   --control-border is separate from --border on purpose. --border is a
+   decorative hairline for cards and dividers at ~1.2:1; that is fine for a
+   divider and useless for the edge of something you are meant to type into,
+   which WCAG 1.4.11 asks to reach 3:1. Inputs use --control-border; nothing
+   else should. */
 :root {
   --background: #f8f4ef;
   --foreground: #1a1714;
@@ -32,17 +46,18 @@
   --surface-raised: #f1eae1;
   --border: #e7ded3;
   --border-strong: #d5c8b9;
+  --control-border: #a08260;
   --muted: #6d6458;
   --faint: #9a8e80;
 
-  --gold: #976405;
-  --gold-soft: rgba(214, 158, 46, 0.14);
+  --gold: #8c5d05;
+  --gold-soft: rgba(214, 158, 46, 0.285);
   --tier10: #1d4ed8;
-  --tier10-soft: rgba(29, 78, 216, 0.1);
+  --tier10-soft: rgba(29, 78, 216, 0.115);
   --tier20: #0e7490;
-  --tier20-soft: rgba(14, 116, 144, 0.1);
+  --tier20-soft: rgba(14, 116, 144, 0.09);
   --tier50: #566370;
-  --tier50-soft: rgba(86, 99, 112, 0.1);
+  --tier50-soft: rgba(86, 99, 112, 0.055);
 
   --accent: #d24622;
   --accent-fg: #ffffff;
@@ -61,17 +76,18 @@
   --surface-raised: #241f1a;
   --border: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.18);
+  --control-border: #8a7f72;
   --muted: #a89c8e;
   --faint: #7a6f63;
 
   --gold: #e8b45c;
-  --gold-soft: rgba(232, 180, 92, 0.12);
+  --gold-soft: rgba(232, 180, 92, 0.145);
   --tier10: #8ab0f7;
   --tier10-soft: rgba(138, 176, 247, 0.13);
   --tier20: #4cb8d4;
-  --tier20-soft: rgba(76, 184, 212, 0.12);
+  --tier20-soft: rgba(76, 184, 212, 0.095);
   --tier50: #98a4b0;
-  --tier50-soft: rgba(152, 164, 176, 0.12);
+  --tier50-soft: rgba(152, 164, 176, 0.06);
 
   --accent: #ef7b57;
   --accent-fg: #1a1008;
@@ -90,6 +106,7 @@
   --color-raised: var(--surface-raised);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-control-border: var(--control-border);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-gold: var(--gold);
@@ -193,6 +210,29 @@ body {
   animation: uprank-orbit 4.5s linear infinite;
   pointer-events: none;
   z-index: 1;
+}
+
+/* Keyboard focus. Every text input used to set `outline-none` and then signal
+   focus by swapping --border for --border-strong — 1.2:1 to 1.5:1 against the
+   page, which is to say invisible, and far under the 3:1 WCAG 1.4.11 asks of
+   anything that identifies a control or its state. The accent clears 4.1:1 on
+   the page and 4.5:1 on a card, so focus is now an accent ring everywhere, on
+   inputs and buttons alike.
+
+   :focus-visible rather than :focus keeps the ring off mouse clicks. It sits
+   outside @layer so it beats the `outline-none` utility wherever one is still
+   applied. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Windows High Contrast: system colours replace ours, so keep a ring that the
+   forced palette can actually paint. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+  }
 }
 
 /* The hero sits on a soft warm wash rather than the flat page colour, so the

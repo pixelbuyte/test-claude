@@ -15,7 +15,7 @@ export function SubmitForm() {
   const [done, setDone] = useState<"active" | "pending" | null>(null);
 
   const field =
-    "w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-faint focus:border-border-strong";
+    "w-full rounded-xl border border-control-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-faint";
 
   const preview = useMemo(() => {
     const normalized = normalizeUrl(url);
