@@ -6,18 +6,16 @@
  * first real row exists.
  *
  * Built from demo-data.ts's SEEDS rather than a hand-copied duplicate, so the
- * two can't drift apart. Two differences from the demo set:
+ * two can't drift apart. IDs are namespaced "starter-" instead of "demo-",
+ * so a click on one of these rows can be told apart from a real listing —
+ * see incrementClick in db.ts, which needs that to redirect a starter row
+ * correctly instead of trying, and failing, to record a click against a
+ * database row that doesn't exist.
  *
- * 1. IDs are namespaced "starter-" instead of "demo-", so a click on one of
- *    these rows can be told apart from a real listing (see incrementClick in
- *    db.ts, which needs that to redirect a starter row correctly instead of
- *    trying — and failing — to record a click against a database row that
- *    doesn't exist).
- * 2. The three seeds with a lapsed boost (boostEndsInHours < 0) are dropped.
- *    They exist in demo-data.ts specifically to show off the "expired
- *    placement" feature; on a genuine launch day, three rows reading
- *    "TOP 10 · EXPIRED" before anyone has bought anything reads as the site
- *    already being stale, which is the opposite of the intent here.
+ * Includes the three lapsed-boost seeds (Buttondown/Turso/Peerlist), so the
+ * expired-placement UI — the "TOP 10 · EXPIRED" badge and the "Buy this
+ * slot" button that sells the freed tier — is visible on the live board from
+ * the start, not just in demo mode.
  *
  * Only page.tsx decides when to serve this, and only for what the public
  * board renders — getActiveListings()/getPermanentRankOwners() in db.ts stay
@@ -34,13 +32,14 @@
 import { buildListing, SEEDS } from "@/lib/demo-data";
 import type { Listing } from "@/lib/types";
 
-const STARTER_SEEDS = SEEDS.filter(
-  (s) => s.boostEndsInHours === undefined || s.boostEndsInHours >= 0,
-);
-
+/**
+ * Base starter set with no click activity applied — pure function of the
+ * seeds, same signature as before. getStarterListingsLive() in db.ts is what
+ * overlays real accumulated clicks on top of this; this stays the thing to
+ * call when only identity/URL is needed (e.g. resolving a starter id's
+ * redirect target) and no database round trip is wanted.
+ */
 export function starterListings(): Listing[] {
   const now = Date.now();
-  return STARTER_SEEDS.map((s) =>
-    buildListing(s, s.id.replace(/^demo-/, "starter-"), now),
-  );
+  return SEEDS.map((s) => buildListing(s, s.id.replace(/^demo-/, "starter-"), now));
 }

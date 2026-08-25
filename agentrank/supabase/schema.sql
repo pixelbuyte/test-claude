@@ -249,3 +249,32 @@ revoke all on function apply_tier_boost(uuid, text, integer, timestamptz, timest
   from public, anon, authenticated;
 revoke all on function increment_click(uuid) from public, anon, authenticated;
 revoke all on function clear_expired_placements() from public, anon, authenticated;
+
+-- ── Starter-mode click counter ──────────────────────────────────────────────
+-- Bootstrap board content (src/lib/starter-data.ts) has no real listings row
+-- to increment against, so it gets its own atomic counter here instead,
+-- keyed by starter id in the existing settings table.
+create or replace function increment_starter_click(p_id text)
+returns integer
+language sql
+security invoker
+set search_path = public
+as $$
+  insert into settings (key, value)
+  values ('starter_click:' || p_id, jsonb_build_object('count', 1))
+  on conflict (key) do update
+    set value = jsonb_build_object(
+      'count',
+      coalesce((settings.value->>'count')::int, 0) + 1
+    )
+  returning (value->>'count')::int;
+$$;
+
+-- security invoker (the default -- no clause needed, written explicitly),
+-- unlike apply_tier_boost/increment_click/clear_expired_placements above:
+-- this only ever runs through supabaseAdmin() (service role), which already
+-- has full access to `settings`, so it needs no elevated privilege the way
+-- those three do. Still revoked from public/anon/authenticated in this same
+-- migration rather than as a follow-up -- Postgres grants EXECUTE on every
+-- new function to PUBLIC by default regardless of definer/invoker.
+revoke all on function increment_starter_click(text) from public, anon, authenticated;

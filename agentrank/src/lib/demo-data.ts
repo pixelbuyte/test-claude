@@ -56,7 +56,7 @@ export const SEEDS: Seed[] = [
     url: "https://skinstel.com",
     description: "Skincare that's actually matched to your skin, not the trend cycle.",
     category: "business",
-    clickCount: 318,
+    clickCount: 2830,
     ageDays: 62,
     permanentRank: 3,
     // The showcase row: permanent AND highlighted, so the gold orbit is
@@ -69,7 +69,7 @@ export const SEEDS: Seed[] = [
     url: "https://documenso.com",
     description: "Open-source document signing you can host yourself.",
     category: "saas_tools",
-    clickCount: 301,
+    clickCount: 2467,
     ageDays: 54,
     permanentRank: 4,
   },
