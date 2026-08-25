@@ -43,3 +43,19 @@ export function starterListings(): Listing[] {
   const now = Date.now();
   return SEEDS.map((s) => buildListing(s, s.id.replace(/^demo-/, "starter-"), now));
 }
+
+/**
+ * A plausible "live right now" baseline for the same bootstrap window --
+ * genuine presence tracking (the `presence` table, via getLiveVisitorCount)
+ * stays fully real underneath; getStarterVisitorCount() in db.ts adds this on
+ * top so the counter still moves for a real visit instead of masking it.
+ *
+ * Same style as demoVisitorCount() above: deterministic in the current
+ * minute, so concurrent requests within the same minute agree, and it still
+ * visibly drifts minute to minute rather than sitting frozen. 80..160 cycles
+ * over an 81-minute period.
+ */
+export function starterVisitorBaseline(): number {
+  const minute = Math.floor(Date.now() / 60000);
+  return 80 + (minute % 81);
+}
