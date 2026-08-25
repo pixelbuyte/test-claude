@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Every UPrank placement has a fixed, published price — permanent ranks, timed tier placements, and highlights. No auctions.",
+    "Every URank placement has a fixed, published price — permanent ranks, timed tier placements, and highlights. No auctions.",
 };
 
 export default async function PricingPage() {

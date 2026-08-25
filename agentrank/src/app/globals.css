@@ -174,15 +174,15 @@ body {
    supported the gradient still paints a static gold arc, and the row keeps
    its gold tint, ring and glow — so it degrades to a still highlight rather
    than to nothing. */
-@property --uprank-orbit-angle {
+@property --urank-orbit-angle {
   syntax: "<angle>";
   initial-value: 0deg;
   inherits: false;
 }
 
-@keyframes uprank-orbit {
+@keyframes urank-orbit {
   to {
-    --uprank-orbit-angle: 360deg;
+    --urank-orbit-angle: 360deg;
   }
 }
 
@@ -203,7 +203,7 @@ body {
   border-radius: inherit;
   padding: 1.5px;
   background: conic-gradient(
-    from var(--uprank-orbit-angle),
+    from var(--urank-orbit-angle),
     transparent 0deg,
     color-mix(in srgb, var(--gold) 55%, white) 30deg,
     var(--gold) 55deg,
@@ -218,7 +218,7 @@ body {
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
-  animation: uprank-orbit 4.5s linear infinite;
+  animation: urank-orbit 4.5s linear infinite;
   pointer-events: none;
   z-index: 1;
 }

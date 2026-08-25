@@ -26,7 +26,7 @@ export function SiteHeader() {
             <TrendingUp className="h-4.5 w-4.5" strokeWidth={2.4} />
           </span>
           <span className="font-display text-lg font-semibold tracking-tight">
-            UPrank
+            URank
           </span>
         </Link>
 
@@ -89,7 +89,7 @@ export function SiteFooter() {
     <footer className="mt-24 border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p>
-          <span className="font-medium text-foreground">UPrank</span> — the
+          <span className="font-medium text-foreground">URank</span> — the
           fixed-price leaderboard for any site or tool.
         </p>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">

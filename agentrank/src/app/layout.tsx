@@ -21,9 +21,14 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  // Without a base, Next cannot make OG/canonical URLs absolute and warns at
+  // build time. The env var wins so previews describe themselves correctly.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://playlocal.space",
+  ),
   title: {
-    default: "UPrank — the fixed-price leaderboard for any site",
-    template: "%s · UPrank",
+    default: "URank — the fixed-price leaderboard for any site",
+    template: "%s · URank",
   },
   description:
     "A transparent, fixed-price public ranking board for any website or tool. No auctions, no outbidding — permanent slots and timed tier placements at clear prices.",

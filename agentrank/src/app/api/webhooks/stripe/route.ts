@@ -62,7 +62,12 @@ export async function POST(req: NextRequest) {
   const session = event.data.object as Stripe.Checkout.Session;
   const sku = session.metadata?.sku;
   const listingId = session.metadata?.listing_id;
-  if (session.metadata?.app !== "uprank" || !sku || !listingId) {
+  // "uprank" is the pre-rename tag. A Checkout Session stamped before the
+  // rename deployed can still settle afterwards, and dropping it here would
+  // take someone's money and never give them the placement — so both are
+  // honoured. Safe to delete once no session older than the rename can pay.
+  const ours = session.metadata?.app === "urank" || session.metadata?.app === "uprank";
+  if (!ours || !sku || !listingId) {
     // Not one of ours (e.g. a manual Payment Link purchase) — acknowledge.
     return NextResponse.json({ received: true });
   }

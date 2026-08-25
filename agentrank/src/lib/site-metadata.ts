@@ -75,8 +75,8 @@ export async function fetchSiteMetadata(url: string): Promise<SiteMetadata> {
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        "User-Agent": `Mozilla/5.0 (compatible; UPrankBot/1.0; +${
-          process.env.NEXT_PUBLIC_SITE_URL ?? "https://uprank.app"
+        "User-Agent": `Mozilla/5.0 (compatible; URankBot/1.0; +${
+          process.env.NEXT_PUBLIC_SITE_URL ?? "https://playlocal.space"
         }/rules)`,
         Accept: "text/html,application/xhtml+xml",
       },
