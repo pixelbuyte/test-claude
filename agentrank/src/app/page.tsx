@@ -10,6 +10,7 @@ import {
   getLiveVisitorCount,
   getPermanentRankOwners,
   getTotalRevenueCents,
+  type PermanentRankOwner,
 } from "@/lib/db";
 import {
   CATALOG,
@@ -20,6 +21,7 @@ import {
   type Tier,
 } from "@/lib/pricing";
 import { rankBoard } from "@/lib/ranking";
+import { starterListings } from "@/lib/starter-data";
 
 export const dynamic = "force-dynamic";
 
@@ -28,15 +30,37 @@ export default async function HomePage() {
     getActiveListings(),
     getPermanentRankOwners().catch(() => ({})),
   ]);
-  const entries = rankBoard(listings, new Date(), permanentOwners);
-  const takenRanks = Object.keys(permanentOwners).map(Number);
+
+  // Bootstrap: a real Supabase project is connected but nothing is in it yet
+  // — no active listings, nobody holding a permanent rank in any status.
+  // `listings`/`permanentOwners` stay untouched and keep flowing to checkout,
+  // the submit-listing picker and /pricing exactly as before: those must see
+  // the real, empty state so a first real purchase is never blocked by rows
+  // that don't exist in the database. This substitution only changes what
+  // the board on THIS page renders.
+  const isBootstrap =
+    !demoMode() && listings.length === 0 && Object.keys(permanentOwners).length === 0;
+  const boardListings = isBootstrap ? starterListings() : listings;
+  const boardPermanentOwners: Record<number, PermanentRankOwner> = isBootstrap
+    ? Object.fromEntries(
+        boardListings
+          .filter((l) => l.permanentRank !== null)
+          .map((l) => [
+            l.permanentRank!,
+            { id: l.id, name: l.name, status: l.status, clickCount: l.clickCount },
+          ]),
+      )
+    : permanentOwners;
+
+  const entries = rankBoard(boardListings, new Date(), boardPermanentOwners);
+  const takenRanks = Object.keys(boardPermanentOwners).map(Number);
   const liveVisitors = await getLiveVisitorCount().catch(() => 0);
   const showRevenue = process.env.NEXT_PUBLIC_SHOW_REVENUE === "true" || demoMode();
   const totalRevenueCents = showRevenue
     ? await getTotalRevenueCents().catch(() => 0)
     : null;
 
-  const totalClicks = listings.reduce((sum, l) => sum + l.clickCount, 0);
+  const totalClicks = boardListings.reduce((sum, l) => sum + l.clickCount, 0);
 
   return (
     <div className="pb-8">

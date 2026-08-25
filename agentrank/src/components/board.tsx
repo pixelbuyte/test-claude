@@ -62,6 +62,16 @@ export function Board({
   entries: BoardEntry[];
   demoMode: boolean;
 }) {
+  // Derived from the rows themselves rather than a prop threaded down from
+  // page.tsx: starterListings() (src/lib/starter-data.ts) namespaces every
+  // bootstrap-mode id "starter-", so this needs no extra plumbing and can
+  // never disagree with what actually rendered. All-or-nothing in practice
+  // -- page.tsx swaps in an entirely real board or an entirely starter one,
+  // never a mix -- so finding one starter row is enough to know they all are.
+  const starterMode =
+    !demoMode &&
+    entries.some((e) => e.type === "listing" && e.listing.id.startsWith("starter-"));
+
   const [category, setCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
 
@@ -130,6 +140,15 @@ export function Board({
           <span className="font-semibold text-foreground">Demo data.</span>{" "}
           These fictional listings render until Supabase + Stripe environment
           variables are configured — see the README.
+        </p>
+      )}
+
+      {starterMode && (
+        <p className="mb-4 rounded-xl border border-dashed border-border px-4 py-2.5 text-xs text-muted">
+          <span className="font-semibold text-foreground">Starter listings.</span>{" "}
+          Nobody has bought or listed a spot yet, so these fill the board for
+          launch. The moment a real listing exists — free or paid — these
+          disappear automatically.
         </p>
       )}
 
