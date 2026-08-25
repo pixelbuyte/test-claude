@@ -11,7 +11,7 @@ import {
   TIER_LABEL,
   type Tier,
 } from "@/lib/pricing";
-import { cn } from "@/lib/utils";
+import { cn, faviconUrl, normalizeUrl } from "@/lib/utils";
 
 type Mode = "permanent" | "rent";
 
@@ -28,6 +28,19 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const urlRef = useRef<HTMLInputElement>(null);
+
+  // A link is "ready" the moment it parses as a URL, which is also the moment
+  // we can show its icon. Both the button's weight and the field's icon key
+  // off this one value so they can never disagree.
+  const normalized = useMemo(() => normalizeUrl(url), [url]);
+  const ready = normalized !== null;
+  // Computed once: both the null-check and the src come from the same value,
+  // so there is no way for the branch and the attribute to disagree.
+  const icon = useMemo(
+    () => (normalized ? faviconUrl(normalized, 64) : null),
+    [normalized],
+  );
+  const [iconBroken, setIconBroken] = useState(false);
 
   // Leaving for Stripe does not unmount this component, so coming back via the
   // browser's back button restores it from the bfcache with busy still true and
@@ -60,6 +73,12 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
     setTier(t);
     setRentSku(TIER_ITEMS(t)[Math.min(2, TIER_ITEMS(t).length - 1)].sku);
   };
+
+  const [iconFor, setIconFor] = useState<string | null>(normalized);
+  if (iconFor !== normalized) {
+    setIconFor(normalized);
+    setIconBroken(false);
+  }
 
   const go = async () => {
     if (!active) return;
@@ -216,7 +235,20 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
           Your site URL
         </label>
         <div className="relative">
-          <Globe className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-faint" />
+          <span className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2">
+            {icon && !iconBroken ? (
+              // eslint-disable-next-line @next/next/no-img-element -- arbitrary external hosts
+              <img
+                key={icon}
+                src={icon}
+                alt=""
+                onError={() => setIconBroken(true)}
+                className="h-4 w-4 rounded-[3px] object-contain"
+              />
+            ) : (
+              <Globe className="h-4 w-4 text-faint" />
+            )}
+          </span>
           <input
             id="hero-url"
             ref={urlRef}
@@ -254,7 +286,15 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
         type="button"
         onClick={go}
         disabled={busy}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-40"
+        className={cn(
+          "mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5",
+          "text-sm font-semibold transition-colors disabled:opacity-40",
+          ready
+            ? "bg-accent text-accent-fg hover:opacity-90"
+            : // Light, not disabled: it still takes a click, which is what
+              // surfaces "paste your link first" instead of a dead control.
+              "bg-accent-soft text-accent-strong hover:bg-accent-soft/70",
+        )}
       >
         {busy ? (
           <Loader2 className="h-4 w-4 animate-spin" />
