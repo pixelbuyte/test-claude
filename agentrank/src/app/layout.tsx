@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { ThemeProvider } from "@/components/theme";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main className="flex-1">{children}</main>
           <SiteFooter />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
