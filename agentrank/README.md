@@ -1,8 +1,8 @@
-# UPrank
+# URank
 
 **The fixed-price public leaderboard for any site or tool.**
 
-UPrank is a pay-to-rank board designed to be *Islamic-permissible*: there
+URank is a pay-to-rank board designed to be *Islamic-permissible*: there
 is **no bidding, no auction, and no price competition of any kind**. Every
 placement is a published fixed price for a fixed rank or a fixed duration —
 like buying a sponsored ad slot. Rank among timed listings is **never**
@@ -66,7 +66,7 @@ the full board, and buy buttons fall back to the live Stripe Payment Links.
 
 ```bash
 git clone <this-repo>
-cd agentrank  # the app's directory name is unchanged; only the brand is UPrank
+cd agentrank  # the app's directory name is unchanged; only the brand is URank
 npm install
 cp .env.example .env.local
 npm run dev
@@ -89,7 +89,7 @@ npm run dev
    equivalents and update `src/lib/pricing.ts`.
 2. Put your **secret key** in `STRIPE_SECRET_KEY`.
 3. Add a webhook endpoint: *Developers → Webhooks → Add endpoint* →
-   `https://yourdomain.com/api/webhooks/stripe`, subscribed to
+   `https://playlocal.space/api/webhooks/stripe`, subscribed to
    `checkout.session.completed`. Put its signing secret in
    `STRIPE_WEBHOOK_SECRET`.
 4. Local testing: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`.

@@ -1,4 +1,4 @@
--- UPrank schema. Run this once in the Supabase SQL editor (or via
+-- URank schema. Run this once in the Supabase SQL editor (or via
 -- `supabase db push`). Expiry is enforced at query time by the app's ranking
 -- engine, so the board is always correct even without any cron job; the
 -- cleanup function below is optional tidying.

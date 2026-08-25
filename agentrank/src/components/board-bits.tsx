@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, Crown, Share, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { Placement } from "@/lib/ranking";
 import { TIER_LABEL } from "@/lib/pricing";
@@ -74,7 +74,7 @@ export function ShareOnX({ name, rank }: { name: string; rank: number }) {
   const share = () => {
     const site =
       typeof window !== "undefined" ? window.location.origin : "";
-    const text = `${name} is ranked #${rank} on UPrank — the fixed-price leaderboard for any site. ${site}`;
+    const text = `${name} is ranked #${rank} on URank — the fixed-price leaderboard for any site. ${site}`;
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
       "_blank",
@@ -110,16 +110,49 @@ export function LogoBubble({
 }) {
   const [broken, setBroken] = useState(false);
   const [loaded, setLoaded] = useState(false);
+
+  // Reset when the icon changes. The <img> sits at a stable position, so React
+  // reuses the DOM node and only swaps src — without this, state from the
+  // previous icon carries over. That bites hardest in the submit form, where
+  // logoUrl is recomputed from the URL as it is typed: a half-typed domain
+  // fails, sets `broken`, and the real favicon then never appears no matter
+  // what is typed afterwards. Adjusting state during render (rather than in an
+  // effect) is the documented way to do this — React re-renders immediately
+  // without ever painting the stale state.
+  const [renderedUrl, setRenderedUrl] = useState(logoUrl);
+  if (renderedUrl !== logoUrl) {
+    setRenderedUrl(logoUrl);
+    setLoaded(false);
+    setBroken(false);
+  }
+
+  // The <img> is server-rendered, so the browser frequently finishes loading
+  // it BEFORE React hydrates and attaches onLoad/onError — in which case
+  // neither event ever fires. A ref callback runs on mount and settles both
+  // cases from the element itself: decoded (naturalWidth > 0) or failed.
+  const captureLoadedState = useCallback((node: HTMLImageElement | null) => {
+    if (!node?.complete) return;
+    if (node.naturalWidth > 0) setLoaded(true);
+    else setBroken(true);
+  }, []);
+
   return (
     <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-raised font-display text-sm font-semibold text-muted">
       {name.slice(0, 2).toUpperCase()}
       {logoUrl && !broken && (
         // eslint-disable-next-line @next/next/no-img-element -- arbitrary external hosts
         <img
+          key={logoUrl}
+          ref={captureLoadedState}
           src={logoUrl}
           alt=""
-          loading="lazy"
-          onLoad={() => setLoaded(true)}
+          onLoad={(e) => {
+            // A favicon host that answers 404 with a 1x1 or an empty pixel
+            // would otherwise paint a blank square over the initials.
+            const img = e.currentTarget;
+            if (img.naturalWidth > 1 && img.naturalHeight > 1) setLoaded(true);
+            else setBroken(true);
+          }}
           onError={() => setBroken(true)}
           // object-contain + padding: favicons are small squares, and
           // cropping or stretching them looks worse than letting them sit.

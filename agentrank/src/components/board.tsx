@@ -113,7 +113,7 @@ export function Board({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search listings…"
-            className="w-full rounded-full border border-border bg-surface py-2 pr-4 pl-10 text-sm outline-none placeholder:text-faint focus:border-border-strong"
+            className="w-full rounded-full border border-control-border bg-surface py-2 pr-4 pl-10 text-sm outline-none placeholder:text-faint"
           />
         </label>
       </div>
@@ -262,8 +262,14 @@ function ListingRow({
       className={cn(
         "row-in relative flex flex-col gap-3 border-b border-border px-4 py-4 transition-colors last:border-b-0 sm:flex-row sm:items-center sm:gap-4 sm:px-6",
         placement.kind === "permanent" && "bg-gold-soft/50",
-        highlighted && "bg-gold-soft ring-1 ring-gold/30 ring-inset",
-        "hover:bg-raised",
+        // A paid Highlight / Pin: gold tint plus a light-gold shimmer that
+        // travels around the row (see .highlight-orbit in globals.css).
+        highlighted && "highlight-orbit bg-gold-soft",
+        // Hover must not paint over a tint someone paid for, so a tinted row
+        // deepens its own gold instead of swapping to the neutral raised fill.
+        placement.kind === "permanent" || highlighted
+          ? "hover:bg-gold-soft"
+          : "hover:bg-raised",
       )}
       style={{ animationDelay: `${Math.min(index, 20) * 35}ms` }}
     >
@@ -298,7 +304,7 @@ function ListingRow({
           <p className="mt-0.5 truncate text-sm text-muted">
             {listing.description}
           </p>
-          <p className="mt-1 flex items-center gap-3 text-xs text-faint">
+          <p className="mt-1 flex items-center gap-3 text-xs text-muted">
             <span>{categoryName(listing.category)}</span>
             <span
               className="inline-flex items-center gap-1"

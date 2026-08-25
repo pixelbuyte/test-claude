@@ -14,7 +14,7 @@ export async function sendPurchaseConfirmation(params: {
   if (!apiKey) return;
   const item = getCatalogItem(params.sku);
   if (!item) return;
-  const from = process.env.EMAIL_FROM ?? "UPrank <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM ?? "URank <onboarding@resend.dev>";
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
   try {
@@ -27,7 +27,7 @@ export async function sendPurchaseConfirmation(params: {
       body: JSON.stringify({
         from,
         to: [params.to],
-        subject: `Your UPrank placement is live — ${item.label}`,
+        subject: `Your URank placement is live — ${item.label}`,
         text: [
           `Thanks for your purchase!`,
           ``,
@@ -41,7 +41,7 @@ export async function sendPurchaseConfirmation(params: {
           site ? `` : undefined,
           site ? `See it on the board: ${site}` : undefined,
           ``,
-          `— UPrank`,
+          `— URank`,
         ]
           .filter((line) => line !== undefined)
           .join("\n"),

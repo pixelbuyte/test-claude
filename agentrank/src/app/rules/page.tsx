@@ -5,7 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Rules & how ranking works",
   description:
-    "UPrank is not an auction. All prices are fixed and public — you buy a specific rank or a place in a tier for a fixed time.",
+    "URank is not an auction. All prices are fixed and public — you buy a specific rank or a place in a tier for a fixed time.",
 };
 
 const PRINCIPLES = [
@@ -58,7 +58,7 @@ export default function RulesPage() {
         Rules &amp; how ranking works
       </h1>
       <p className="mt-4 text-lg text-muted">
-        UPrank exists to make paid visibility{" "}
+        URank exists to make paid visibility{" "}
         <span className="text-foreground">fair, transparent, and simple</span>.
         Everything below is enforced in code, not just policy.
       </p>
@@ -74,8 +74,8 @@ export default function RulesPage() {
             <li>Reselling an owned permanent rank</li>
           </ul>
         </div>
-        <div className="rounded-2xl border border-tier50/30 bg-surface p-5">
-          <CheckCircle2 className="h-5 w-5 text-tier50" />
+        <div className="rounded-2xl border border-success/30 bg-surface p-5">
+          <CheckCircle2 className="h-5 w-5 text-success" />
           <h2 className="mt-3 font-display font-semibold">Always</h2>
           <ul className="mt-2 space-y-1.5 text-sm text-muted">
             <li>Published fixed prices</li>

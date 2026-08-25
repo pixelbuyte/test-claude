@@ -2,49 +2,107 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --background: #f7f7f5;
-  --foreground: #16181d;
-  --surface: #ffffff;
-  --surface-raised: #f1f1ee;
-  --border: #e4e4df;
-  --border-strong: #d2d2cc;
-  --muted: #6b7080;
-  --faint: #9aa0ae;
+/* ── Palette ───────────────────────────────────────────────────────────────
+   Chosen by building four full-page variations and comparing them side by
+   side (see docs/design-variations.md). The base is a warm cream rather than
+   clinical white or flat black: warm neutrals read as approachable and take
+   the edge off a page that is asking for real money.
 
-  --gold: #a06b10;
-  --gold-soft: rgba(176, 124, 32, 0.1);
-  --tier10: #6d5bd0;
-  --tier10-soft: rgba(109, 91, 208, 0.1);
-  --tier20: #0e7ea3;
-  --tier20-soft: rgba(14, 126, 163, 0.1);
-  --tier50: #177a53;
-  --tier50-soft: rgba(23, 122, 83, 0.1);
-  --accent: #16181d;
+   Hues are split by *meaning*, which is what keeps the board colour-coded
+   without becoming a fruit salad:
+
+     warm  → money and status
+             coral  (--accent) is the thing you click and the price you pay
+             amber  (--gold)   is the permanent Top 5, the premium placement
+     cool  → the timed-tier ladder, descending
+             blue   (--tier10) → teal (--tier20) → slate (--tier50)
+     green (--success) → live, available, confirmed
+
+   So nothing warm is ever a tier and nothing cool is ever a button, and the
+   eye can sort the page before it reads a word of it.
+
+   The tier tints are ALSO a second, redundant channel: their strength drops
+   monotonically down the ladder (permanent is the heaviest wash, then Top 10,
+   Top 20, Top 50, and free rows carry no tint at all). Alpha is tuned per hue
+   rather than shared, because equal alpha does not read as equal strength
+   across hues — an amber wash at 11% looks lighter than a blue one. So the
+   ladder is legible from fill weight alone, before hue and before the text
+   label, which is what makes it survive colour-blindness and a bad monitor.
+
+   Every pair clears WCAG AA at the size it is actually used, including each
+   tier's own text on its own soft tint AND body and muted text on that tint.
+   --accent-strong exists because a coral bright enough to be a good button
+   fill is too light to also serve as price text on cream.
+
+   --faint is a third text step below --muted, and it clears AA (4.5:1, not
+   3:1 — it is used at 11-14px, which is normal-size text, not large). It is
+   only safe on the untinted surfaces though, so row meta text inside a paid,
+   tinted row uses --muted instead. Pushing --faint dark enough to survive the
+   permanent row's wash would collapse it into --muted and cost a whole step
+   of hierarchy everywhere else, to fix two lines.
+
+   --control-border is separate from --border on purpose. --border is a
+   decorative hairline for cards and dividers at ~1.2:1; that is fine for a
+   divider and useless for the edge of something you are meant to type into,
+   which WCAG 1.4.11 asks to reach 3:1. Inputs use --control-border; nothing
+   else should. */
+:root {
+  --background: #f8f4ef;
+  --foreground: #1a1714;
+  --surface: #ffffff;
+  --surface-raised: #f1eae1;
+  --border: #e7ded3;
+  --border-strong: #d5c8b9;
+  --control-border: #a08260;
+  --muted: #5b5349;
+  --faint: #73685c;
+
+  --gold: #7c5204;
+  --gold-soft: rgba(214, 158, 46, 0.285);
+  --tier10: #1d4ed8;
+  --tier10-soft: rgba(29, 78, 216, 0.115);
+  --tier20: #0e7490;
+  --tier20-soft: rgba(14, 116, 144, 0.09);
+  --tier50: #566370;
+  --tier50-soft: rgba(86, 99, 112, 0.055);
+
+  --accent: #d24622;
   --accent-fg: #ffffff;
+  --accent-soft: rgba(226, 105, 74, 0.12);
+  --accent-strong: #b8412a;
+
+  --success: #147c3b;
+  --success-soft: rgba(21, 128, 61, 0.12);
   --danger: #b3372f;
 }
 
 .dark {
-  --background: #08090c;
-  --foreground: #e9ebf1;
-  --surface: #0e1016;
-  --surface-raised: #141722;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --muted: #9aa1b4;
-  --faint: #626a7d;
+  --background: #14110f;
+  --foreground: #f0eae3;
+  --surface: #1c1815;
+  --surface-raised: #241f1a;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --control-border: #8a7f72;
+  --muted: #bcb3a8;
+  --faint: #918578;
 
-  --gold: #e0b563;
-  --gold-soft: rgba(224, 181, 99, 0.09);
-  --tier10: #a394f7;
-  --tier10-soft: rgba(163, 148, 247, 0.1);
-  --tier20: #55c3ea;
-  --tier20-soft: rgba(85, 195, 234, 0.1);
-  --tier50: #4cd6a0;
-  --tier50-soft: rgba(76, 214, 160, 0.1);
-  --accent: #e9ebf1;
-  --accent-fg: #0b0c10;
+  --gold: #e8b45c;
+  --gold-soft: rgba(232, 180, 92, 0.145);
+  --tier10: #8ab0f7;
+  --tier10-soft: rgba(138, 176, 247, 0.13);
+  --tier20: #4cb8d4;
+  --tier20-soft: rgba(76, 184, 212, 0.095);
+  --tier50: #98a4b0;
+  --tier50-soft: rgba(152, 164, 176, 0.06);
+
+  --accent: #ef7b57;
+  --accent-fg: #1a1008;
+  --accent-soft: rgba(239, 123, 87, 0.15);
+  --accent-strong: #f7a184;
+
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.13);
   --danger: #f0736a;
 }
 
@@ -55,6 +113,7 @@
   --color-raised: var(--surface-raised);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-control-border: var(--control-border);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-gold: var(--gold);
@@ -67,6 +126,10 @@
   --color-tier50-soft: var(--tier50-soft);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), var(--font-geist-sans), sans-serif;
@@ -104,11 +167,118 @@ body {
   animation: row-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ── Highlight / Pin ───────────────────────────────────────────────────────
+   A light-gold shimmer that travels around the row's edge. Built from a
+   conic gradient whose angle is animated via @property, masked down to just
+   the border so only a moving arc of gold is visible. Where @property isn't
+   supported the gradient still paints a static gold arc, and the row keeps
+   its gold tint, ring and glow — so it degrades to a still highlight rather
+   than to nothing. */
+@property --urank-orbit-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes urank-orbit {
+  to {
+    --urank-orbit-angle: 360deg;
+  }
+}
+
+.highlight-orbit {
+  position: relative;
+  isolation: isolate;
+  /* Inset, not an outer glow. The board container is overflow-hidden, so an
+     outer glow is not clipped between rows — it bleeds gold onto the rows
+     above and below, and gold means "permanent tier" here, so a free row
+     ends up looking faintly premium. */
+  box-shadow: inset 0 0 30px -12px var(--gold);
+}
+
+.highlight-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--urank-orbit-angle),
+    transparent 0deg,
+    color-mix(in srgb, var(--gold) 55%, white) 30deg,
+    var(--gold) 55deg,
+    transparent 110deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: urank-orbit 4.5s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Keyboard focus. Every text input used to set `outline-none` and then signal
+   focus by swapping --border for --border-strong — 1.2:1 to 1.5:1 against the
+   page, which is to say invisible, and far under the 3:1 WCAG 1.4.11 asks of
+   anything that identifies a control or its state. The accent clears 4.1:1 on
+   the page and 4.5:1 on a card, so focus is now an accent ring everywhere, on
+   inputs and buttons alike.
+
+   :focus-visible rather than :focus keeps the ring off mouse clicks. It sits
+   outside @layer so it beats the `outline-none` utility wherever one is still
+   applied. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Windows High Contrast: system colours replace ours, so keep a ring that the
+   forced palette can actually paint. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* The hero sits on a soft warm wash rather than the flat page colour, so the
+   claim card reads as lifted off the page instead of pasted onto it. Two
+   very low-opacity radials only — enough for depth, not enough to fight the
+   text contrast underneath. */
+.hero-wash {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-wash::before {
+  content: "";
+  position: absolute;
+  inset: -4rem 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      60rem 32rem at 78% 12%,
+      color-mix(in srgb, var(--accent) 11%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      46rem 28rem at 8% 0%,
+      color-mix(in srgb, var(--gold) 12%, transparent),
+      transparent 68%
+    );
+}
+
 /* Soft pulse on the live-visitors dot. */
 @keyframes live-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--tier50) 55%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 55%, transparent);
   }
   60% {
     box-shadow: 0 0 0 6px transparent;
@@ -124,6 +294,10 @@ body {
     animation: none;
   }
   .live-dot {
+    animation: none;
+  }
+  /* Keep the gold edge, drop the travelling motion. */
+  .highlight-orbit::after {
     animation: none;
   }
   html {

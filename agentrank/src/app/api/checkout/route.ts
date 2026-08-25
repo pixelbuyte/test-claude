@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
     const session = await stripe().checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: item.stripe.priceId, quantity: 1 }],
-      metadata: { app: "uprank", sku: item.sku, listing_id: listingId },
+      metadata: { app: "urank", sku: item.sku, listing_id: listingId },
       success_url: `${siteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl()}/pricing`,
     });

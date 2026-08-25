@@ -1,5 +1,5 @@
 /**
- * The UPrank ranking engine.
+ * The URank ranking engine.
  *
  * Strict ordering rules — enforced here and nowhere else:
  *

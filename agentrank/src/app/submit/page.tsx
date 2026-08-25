@@ -5,7 +5,7 @@ import { SubmitForm } from "@/components/submit-form";
 export const metadata: Metadata = {
   title: "List for free",
   description:
-    "Add your site, tool, or social profile to the UPrank open section — completely free.",
+    "Add your site, tool, or social profile to the URank open section — completely free.",
 };
 
 export default function SubmitPage() {

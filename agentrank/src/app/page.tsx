@@ -2,6 +2,7 @@ import { ArrowRight, BadgeCheck, Landmark, Timer } from "lucide-react";
 import Link from "next/link";
 
 import { Board } from "@/components/board";
+import { HeroClaim } from "@/components/hero-claim";
 import { StatsBar } from "@/components/stats";
 import {
   demoMode,
@@ -28,6 +29,7 @@ export default async function HomePage() {
     getPermanentRankOwners().catch(() => ({})),
   ]);
   const entries = rankBoard(listings, new Date(), permanentOwners);
+  const takenRanks = Object.keys(permanentOwners).map(Number);
   const liveVisitors = await getLiveVisitorCount().catch(() => 0);
   const showRevenue = process.env.NEXT_PUBLIC_SHOW_REVENUE === "true" || demoMode();
   const totalRevenueCents = showRevenue
@@ -39,40 +41,59 @@ export default async function HomePage() {
   return (
     <div className="pb-8">
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pt-16 pb-12 sm:px-6 sm:pt-24">
-        <p className="inline-flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-xs font-medium tracking-wide text-muted">
-          <BadgeCheck className="h-3.5 w-3.5 text-tier50" />
-          Fixed prices · fixed durations · no auctions, ever
-        </p>
-        <h1 className="mt-6 max-w-3xl font-display text-4xl leading-[1.08] font-semibold tracking-tight sm:text-6xl">
-          The public leaderboard for{" "}
-          <span className="text-gold">any site or tool</span>.
-        </h1>
-        <p className="mt-5 max-w-2xl text-lg text-muted">
-          Every placement has a clear, published price — a permanent rank or a
-          timed spot in a tier. Nobody can outbid you, and money never reorders
-          listings inside a tier. Fair, transparent, simple.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Link
-            href="/pricing#permanent"
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
-          >
-            Buy a permanent rank
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/pricing#timed"
-            className="rounded-full border border-border px-6 py-3 text-sm font-semibold transition-colors hover:border-border-strong hover:bg-raised"
-          >
-            Buy a timed placement
-          </Link>
-          <Link
-            href="/submit"
-            className="px-2 py-3 text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
-          >
-            or list for free →
-          </Link>
+      <section className="hero-wash">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-14 pb-12 sm:px-6 sm:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-12">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-xs font-medium tracking-wide text-muted backdrop-blur">
+              <BadgeCheck className="h-3.5 w-3.5 text-success" />
+              Fixed prices · fixed durations · no auctions, ever
+            </p>
+            <h1 className="mt-6 font-display text-4xl leading-[1.06] font-semibold tracking-tight sm:text-6xl">
+              The public leaderboard for{" "}
+              <span className="text-gold">any site or tool</span>.
+            </h1>
+            <p className="mt-5 max-w-xl text-lg text-muted">
+              Every placement has a clear, published price — a permanent rank
+              or a timed spot in a tier. Nobody can outbid you, and money never
+              reorders listings inside a tier. Fair, transparent, simple.
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
+              <Link
+                href="/submit"
+                className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-raised"
+              >
+                List for free
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <p className="max-w-xs text-sm text-muted">
+                No card, no account — free listings rank by real outbound
+                clicks.
+              </p>
+            </div>
+
+            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border bg-border">
+              {[
+                { k: "Permanent ranks", v: "#1–#5", hint: "Yours until you cancel" },
+                { k: "Timed tiers", v: "From $29", hint: "1 hour to 7 days" },
+                { k: "Open section", v: "Free", hint: "Forever, any link" },
+              ].map((s) => (
+                <div key={s.k} className="bg-surface px-4 py-3.5">
+                  <dt className="text-[11px] tracking-wide text-faint uppercase">
+                    {s.k}
+                  </dt>
+                  <dd className="mt-1 font-display text-lg font-semibold tabular-nums">
+                    {s.v}
+                  </dd>
+                  <p className="mt-0.5 text-xs text-muted">{s.hint}</p>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <div className="lg:pt-1">
+            <HeroClaim takenRanks={takenRanks} />
+          </div>
         </div>
       </section>
 
@@ -122,7 +143,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="rounded-2xl border border-border bg-surface p-6">
-            <BadgeCheck className="h-6 w-6 text-tier50" />
+            <BadgeCheck className="h-6 w-6 text-success" />
             <h3 className="mt-4 font-display text-lg font-semibold">
               3 · Open section
             </h3>

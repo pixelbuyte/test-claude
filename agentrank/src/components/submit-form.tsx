@@ -15,7 +15,7 @@ export function SubmitForm() {
   const [done, setDone] = useState<"active" | "pending" | null>(null);
 
   const field =
-    "w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-faint focus:border-border-strong";
+    "w-full rounded-xl border border-control-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-faint";
 
   const preview = useMemo(() => {
     const normalized = normalizeUrl(url);
@@ -56,7 +56,7 @@ export function SubmitForm() {
   if (done) {
     return (
       <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-        <CheckCircle2 className="mx-auto h-10 w-10 text-tier50" />
+        <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
         <h2 className="mt-4 font-display text-xl font-semibold">
           {done === "active" ? "You're on the board!" : "Submitted for review"}
         </h2>

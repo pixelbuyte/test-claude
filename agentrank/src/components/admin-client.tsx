@@ -39,7 +39,7 @@ export function AdminLogin() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Admin password"
-        className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-faint focus:border-border-strong"
+        className="w-full rounded-xl border border-control-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-faint"
       />
       {error && <p className="text-sm text-danger">{error}</p>}
       <button
@@ -137,7 +137,7 @@ export function AdminDashboard({
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-xs font-medium",
-                        l.status === "active" && "bg-tier50-soft text-tier50",
+                        l.status === "active" && "bg-success-soft text-success",
                         l.status === "pending" && "bg-gold-soft text-gold",
                         l.status === "rejected" && "text-danger",
                       )}
@@ -152,7 +152,7 @@ export function AdminDashboard({
                       onChange={(e) =>
                         act("set_category", l.id, { category: e.target.value })
                       }
-                      className="rounded-lg border border-border bg-surface px-2 py-1 text-xs outline-none focus:border-border-strong disabled:opacity-50"
+                      className="rounded-lg border border-control-border bg-surface px-2 py-1 text-xs outline-none disabled:opacity-50"
                     >
                       {CATEGORIES.map((c) => (
                         <option key={c.slug} value={c.slug}>
@@ -242,7 +242,7 @@ export function AdminDashboard({
                     <span
                       className={cn(
                         "text-xs font-medium",
-                        p.status === "completed" && "text-tier50",
+                        p.status === "completed" && "text-success",
                         p.status === "pending" && "text-gold",
                         (p.status === "conflict" ||
                           p.status === "failed" ||

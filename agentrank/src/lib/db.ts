@@ -7,7 +7,11 @@
 
 import { getCatalogItem, TIER_CAPACITY, type Tier } from "@/lib/pricing";
 import { isDbConfigured, supabaseAdmin } from "@/lib/supabase";
-import { demoListings, demoVisitorCount, DEMO_REVENUE_CENTS } from "@/lib/demo-data";
+import {
+  demoListings,
+  demoVisitorCount,
+  DEMO_REVENUE_CENTS,
+} from "@/lib/demo-data";
 import type { Listing, Payment, SubmitListingInput } from "@/lib/types";
 import { urlMatchKey } from "@/lib/utils";
 
@@ -230,6 +234,8 @@ export async function recordPendingPayment(params: {
 }
 
 export async function incrementClick(id: string): Promise<string | null> {
+  // Demo mode still redirects, but has nowhere to record the click — see the
+  // note on SEEDS in demo-data.ts.
   if (demoMode()) {
     return demoListings().find((l) => l.id === id)?.url ?? null;
   }
