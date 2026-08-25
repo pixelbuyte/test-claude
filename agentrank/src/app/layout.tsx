@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
@@ -66,6 +67,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main className="flex-1">{children}</main>
           <SiteFooter />
         </ThemeProvider>
+        {/* No-op until the project has Web Analytics enabled in the Vercel
+            dashboard — safe to ship ahead of that. */}
+        <Analytics />
       </body>
     </html>
   );
