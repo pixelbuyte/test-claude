@@ -32,6 +32,25 @@ export const metadata: Metadata = {
   },
   description:
     "A transparent, fixed-price public ranking board for any website or tool. No auctions, no outbidding — permanent slots and timed tier placements at clear prices.",
+  // Without these the page shares as a bare link: X had no image, no card
+  // type and nothing but the <title> to show. opengraph-image.tsx supplies
+  // the picture; summary_large_image is what makes X draw the wide card
+  // rather than a thumbnail. Twitter inherits the OG image when twitter.images
+  // is left unset, so the image is declared once.
+  openGraph: {
+    type: "website",
+    siteName: "URank",
+    url: "/",
+    title: "URank — the fixed-price leaderboard for any site",
+    description:
+      "Fixed prices, fixed durations, no auctions. Own a permanent rank or rent a timed spot — every price published up front.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "URank — the fixed-price leaderboard for any site",
+    description:
+      "Fixed prices, fixed durations, no auctions. Own a permanent rank or rent a timed spot — every price published up front.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
