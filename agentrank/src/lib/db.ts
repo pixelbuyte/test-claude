@@ -12,7 +12,7 @@ import {
   demoVisitorCount,
   DEMO_REVENUE_CENTS,
 } from "@/lib/demo-data";
-import { starterListings } from "@/lib/starter-data";
+import { starterListings, starterVisitorBaseline } from "@/lib/starter-data";
 import type { Listing, Payment, SubmitListingInput } from "@/lib/types";
 import { urlMatchKey } from "@/lib/utils";
 
@@ -217,6 +217,20 @@ export async function getLiveVisitorCount(): Promise<number> {
     .gt("seen_at", cutoff);
   if (error) throw error;
   return count ?? 0;
+}
+
+/**
+ * getLiveVisitorCount() plus starterVisitorBaseline() -- real presence stays
+ * fully real, the baseline is added on top so the counter reads as active
+ * before there's genuine traffic to show, and still climbs for a real visit
+ * instead of hiding it behind a frozen fake number. If the real presence
+ * query itself fails, this still returns the baseline alone rather than
+ * propagating -- the same "board should never look broken over a secondary
+ * read" reasoning as getStarterListingsLive.
+ */
+export async function getStarterVisitorCount(): Promise<number> {
+  const real = await getLiveVisitorCount().catch(() => 0);
+  return starterVisitorBaseline() + real;
 }
 
 export async function getTotalRevenueCents(): Promise<number> {

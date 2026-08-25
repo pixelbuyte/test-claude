@@ -10,6 +10,7 @@ import {
   getLiveVisitorCount,
   getPermanentRankOwners,
   getStarterListingsLive,
+  getStarterVisitorCount,
   getTotalRevenueCents,
   type PermanentRankOwner,
 } from "@/lib/db";
@@ -64,7 +65,13 @@ export default async function HomePage() {
 
   const entries = rankBoard(boardListings, new Date(), boardPermanentOwners);
   const takenRanks = Object.keys(boardPermanentOwners).map(Number);
-  const liveVisitors = await getLiveVisitorCount().catch(() => 0);
+  // Same bootstrap gate as the board content: real presence numbers are used
+  // as-is once any real listing exists, and getStarterVisitorCount() adds a
+  // baseline on top of them (never replaces them) while nothing real exists
+  // yet -- see its doc comment in db.ts.
+  const liveVisitors = isBootstrap
+    ? await getStarterVisitorCount().catch(() => 0)
+    : await getLiveVisitorCount().catch(() => 0);
   const showRevenue = process.env.NEXT_PUBLIC_SHOW_REVENUE === "true" || demoMode();
   const totalRevenueCents = showRevenue
     ? await getTotalRevenueCents().catch(() => 0)

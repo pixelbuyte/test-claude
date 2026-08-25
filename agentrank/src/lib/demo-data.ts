@@ -84,8 +84,8 @@ export const SEEDS: Seed[] = [
     clickCount: 296,
     ageDays: 45,
     boostTier: "top10",
-    boostStartedHoursAgo: 10,
-    boostEndsInHours: 62,
+    boostStartedHoursAgo: 70,
+    boostEndsInHours: -6,
   },
   {
     id: "demo-formbricks",
@@ -110,8 +110,8 @@ export const SEEDS: Seed[] = [
     clickCount: 279,
     ageDays: 25,
     boostTier: "top20",
-    boostStartedHoursAgo: 20,
-    boostEndsInHours: 52,
+    boostStartedHoursAgo: 90,
+    boostEndsInHours: -18,
   },
   {
     id: "demo-papermark",
@@ -122,8 +122,8 @@ export const SEEDS: Seed[] = [
     clickCount: 271,
     ageDays: 21,
     boostTier: "top20",
-    boostStartedHoursAgo: 6,
-    boostEndsInHours: 6,
+    boostStartedHoursAgo: 30,
+    boostEndsInHours: -3,
   },
 
   // ── Top 50 timed tier ───────────────────────────────────────────────────
@@ -155,7 +155,10 @@ export const SEEDS: Seed[] = [
   // ── Lapsed boosts ───────────────────────────────────────────────────────
   // boostTier is still set but boostExpiresAt is in the past, so these fall
   // out of the tier ladder into the open section and the row offers the slot
-  // they just vacated. One per tier, so all three prices are demonstrated.
+  // they just vacated. Coolify (top10) and Umami/Papermark (top20) above are
+  // also lapsed now, not just the three below -- top20 currently has no
+  // active boosted row at all as a result, only lapsed ones plus its "X of Y
+  // slots open" banner.
   {
     id: "demo-buttondown",
     name: "Buttondown",
