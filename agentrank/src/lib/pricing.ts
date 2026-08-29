@@ -27,10 +27,21 @@ export interface CatalogItem {
   tier?: Tier;
   /** Timed items: how long the placement lasts. */
   durationHours?: number;
+  /**
+   * Pre-created Stripe objects for this item, when they exist. All three are
+   * optional so a price point can be added here — the single source of truth —
+   * without waiting on someone to provision it in the Stripe dashboard first:
+   *
+   * - no `priceId`  → checkout builds the line item inline from `amountCents`
+   *   (see src/app/api/checkout/route.ts). The amount still comes from this
+   *   catalog on the server; the client sends only a SKU, never a number.
+   * - no `paymentLinkUrl` → the demo-mode manual-sales fallback has nothing to
+   *   send a buyer to, so checkout refuses rather than opening a broken link.
+   */
   stripe: {
-    productId: string;
-    priceId: string;
-    paymentLinkUrl: string;
+    productId?: string;
+    priceId?: string;
+    paymentLinkUrl?: string;
   };
 }
 
@@ -98,6 +109,22 @@ export const CATALOG: CatalogItem[] = [
   },
 
   // ── Top 10 tier boosts ──────────────────────────────────────────────────
+  // The cheapest rung on the whole board, and deliberately first: it is the
+  // number the home page leads with, so the entry price a visitor sees is
+  // $129 rather than a four-figure permanent rank.
+  //
+  // No Stripe price object exists for it yet, so checkout prices it inline
+  // from amountCents. Creating a real Price (and Payment Link) in the Stripe
+  // dashboard and filling the ids in below changes nothing else.
+  {
+    sku: "top10_3h",
+    kind: "tier_boost",
+    label: "Top 10 · 3 hours",
+    amountCents: 12900,
+    tier: "top10",
+    durationHours: 3,
+    stripe: {},
+  },
   {
     sku: "top10_6h",
     kind: "tier_boost",

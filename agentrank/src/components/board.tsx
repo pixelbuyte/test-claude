@@ -231,8 +231,21 @@ function OpenSlotRow({
   priceCents: number;
   available: boolean;
 }) {
-  const content = (
-    <>
+  // The rent entry price for the tier immediately below the permanent block.
+  // Leading with it is the point of this row: a visitor who is shown $4,500
+  // first has already decided the board is not for them by the time they find
+  // out a spot can be had for a fraction of that. Owning the rank outright is
+  // still here, just second.
+  const rentFromCents = tierFromCents("top10");
+
+  // Stacked until sm, like ListingRow: side by side, the fixed rank column,
+  // bubble and price pills leave the title about 40px on a 360px screen, which
+  // wraps "Rank #1 is available" one word per line.
+  const shell =
+    "flex flex-col gap-3 border-b border-border px-4 py-4 last:border-b-0 sm:flex-row sm:items-center sm:gap-4 sm:px-6";
+
+  return (
+    <div className={cn(shell, !available && "opacity-60")}>
       <span className="flex min-w-0 flex-1 items-center gap-4">
         <span className="w-9 shrink-0 text-center font-display text-lg font-semibold text-faint tabular-nums">
           {rank}
@@ -246,41 +259,34 @@ function OpenSlotRow({
           </span>
           <span className="block text-xs text-faint">
             {available
-              ? "Own this position permanently — fixed one-time price"
+              ? // Deliberately explicit that renting buys a Top 10 spot, not
+                // this rank: the cheap price is the hook, but it must never
+                // read as "rank #1 for $129".
+                `Rent a ${TIER_LABEL.top10} spot from ${formatUsd(rentFromCents)} — or own #${permanentRank} outright`
               : "Held by a listing pending review — not purchasable right now"}
           </span>
         </span>
       </span>
       {available && (
-        // pl-13 clears the rank column + gap so the pill lines up under the
+        // pl-13 clears the rank column + gap so the pills line up under the
         // dashed bubble once the row has stacked, the same offset ListingRow
         // uses for its Visit/Share group.
-        <span className="flex shrink-0 pl-13 sm:pl-0">
-          <span className="rounded-full border border-gold/40 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-gold">
-            Claim · {formatUsd(priceCents)}
-          </span>
+        <span className="flex shrink-0 flex-wrap items-center gap-2 pl-13 sm:pl-0">
+          <Link
+            href="/pricing#top10"
+            className="rounded-full bg-accent px-3.5 py-1.5 text-xs font-semibold text-accent-fg transition-opacity hover:opacity-90"
+          >
+            Rent now · {formatUsd(rentFromCents)}
+          </Link>
+          <Link
+            href="/pricing#permanent"
+            className="rounded-full border border-gold/40 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:border-gold/70"
+          >
+            Own · {formatUsd(priceCents)}
+          </Link>
         </span>
       )}
-    </>
-  );
-
-  // Stacked until sm, like ListingRow: side by side, the fixed rank column,
-  // bubble and price pill leave the title about 40px on a 360px screen, which
-  // wraps "Rank #1 is available" one word per line.
-  const shell =
-    "flex flex-col gap-3 border-b border-border px-4 py-4 last:border-b-0 sm:flex-row sm:items-center sm:gap-4 sm:px-6";
-
-  if (!available) {
-    return <div className={cn(shell, "opacity-60")}>{content}</div>;
-  }
-
-  return (
-    <Link
-      href={`/pricing#permanent`}
-      className={cn(shell, "group transition-colors hover:bg-raised")}
-    >
-      {content}
-    </Link>
+    </div>
   );
 }
 

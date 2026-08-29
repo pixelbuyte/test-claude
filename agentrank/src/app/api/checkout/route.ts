@@ -73,6 +73,18 @@ export async function POST(req: NextRequest) {
   // buyer to retype their URL into the Stripe notes field, because the generic
   // Payment Link carried no listing and the URL would otherwise be lost.
   if (!isStripeConfigured() && demoMode()) {
+    // A catalog item with no Payment Link has no manual-sales channel to fall
+    // back to, so there is nowhere to send this buyer. Refusing beats opening
+    // a broken link — on a configured deployment the branch below handles it.
+    if (!item.stripe.paymentLinkUrl) {
+      return NextResponse.json(
+        {
+          error:
+            "This option isn't available on this deployment yet. Please pick another duration.",
+        },
+        { status: 503 },
+      );
+    }
     const link = new URL(item.stripe.paymentLinkUrl);
     const ref = clientReferenceId(body.url ?? "");
     if (ref) link.searchParams.set("client_reference_id", ref);
@@ -182,9 +194,25 @@ export async function POST(req: NextRequest) {
       listingId = created.id;
     }
 
+    // A pre-created Stripe Price is used when the catalog names one. When it
+    // does not, the line item is priced inline from the same catalog entry —
+    // the amount is still server-side and the client still only ever sends a
+    // SKU. The webhook keys off metadata.sku either way, so a purchase is
+    // applied identically no matter which branch created the session.
+    const lineItem = item.stripe.priceId
+      ? { price: item.stripe.priceId, quantity: 1 }
+      : {
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            unit_amount: item.amountCents,
+            product_data: { name: item.label },
+          },
+        };
+
     const session = await stripe().checkout.sessions.create({
       mode: "payment",
-      line_items: [{ price: item.stripe.priceId, quantity: 1 }],
+      line_items: [lineItem],
       metadata: { app: "urank", sku: item.sku, listing_id: listingId },
       success_url: `${siteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl()}/pricing`,
