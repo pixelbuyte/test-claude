@@ -966,6 +966,7 @@
       '<div class="mode-switch" role="group" aria-label="Entry mode">' +
       '<button type="button" class="chip selected" data-mode="manual">Manual entry</button>' +
       '<button type="button" class="chip" data-mode="draw">Draw route</button>' +
+      '<button type="button" class="chip" data-mode="gps">Track with GPS</button>' +
       '</div>' +
       '<form id="record-form">' +
       '<div class="field"><label>Sport</label><div class="type-seg" id="type-seg">' + typeButtons + '</div></div>' +
@@ -981,17 +982,30 @@
       '<span class="draw-dist" id="draw-dist">0.00 km</span></div>' +
       '<p class="hint">Click the map to drop route points — distance is measured along your line.</p>' +
       '</div>' +
+      '<div id="gps-wrap" hidden>' +
+      '<div class="gps-stats">' +
+      '<div class="gps-stat"><div class="g-value" id="gps-time">0:00</div><div class="g-label">Time</div></div>' +
+      '<div class="gps-stat"><div class="g-value" id="gps-dist">0.00</div><div class="g-label">km</div></div>' +
+      '<div class="gps-stat"><div class="g-value" id="gps-pace">—</div><div class="g-label" id="gps-pace-label">/km</div></div>' +
+      '</div>' +
+      '<div class="draw-map" id="gps-map"></div>' +
+      '<div class="gps-status"><span class="gps-dot" id="gps-dot"></span><span id="gps-status">GPS idle — press Start to begin tracking</span></div>' +
+      '<div class="gps-controls">' +
+      '<button type="button" class="btn" id="gps-start">Start</button>' +
+      '<button type="button" class="btn" id="gps-pause" hidden>Pause</button>' +
+      '<button type="button" class="btn btn-accent" id="gps-finish">Finish &amp; save</button>' +
+      '</div></div>' +
       '<div class="field-row" id="dist-row"><div class="field"><label for="rec-dist">Distance (km)</label>' +
       '<input id="rec-dist" type="number" min="0" step="0.01" placeholder="5.00"></div>' +
       '<div class="field"><label for="rec-elev">Elev gain (m, optional)</label>' +
       '<input id="rec-elev" type="number" min="0" step="1" placeholder="0"></div></div>' +
-      '<div class="field"><label>Duration</label><div class="field-row">' +
+      '<div class="field" id="duration-field"><label>Duration</label><div class="field-row">' +
       '<div class="field"><input id="rec-h" type="number" min="0" max="99" placeholder="hh" aria-label="Hours"></div>' +
       '<div class="field"><input id="rec-m" type="number" min="0" max="59" placeholder="mm" aria-label="Minutes"></div>' +
       '<div class="field"><input id="rec-s" type="number" min="0" max="59" placeholder="ss" aria-label="Seconds"></div>' +
       '</div></div>' +
       '<div class="form-error" id="rec-error" hidden></div>' +
-      '<button class="btn btn-accent" type="submit" style="width:100%;justify-content:center;padding:11px">Save activity</button>' +
+      '<button class="btn btn-accent" type="submit" id="save-btn" style="width:100%;justify-content:center;padding:11px">Save activity</button>' +
       '</form></div></div>';
 
     var nameInput = document.getElementById('rec-name');
@@ -1035,12 +1049,187 @@
       refreshDrawUI();
     }
 
+    /* ----- live GPS tracking ----- */
+    var gps = {
+      watchId: null, running: false, pts: [], dist: 0, elevGain: 0, lastAlt: null,
+      elapsedBase: 0, startTs: 0, startWall: null, timer: null,
+      map: null, line: null, marker: null, lastFix: null, wakeLock: null
+    };
+
+    function gpsElapsed() {
+      return gps.running ? gps.elapsedBase + (Date.now() - gps.startTs) / 1000 : gps.elapsedBase;
+    }
+
+    function gpsStatus(text, live) {
+      var el = document.getElementById('gps-status');
+      if (el) el.textContent = text;
+      var dot = document.getElementById('gps-dot');
+      if (dot) dot.classList.toggle('live', !!live);
+    }
+
+    function gpsUpdateStats() {
+      var t = gpsElapsed();
+      var timeEl = document.getElementById('gps-time');
+      if (!timeEl) return;
+      timeEl.textContent = fmtClock(t);
+      document.getElementById('gps-dist').textContent = (gps.dist / 1000).toFixed(2);
+      var paceEl = document.getElementById('gps-pace');
+      document.getElementById('gps-pace-label').textContent = recType === 'ride' ? 'km/h' : '/km';
+      if (gps.dist > 30 && t > 5) {
+        paceEl.textContent = recType === 'ride'
+          ? ((gps.dist / t) * 3.6).toFixed(1)
+          : fmtPaceSec(t / (gps.dist / 1000));
+      } else {
+        paceEl.textContent = '—';
+      }
+    }
+
+    function gpsButtons() {
+      var start = document.getElementById('gps-start');
+      var pause = document.getElementById('gps-pause');
+      if (!start) return;
+      start.hidden = gps.running;
+      start.textContent = gps.pts.length || gps.elapsedBase > 0 ? 'Resume' : 'Start';
+      pause.hidden = !gps.running;
+    }
+
+    function gpsFix(pos) {
+      if (!gps.running) return;
+      var c = pos.coords;
+      if (c.accuracy != null && c.accuracy > 60) {
+        gpsStatus('GPS signal weak (±' + Math.round(c.accuracy) + ' m) — hold on…', false);
+        return;
+      }
+      var p = [c.latitude, c.longitude, c.altitude != null ? c.altitude : 0, Math.round(gpsElapsed())];
+      if (gps.lastFix) {
+        var seg = haversine(gps.lastFix, p);
+        if (seg < 2.5) { gpsStatus('Tracking · ±' + Math.round(c.accuracy || 0) + ' m', true); return; }
+        gps.dist += seg;
+        if (c.altitude != null && gps.lastAlt != null && c.altitude - gps.lastAlt > 1.2) {
+          gps.elevGain += c.altitude - gps.lastAlt;
+        }
+      }
+      if (c.altitude != null) gps.lastAlt = c.altitude;
+      gps.lastFix = p;
+      gps.pts.push(p);
+      gpsStatus('Tracking · ±' + Math.round(c.accuracy || 0) + ' m', true);
+      if (gps.map) {
+        var ll = [p[0], p[1]];
+        if (!gps.marker) {
+          gps.marker = L.circleMarker(ll, {
+            radius: 7, color: '#fff', weight: 2, fillColor: '#cf4514', fillOpacity: 1
+          }).addTo(gps.map);
+          gps.map.setView(ll, 16);
+        } else {
+          gps.marker.setLatLng(ll);
+          gps.map.panTo(ll, { animate: true });
+        }
+        if (!gps.line) {
+          gps.line = L.polyline([ll], { color: '#eb6834', weight: 4 }).addTo(gps.map);
+        } else {
+          gps.line.addLatLng(ll);
+        }
+      }
+      gpsUpdateStats();
+    }
+
+    function gpsErr(e) {
+      gpsStatus(e && e.code === 1
+        ? 'Location permission denied — allow location access to track.'
+        : 'GPS error — retrying…', false);
+    }
+
+    function gpsHalt() { // stop sensors; keeps accumulated data
+      if (gps.watchId != null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(gps.watchId);
+        gps.watchId = null;
+      }
+      if (gps.timer) { clearInterval(gps.timer); gps.timer = null; }
+      if (gps.wakeLock) { try { gps.wakeLock.release(); } catch (e) { /* ignore */ } gps.wakeLock = null; }
+      if (gps.running) { gps.elapsedBase = gpsElapsed(); gps.running = false; }
+    }
+
+    function gpsStart() {
+      if (!navigator.geolocation) {
+        gpsStatus('Geolocation is not available in this browser.', false);
+        return;
+      }
+      gps.running = true;
+      gps.startTs = Date.now();
+      if (!gps.startWall) gps.startWall = new Date();
+      gpsStatus('Waiting for GPS fix…', false);
+      gps.watchId = navigator.geolocation.watchPosition(gpsFix, gpsErr, {
+        enableHighAccuracy: true, maximumAge: 0, timeout: 20000
+      });
+      gps.timer = setInterval(gpsUpdateStats, 1000);
+      if (navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request('screen')
+          .then(function (l) { gps.wakeLock = l; })
+          .catch(function () { /* screen may still sleep */ });
+      }
+      gpsButtons();
+    }
+
+    function gpsPause() {
+      gpsHalt();
+      gpsStatus('Paused — press Resume to continue', false);
+      gpsButtons();
+    }
+
+    function gpsFinish() {
+      var wasRunning = gps.running;
+      gpsHalt();
+      if (gps.pts.length < 2 || gps.dist < 25) {
+        gpsStatus(wasRunning || gps.pts.length
+          ? 'Not enough movement recorded yet — resume and keep going a little longer.'
+          : 'Nothing recorded yet — press Start first.', false);
+        gpsButtons();
+        return;
+      }
+      var secs = Math.max(1, Math.round(gps.elapsedBase));
+      var when = gps.startWall || new Date();
+      var act = {
+        id: 'a' + Date.now().toString(36),
+        athleteId: state.me,
+        type: recType,
+        name: nameInput.value.trim() || defaultName(recType, when),
+        date: when.toISOString(),
+        points: gps.pts.map(function (p) {
+          return [+p[0].toFixed(5), +p[1].toFixed(5), +p[2].toFixed(1), p[3]];
+        }),
+        distance: Math.round(gps.dist),
+        movingTime: secs,
+        elevGain: Math.round(gps.elevGain),
+        kudos: [],
+        comments: []
+      };
+      state.activities.unshift(act);
+      window.StrideData.save(state);
+      location.hash = '#/activity/' + act.id;
+    }
+
+    onCleanup(gpsHalt);
+    document.getElementById('gps-start').addEventListener('click', gpsStart);
+    document.getElementById('gps-pause').addEventListener('click', gpsPause);
+    document.getElementById('gps-finish').addEventListener('click', gpsFinish);
+
     function setMode(m) {
       mode = m;
       viewEl.querySelectorAll('[data-mode]').forEach(function (c) {
         c.classList.toggle('selected', c.getAttribute('data-mode') === m);
       });
       document.getElementById('draw-wrap').hidden = m !== 'draw';
+      document.getElementById('gps-wrap').hidden = m !== 'gps';
+      document.getElementById('dist-row').hidden = m === 'gps';
+      document.getElementById('duration-field').hidden = m === 'gps';
+      document.getElementById('save-btn').hidden = m === 'gps';
+      if (m === 'gps' && !gps.map) {
+        gps.map = makeMap(document.getElementById('gps-map'), { scrollWheelZoom: true });
+        if (gps.map) gps.map.setView([37.7749, -122.4394], 13);
+      }
+      if (m === 'gps' && gps.map) {
+        setTimeout(function () { gps.map.invalidateSize(); }, 0);
+      }
       refreshDrawUI();
       if (m === 'draw' && !drawMap) {
         drawMap = makeMap(document.getElementById('draw-map'), { scrollWheelZoom: true });
@@ -1084,6 +1273,7 @@
 
     document.getElementById('record-form').addEventListener('submit', function (ev) {
       ev.preventDefault();
+      if (mode === 'gps') return; // GPS activities save via Finish
       var h = parseInt(document.getElementById('rec-h').value, 10) || 0;
       var m = parseInt(document.getElementById('rec-m').value, 10) || 0;
       var s = parseInt(document.getElementById('rec-s').value, 10) || 0;
@@ -1220,7 +1410,7 @@
   }
 
   function setActiveTab(tab) {
-    document.querySelectorAll('.tabs a').forEach(function (a) {
+    document.querySelectorAll('[data-tab]').forEach(function (a) {
       a.classList.toggle('active', a.getAttribute('data-tab') === tab);
     });
   }
