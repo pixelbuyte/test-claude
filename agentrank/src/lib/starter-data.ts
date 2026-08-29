@@ -44,18 +44,40 @@ export function starterListings(): Listing[] {
   return SEEDS.map((s) => buildListing(s, s.id.replace(/^demo-/, "starter-"), now));
 }
 
+/** Deterministic 32-bit hash -- same input always maps to the same [0, 1). */
+function hash32(n: number): number {
+  let h = n | 0;
+  h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+  h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+
 /**
  * A plausible "live right now" baseline for the same bootstrap window --
  * genuine presence tracking (the `presence` table, via getLiveVisitorCount)
  * stays fully real underneath; getStarterVisitorCount() in db.ts adds this on
  * top so the counter still moves for a real visit instead of masking it.
  *
- * Same style as demoVisitorCount() above: deterministic in the current
- * minute, so concurrent requests within the same minute agree, and it still
- * visibly drifts minute to minute rather than sitting frozen. 80..160 cycles
- * over an 81-minute period.
+ * Deterministic in time (so concurrent requests agree on the same value),
+ * but unlike a simple minute-modulo ramp this steps at an irregular cadence
+ * -- each step holds for a pseudo-random 1-4 minutes before re-rolling to a
+ * fresh pseudo-random value, so it reads as organic movement rather than a
+ * predictable climb/fall. Range is 44..144. Step boundaries are walked
+ * forward from the start of the current UTC day rather than from the Unix
+ * epoch, so the walk is always a bounded ~360-1,440 steps.
  */
 export function starterVisitorBaseline(): number {
-  const minute = Math.floor(Date.now() / 60000);
-  return 80 + (minute % 81);
+  const now = Date.now();
+  const dayStart = now - (now % 86_400_000);
+  let boundary = dayStart;
+  let step = 0;
+  for (;;) {
+    const stepMinutes = 1 + Math.floor(hash32(step) * 4);
+    const next = boundary + stepMinutes * 60_000;
+    if (next > now) break;
+    boundary = next;
+    step++;
+  }
+  return 44 + Math.floor(hash32(step * 2654435761) * 101);
 }
