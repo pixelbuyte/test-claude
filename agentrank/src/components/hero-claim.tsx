@@ -16,13 +16,28 @@ import { cn, faviconUrl, normalizeUrl } from "@/lib/utils";
 type Mode = "permanent" | "rent";
 
 /**
- * The hero's buy widget. Leads with the best permanent rank still available
- * ("Claim #1 for $4,500"), with a toggle across to renting a timed spot
- * instead. Both paths post the same {sku, url} to /api/checkout, so a buyer
- * only ever supplies a URL.
+ * The shortest, cheapest way into a tier. Picked by amount rather than by
+ * position so inserting a new rung into the catalog moves the default here on
+ * its own, and a tier whose durations are ever listed out of order still opens
+ * on its real entry price.
+ */
+function cheapestSku(tier: Tier): string {
+  return TIER_ITEMS(tier).reduce((low, i) =>
+    i.amountCents < low.amountCents ? i : low,
+  ).sku;
+}
+
+/**
+ * The hero's buy widget. Leads with renting a timed spot at the cheapest rung
+ * on the board ("Top 10 for $129"), with a toggle across to owning a permanent
+ * rank outright. Renting is the default because it is the price a first-time
+ * visitor can actually say yes to — a four-figure permanent rank as the
+ * opening number reads as "not for me" and loses the buyer before they see
+ * there is a $129 option at all. Both paths post the same {sku, url} to
+ * /api/checkout, so a buyer only ever supplies a URL.
  */
 export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
-  const [mode, setMode] = useState<Mode>("permanent");
+  const [mode, setMode] = useState<Mode>("rent");
   const [tier, setTier] = useState<Tier>("top10");
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
@@ -60,7 +75,7 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
   const [permanentSku, setPermanentSku] = useState<string | null>(
     availablePermanent[0]?.sku ?? null,
   );
-  const [rentSku, setRentSku] = useState<string>(TIER_ITEMS("top10")[2].sku);
+  const [rentSku, setRentSku] = useState<string>(cheapestSku("top10"));
 
   const permanentChoice =
     availablePermanent.find((i) => i.sku === permanentSku) ??
@@ -71,7 +86,7 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
 
   const selectTier = (t: Tier) => {
     setTier(t);
-    setRentSku(TIER_ITEMS(t)[Math.min(2, TIER_ITEMS(t).length - 1)].sku);
+    setRentSku(cheapestSku(t));
   };
 
   const [iconFor, setIconFor] = useState<string | null>(normalized);
@@ -121,12 +136,13 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
 
   return (
     <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-      {/* Permanent vs rent */}
+      {/* Rent vs permanent. Rent sits first, and is the tab the page opens
+          on — see the note on the component above. */}
       <div className="inline-flex rounded-full border border-border bg-raised p-1">
         {(
           [
-            { key: "permanent", label: "Own it permanently", icon: Crown },
             { key: "rent", label: "Rent for a set time", icon: Timer },
+            { key: "permanent", label: "Own it permanently", icon: Crown },
           ] as const
         ).map(({ key, label, icon: Icon }) => (
           <button
@@ -301,7 +317,7 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
         ) : (
           <ArrowRight className="h-4 w-4" />
         )}
-        {`Claim for ${formatUsd(active.amountCents)}`}
+        {`${mode === "rent" ? "Rent" : "Claim"} for ${formatUsd(active.amountCents)}`}
       </button>
       )}
 
