@@ -3,14 +3,13 @@ import Link from "next/link";
 
 import { Board } from "@/components/board";
 import { HeroClaim } from "@/components/hero-claim";
-import { StatsBar } from "@/components/stats";
+import { StatsBar, type TopSite } from "@/components/stats";
 import {
   demoMode,
   getActiveListings,
-  getLiveVisitorCount,
   getPermanentRankOwners,
+  getDisplayVisitorCount,
   getStarterListingsLive,
-  getStarterVisitorCount,
   getTotalRevenueCents,
   type PermanentRankOwner,
 } from "@/lib/db";
@@ -24,6 +23,7 @@ import {
 } from "@/lib/pricing";
 import { rankBoard } from "@/lib/ranking";
 import { starterListings } from "@/lib/starter-data";
+import { hostLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -69,15 +69,25 @@ export default async function HomePage() {
   // as-is once any real listing exists, and getStarterVisitorCount() adds a
   // baseline on top of them (never replaces them) while nothing real exists
   // yet -- see its doc comment in db.ts.
-  const liveVisitors = isBootstrap
-    ? await getStarterVisitorCount().catch(() => 0)
-    : await getLiveVisitorCount().catch(() => 0);
+  // One source of truth, shared with the /api/presence poll that overwrites
+  // this value client-side a second after load — see getDisplayVisitorCount.
+  const liveVisitors = await getDisplayVisitorCount().catch(() => 0);
   const showRevenue = process.env.NEXT_PUBLIC_SHOW_REVENUE === "true" || demoMode();
   const totalRevenueCents = showRevenue
     ? await getTotalRevenueCents().catch(() => 0)
     : null;
 
   const totalClicks = boardListings.reduce((sum, l) => sum + l.clickCount, 0);
+  // Whoever actually holds the top row right now, named rather than counted.
+  const topEntry = entries.find((e) => e.type === "listing");
+  const topSite: TopSite | null =
+    topEntry?.type === "listing"
+      ? {
+          id: topEntry.listing.id,
+          host: hostLabel(topEntry.listing.url),
+          logoUrl: topEntry.listing.logoUrl,
+        }
+      : null;
 
   return (
     <div className="pb-8">
@@ -140,7 +150,7 @@ export default async function HomePage() {
       {/* Stats */}
       <div className="mx-auto mb-12 max-w-6xl px-4 sm:px-6">
         <StatsBar
-          totalListings={listings.length}
+          topSite={topSite}
           totalClicks={totalClicks}
           liveVisitors={liveVisitors}
           totalRevenueCents={totalRevenueCents}
