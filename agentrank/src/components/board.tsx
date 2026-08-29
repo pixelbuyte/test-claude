@@ -10,9 +10,12 @@ import {
   PlacementBadge,
   ShareOnX,
 } from "@/components/board-bits";
+import { PurchaseDialog } from "@/components/purchase-dialog";
 import type { BoardEntry } from "@/lib/ranking";
 import {
+  cheapestTierItem,
   formatUsd,
+  PERMANENT_ITEMS,
   TIER_CAPACITY,
   TIER_LABEL,
   TIER_ITEMS,
@@ -74,6 +77,10 @@ export function Board({
 
   const [category, setCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
+  // The SKU whose checkout dialog is open, if any. Every buy button on the
+  // board names one specific item, so a click goes straight to "paste your
+  // link and pay" rather than to a page of other prices.
+  const [buying, setBuying] = useState<string | null>(null);
 
   const boostCounts = useMemo(() => {
     const counts: Record<Tier, number> = { top10: 0, top20: 0, top50: 0 };
@@ -104,6 +111,9 @@ export function Board({
 
   return (
     <section id="board" className="mx-auto max-w-6xl px-4 sm:px-6">
+      {buying && (
+        <PurchaseDialog sku={buying} onClose={() => setBuying(null)} />
+      )}
       {/* Filters */}
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
@@ -208,9 +218,10 @@ export function Board({
                   priceCents={entry.priceCents}
                   permanentRank={entry.permanentRank}
                   available={entry.available}
+                  onBuy={setBuying}
                 />
               ) : (
-                <ListingRow entry={entry} index={i} />
+                <ListingRow entry={entry} index={i} onBuy={setBuying} />
               )}
             </div>
           );
@@ -225,18 +236,23 @@ function OpenSlotRow({
   permanentRank,
   priceCents,
   available,
+  onBuy,
 }: {
   rank: number;
   permanentRank: number;
   priceCents: number;
   available: boolean;
+  onBuy: (sku: string) => void;
 }) {
   // The rent entry price for the tier immediately below the permanent block.
   // Leading with it is the point of this row: a visitor who is shown $4,500
   // first has already decided the board is not for them by the time they find
   // out a spot can be had for a fraction of that. Owning the rank outright is
   // still here, just second.
-  const rentFromCents = tierFromCents("top10");
+  const rentItem = cheapestTierItem("top10");
+  // The permanent SKU for this exact rank, so "Own" buys #1 (or #5) directly
+  // rather than handing over a list of five to choose from again.
+  const ownItem = PERMANENT_ITEMS.find((i) => i.rank === permanentRank);
 
   // Stacked until sm, like ListingRow: side by side, the fixed rank column,
   // bubble and price pills leave the title about 40px on a 360px screen, which
@@ -262,7 +278,7 @@ function OpenSlotRow({
               ? // Deliberately explicit that renting buys a Top 10 spot, not
                 // this rank: the cheap price is the hook, but it must never
                 // read as "rank #1 for $129".
-                `Rent a ${TIER_LABEL.top10} spot from ${formatUsd(rentFromCents)} — or own #${permanentRank} outright`
+                `Rent a ${TIER_LABEL.top10} spot for ${rentItem.durationHours}h — or own #${permanentRank} outright`
               : "Held by a listing pending review — not purchasable right now"}
           </span>
         </span>
@@ -271,19 +287,28 @@ function OpenSlotRow({
         // pl-13 clears the rank column + gap so the pills line up under the
         // dashed bubble once the row has stacked, the same offset ListingRow
         // uses for its Visit/Share group.
+        //
+        // Both open the checkout dialog for one specific SKU instead of
+        // linking to /pricing. Sending someone who clicked a price to a page
+        // listing six other prices is the step that lost them; from here it is
+        // paste your link, pay, done.
         <span className="flex shrink-0 flex-wrap items-center gap-2 pl-13 sm:pl-0">
-          <Link
-            href="/pricing#top10"
+          <button
+            type="button"
+            onClick={() => onBuy(rentItem.sku)}
             className="rounded-full bg-accent px-3.5 py-1.5 text-xs font-semibold text-accent-fg transition-opacity hover:opacity-90"
           >
-            Rent now · {formatUsd(rentFromCents)}
-          </Link>
-          <Link
-            href="/pricing#permanent"
-            className="rounded-full border border-gold/40 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:border-gold/70"
-          >
-            Own · {formatUsd(priceCents)}
-          </Link>
+            Rent now · {formatUsd(rentItem.amountCents)}
+          </button>
+          {ownItem && (
+            <button
+              type="button"
+              onClick={() => onBuy(ownItem.sku)}
+              className="rounded-full border border-gold/40 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:border-gold/70"
+            >
+              Own · {formatUsd(priceCents)}
+            </button>
+          )}
         </span>
       )}
     </div>
@@ -293,9 +318,11 @@ function OpenSlotRow({
 function ListingRow({
   entry,
   index,
+  onBuy,
 }: {
   entry: Extract<BoardEntry, { type: "listing" }>;
   index: number;
+  onBuy: (sku: string) => void;
 }) {
   const { listing, placement, highlighted, rank } = entry;
   return (
@@ -359,16 +386,19 @@ function ListingRow({
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2 pl-13 sm:pl-0">
         {/* An expired boost means that tier has a slot free again. The button
-            sells the slot rather than renewing this listing: it points at the
-            tier's prices, where a buyer supplies their own URL. */}
+            sells the freed slot rather than renewing this listing — a buyer
+            supplies their own URL in the dialog. It names the tier's entry
+            rung outright instead of a "from" price behind another page, so
+            the number on the button is the number they pay. */}
         {placement.kind === "free" && placement.lapsedTier && (
-          <Link
-            href={`/pricing#${placement.lapsedTier}`}
+          <button
+            type="button"
+            onClick={() => onBuy(cheapestTierItem(placement.lapsedTier!).sku)}
             className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold-soft px-3.5 py-1.5 text-[13px] font-semibold text-gold transition-colors hover:border-gold/70"
           >
-            Buy {TIER_LABEL[placement.lapsedTier]} · from{" "}
+            Rent {TIER_LABEL[placement.lapsedTier]} ·{" "}
             {formatUsd(tierFromCents(placement.lapsedTier))}
-          </Link>
+          </button>
         )}
         <ShareOnX name={listing.name} rank={rank} />
         <a

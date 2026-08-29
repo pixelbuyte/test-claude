@@ -423,8 +423,20 @@ export const TIER_ITEMS = (tier: Tier) =>
  * a tier is advertised as a single number ("from $149") rather than as the
  * full duration ladder.
  */
+/**
+ * The cheapest way into a tier — the rung the board and the hero both lead
+ * with. Chosen by amount rather than by position, so adding a shorter, cheaper
+ * duration to CATALOG moves every "from $X" label and every one-click Rent
+ * button onto it with no other edit.
+ */
+export function cheapestTierItem(tier: Tier): CatalogItem {
+  return TIER_ITEMS(tier).reduce((low, i) =>
+    i.amountCents < low.amountCents ? i : low,
+  );
+}
+
 export function tierFromCents(tier: Tier): number {
-  return Math.min(...TIER_ITEMS(tier).map((i) => i.amountCents));
+  return cheapestTierItem(tier).amountCents;
 }
 
 export const HIGHLIGHT_ITEMS = CATALOG.filter((i) => i.kind === "highlight");
