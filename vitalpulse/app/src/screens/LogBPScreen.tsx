@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
-import { Button, Disclaimer } from '../components/ui';
+import { Button, Disclaimer, StatusPill } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { FONTS } from '../theme';
+import { bpCategory } from '../health/bpCategory';
 import { insertBPReading } from '../storage/db';
 
 type FieldKey = 'systolic' | 'diastolic' | 'pulse';
@@ -22,6 +23,12 @@ export function LogBPScreen({ onDone, onCancel }: { onDone: () => void; onCancel
   const [focused, setFocused] = useState<FieldKey>('systolic');
 
   const canSave = values.systolic.length > 0 && values.diastolic.length > 0;
+
+  // Live category feedback the moment both numbers are plausible, so people
+  // see where a reading falls before they commit it.
+  const sys = Number(values.systolic);
+  const dia = Number(values.diastolic);
+  const liveCategory = canSave && sys >= 50 && sys <= 260 && dia >= 30 && dia <= 200 ? bpCategory(sys, dia) : null;
 
   const nextField = (): FieldKey | null => {
     const idx = FIELDS.findIndex((f) => f.key === focused);
@@ -103,10 +110,30 @@ export function LogBPScreen({ onDone, onCancel }: { onDone: () => void; onCancel
           })}
         </View>
 
+        {liveCategory ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+              backgroundColor: theme.paper,
+              borderWidth: 1,
+              borderColor: theme.line,
+              borderRadius: 18,
+              padding: 13,
+              marginBottom: 10,
+            }}
+          >
+            <StatusPill theme={theme} textScale={textScale} label={liveCategory.label} tone={liveCategory.tone} />
+            <Text style={{ flex: 1, fontSize: 12.5 * textScale, fontFamily: FONTS.body, color: theme.inkSoft, lineHeight: 17 * textScale }}>
+              {liveCategory.blurb}
+            </Text>
+          </View>
+        ) : null}
+
         <Disclaimer theme={theme} textScale={textScale}>
           Systolic (top number) is the pressure in your arteries when your heart beats. Diastolic (bottom number) is
-          the pressure when it rests between beats. A typical healthy reading is under 120/80 mmHg — your doctor can
-          tell you what's right for you.
+          the pressure when it rests between beats.
         </Disclaimer>
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>

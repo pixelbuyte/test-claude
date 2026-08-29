@@ -24,6 +24,9 @@
     --coral-tint:#fbe8dd;
     --gold:#b8842c;
     --danger:#b3402f;
+    --st-good-fg:#2f6b4f; --st-good-bg:#e2efe6;
+    --st-notice-fg:#8a6a1f; --st-notice-bg:#f6eeda;
+    --st-warn-fg:#a35a24; --st-warn-bg:#f9e9dc;
     --shadow-color: 17,26,24;
     --shadow: 0 1px 2px rgba(var(--shadow-color),.06), 0 14px 32px -10px rgba(var(--shadow-color),.22);
     --shadow-soft: 0 1px 1px rgba(var(--shadow-color),.05), 0 6px 16px -8px rgba(var(--shadow-color),.18);
@@ -39,6 +42,9 @@
     --teal:#5fb3ac; --teal-deep:#bfe6e1; --teal-tint:#1a2d29;
     --coral:#f0865c; --coral-deep:#ffab84; --coral-tint:#2a2019;
     --gold:#d9ac5c; --danger:#e2857a;
+    --st-good-fg:#8ecfa8; --st-good-bg:#1a2f24;
+    --st-notice-fg:#e0c07a; --st-notice-bg:#302819;
+    --st-warn-fg:#eda978; --st-warn-bg:#33241a;
     --shadow-color: 0,0,0;
   }
   @media (prefers-color-scheme: dark){
@@ -48,6 +54,9 @@
       --teal:#5fb3ac; --teal-deep:#bfe6e1; --teal-tint:#1a2d29;
       --coral:#f0865c; --coral-deep:#ffab84; --coral-tint:#2a2019;
       --gold:#d9ac5c; --danger:#e2857a; --shadow-color: 0,0,0;
+      --st-good-fg:#8ecfa8; --st-good-bg:#1a2f24;
+      --st-notice-fg:#e0c07a; --st-notice-bg:#302819;
+      --st-warn-fg:#eda978; --st-warn-bg:#33241a;
     }
   }
   *{ box-sizing:border-box; }
@@ -197,7 +206,18 @@
   .seg button{ flex:1; border:none; background:transparent; padding:9px 0; border-radius:11px; font:700 13px/1 var(--font-body); color:var(--ink-soft); cursor:pointer; transition:all .15s ease; }
   .seg button.on{ background:var(--paper); color:var(--teal); box-shadow:var(--shadow-soft); }
 
+  /* Semantic status ramp — deliberately separate from the teal/coral brand
+     accent: brand says "VitalPulse", status says "here's where your number falls". */
+  .pill{ display:inline-block; border-radius:99px; padding:5px 10px; font:700 11.5px/1 var(--font-body); letter-spacing:.03em; white-space:nowrap; flex-shrink:0; }
+  .pill.good{ color:var(--st-good-fg); background:var(--st-good-bg); }
+  .pill.notice{ color:var(--st-notice-fg); background:var(--st-notice-bg); }
+  .pill.warn{ color:var(--st-warn-fg); background:var(--st-warn-bg); }
+  .pill-note{ font-size:12.5px; color:var(--ink-soft); line-height:1.45; margin:10px 0 0; }
+
   .chart-card{ background:var(--paper); border:1px solid var(--line); border-radius:22px; padding:17px; box-shadow:var(--shadow-soft); }
+  .chart-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px; }
+  .axis{ font:400 9.5px/1 var(--font-body); fill:var(--ink-faint); }
+  .ref-note{ font-size:11.5px; color:var(--ink-faint); line-height:1.45; margin:10px 0 0; }
   .legend{ display:flex; gap:16px; font-size:12px; color:var(--ink-soft); margin-top:10px; font-weight:600; }
   .legend span{ display:flex; align-items:center; gap:6px; }
   .dot{ width:8px; height:8px; border-radius:99px; display:inline-block; }
@@ -369,22 +389,24 @@
             <p class="scr-sub reveal r1">Wednesday, July 22</p>
 
             <div class="card reveal r2">
+              <div class="row" style="align-items:flex-start;">
+                <div>
+                  <div class="label">Last BP reading · yesterday</div>
+                  <div style="display:flex; align-items:baseline; gap:6px; margin:6px 0 10px;"><span class="big-num">118/76</span><span class="unit">mmHg</span></div>
+                  <span class="pill good">Normal</span>
+                </div>
+                <div class="icon-chip coral"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-cuff"/></svg></div>
+              </div>
+              <p class="pill-note">Within the range the AHA describes as normal. This is a reference range, not a diagnosis.</p>
+            </div>
+
+            <div class="card paper reveal r3">
               <div class="row">
                 <div>
                   <div class="label">Last pulse check · 8:14am</div>
                   <div style="display:flex; align-items:baseline; gap:6px; margin-top:6px;"><span class="big-num">68</span><span class="unit">bpm · steady rhythm</span></div>
                 </div>
                 <div class="icon-chip"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-heartpulse"/></svg></div>
-              </div>
-            </div>
-
-            <div class="card paper reveal r3">
-              <div class="row">
-                <div>
-                  <div class="label">Last BP reading · yesterday</div>
-                  <div style="display:flex; align-items:baseline; gap:6px; margin-top:6px;"><span class="big-num">118</span><span class="unit">/ 76 mmHg</span></div>
-                </div>
-                <div class="icon-chip coral"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-cuff"/></svg></div>
               </div>
             </div>
 
@@ -440,9 +462,13 @@
               <div class="field"><div class="fl">Diastolic</div><div class="fv">76</div></div>
               <div class="field"><div class="fl">Pulse</div><div class="fv">70</div></div>
             </div>
+            <div class="reveal r2" style="display:flex; align-items:center; gap:10px; background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:13px; margin-bottom:10px;">
+              <span class="pill good">Normal</span>
+              <span style="flex:1; font-size:12.5px; color:var(--ink-soft); line-height:1.4;">Within the range the AHA describes as normal.</span>
+            </div>
             <div class="disclaimer reveal r2" style="margin-top:0;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-info"/></svg>
-              <span><b>Systolic</b> (top number) is the pressure in your arteries when your heart beats. <b>Diastolic</b> (bottom) is the pressure when it rests between beats. A typical healthy reading is under 120/80&nbsp;mmHg.</span>
+              <span><b>Systolic</b> (top number) is the pressure in your arteries when your heart beats. <b>Diastolic</b> (bottom) is the pressure when it rests between beats.</span>
             </div>
             <div class="keypad reveal r3">
               <button>1</button><button>2</button><button>3</button>
@@ -465,26 +491,75 @@
               <button class="on">7 days</button><button>30 days</button><button>90 days</button>
             </div>
             <div class="chart-card reveal r3">
-              <div class="label">Blood pressure (mmHg)</div>
-              <svg width="100%" height="130" viewBox="0 0 280 130" style="margin-top:10px; overflow:visible;">
-                <polyline fill="none" stroke="var(--teal)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-                  points="0,40 40,44 80,30 120,38 160,26 200,32 240,20 280,24"/>
-                <polyline fill="none" stroke="var(--coral)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-                  points="0,90 40,86 80,94 120,88 160,80 200,84 240,76 280,78"/>
-                <circle cx="280" cy="24" r="4.5" fill="var(--teal)"/>
-                <circle cx="280" cy="78" r="4.5" fill="var(--coral)"/>
+              <div class="chart-head">
+                <div class="label">Blood pressure (mmHg)</div>
+                <span class="pill good">Avg: Normal</span>
+              </div>
+              <svg width="100%" height="170" viewBox="0 0 300 170" style="margin-top:6px;">
+                <defs>
+                  <linearGradient id="fillSys" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="var(--teal)" stop-opacity=".18"/>
+                    <stop offset="1" stop-color="var(--teal)" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="fillDia" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="var(--coral)" stop-opacity=".18"/>
+                    <stop offset="1" stop-color="var(--coral)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Normal-range reference band: the context that turns a squiggle into information -->
+                <rect x="30" y="79" width="262" height="60.9" fill="var(--teal)" opacity=".07"/>
+                <text class="axis" x="34" y="90">Normal range</text>
+                <g stroke="var(--line)" stroke-width="1">
+                  <line x1="30" y1="139.9" x2="292" y2="139.9"/><line x1="30" y1="109.4" x2="292" y2="109.4"/>
+                  <line x1="30" y1="79" x2="292" y2="79"/><line x1="30" y1="48.6" x2="292" y2="48.6"/>
+                  <line x1="30" y1="18.1" x2="292" y2="18.1"/>
+                </g>
+                <g class="axis" text-anchor="end">
+                  <text x="24" y="143">60</text><text x="24" y="112.5">90</text><text x="24" y="82">120</text>
+                  <text x="24" y="51.7">150</text><text x="24" y="21.2">180</text>
+                </g>
+                <path fill="url(#fillSys)" d="M30,80 L67.4,77 L104.9,83.1 L142.3,79 L179.7,84.1 L217.1,81 L254.6,85.1 L292,82 L292,150 L30,150 Z"/>
+                <path fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                  d="M30,80 L67.4,77 L104.9,83.1 L142.3,79 L179.7,84.1 L217.1,81 L254.6,85.1 L292,82"/>
+                <path fill="url(#fillDia)" d="M30,120.6 L67.4,118.6 L104.9,122.6 L142.3,119.6 L179.7,123.6 L217.1,121.6 L254.6,124.6 L292,122.6 L292,150 L30,150 Z"/>
+                <path fill="none" stroke="var(--coral)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                  d="M30,120.6 L67.4,118.6 L104.9,122.6 L142.3,119.6 L179.7,123.6 L217.1,121.6 L254.6,124.6 L292,122.6"/>
+                <circle cx="292" cy="82" r="7.5" fill="var(--teal)" opacity=".2"/><circle cx="292" cy="82" r="4.5" fill="var(--teal)"/>
+                <circle cx="292" cy="122.6" r="7.5" fill="var(--coral)" opacity=".2"/><circle cx="292" cy="122.6" r="4.5" fill="var(--coral)"/>
+                <text class="axis" x="30" y="165">7/16</text>
+                <text class="axis" x="292" y="165" text-anchor="end">7/22</text>
               </svg>
               <div class="legend">
-                <span><i class="dot" style="background:var(--teal)"></i>Systolic avg 121</span>
+                <span><i class="dot" style="background:var(--teal)"></i>Systolic avg 118</span>
                 <span><i class="dot" style="background:var(--coral)"></i>Diastolic avg 78</span>
               </div>
+              <p class="ref-note">Ranges shown are the American Heart Association's published reference categories — a description of where your numbers fall, not a diagnosis. Your doctor sets what's right for you.</p>
             </div>
             <div class="chart-card reveal r4" style="margin-top:14px;">
               <div class="label">Resting pulse (bpm)</div>
-              <svg width="100%" height="90" viewBox="0 0 280 90" style="margin-top:10px; overflow:visible;">
-                <polyline fill="none" stroke="var(--teal)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-                  points="0,50 40,46 80,54 120,42 160,48 200,38 240,44 280,40"/>
-                <circle cx="280" cy="40" r="4.5" fill="var(--teal)"/>
+              <svg width="100%" height="140" viewBox="0 0 300 140" style="margin-top:6px;">
+                <defs>
+                  <linearGradient id="fillPulse" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="var(--teal)" stop-opacity=".18"/>
+                    <stop offset="1" stop-color="var(--teal)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <rect x="30" y="45.3" width="262" height="49.8" fill="var(--teal)" opacity=".07"/>
+                <text class="axis" x="34" y="56">Typical resting range</text>
+                <g stroke="var(--line)" stroke-width="1">
+                  <line x1="30" y1="107.6" x2="292" y2="107.6"/><line x1="30" y1="82.7" x2="292" y2="82.7"/>
+                  <line x1="30" y1="57.8" x2="292" y2="57.8"/><line x1="30" y1="32.9" x2="292" y2="32.9"/>
+                </g>
+                <g class="axis" text-anchor="end">
+                  <text x="24" y="110.7">50</text><text x="24" y="85.8">70</text>
+                  <text x="24" y="60.9">90</text><text x="24" y="36">110</text>
+                </g>
+                <path fill="url(#fillPulse)" d="M30,83.9 L67.4,81.4 L104.9,86.4 L142.3,82.7 L179.7,85.2 L217.1,80.2 L254.6,87.6 L292,83.9 L292,120 L30,120 Z"/>
+                <path fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                  d="M30,83.9 L67.4,81.4 L104.9,86.4 L142.3,82.7 L179.7,85.2 L217.1,80.2 L254.6,87.6 L292,83.9"/>
+                <circle cx="292" cy="83.9" r="7.5" fill="var(--teal)" opacity=".2"/><circle cx="292" cy="83.9" r="4.5" fill="var(--teal)"/>
+                <text class="axis" x="30" y="135">7/16</text>
+                <text class="axis" x="292" y="135" text-anchor="end">7/22</text>
               </svg>
               <div class="legend"><span><i class="dot" style="background:var(--teal)"></i>Avg 69 bpm</span></div>
             </div>

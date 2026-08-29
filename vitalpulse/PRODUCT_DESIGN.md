@@ -115,6 +115,39 @@ support.
   cards, so the app has some dimensionality without ever feeling busy.
 - **Layout:** single-column, generous whitespace, one idea per screen.
 
+## 4a. Information design: making the numbers mean something
+
+The visual layer above is only half the job. A tracking app's real design
+problem is whether a reading *communicates* — and two decisions here matter
+more than any styling choice:
+
+**Charts use a fixed clinical scale, never auto-scaled to the data.**
+Auto-scaling to a series' own min/max is the default in most charting
+libraries and it is quietly dishonest on a health chart: a systolic drifting
+118 → 121 and one spiking 118 → 180 render as the *identical* shape. VitalPulse
+pins the y-axis to a fixed clinical domain (50–190 mmHg for BP, 40–130 bpm for
+pulse) so the steepness of a line always means the same thing, and pairs it
+with gridlines, axis labels, dated endpoints, and a shaded reference band for
+the normal range.
+
+**Every reading carries its category.** Without it, 118/76 and 155/98 render
+identically — while the app's own onboarding promises to help you "spot what's
+worth a call to your doctor." Readings are mapped to the American Heart
+Association's published category ranges (`src/health/bpCategory.ts`) and shown
+as a labeled pill, using a semantic status ramp kept deliberately separate
+from the teal/coral brand accent — brand colors say "this is VitalPulse,"
+status colors say "here is where your number falls."
+
+Three guardrails keep this honest rather than diagnostic:
+1. The AHA thresholds are public reference ranges, and the app says so every
+   time it shows one: *"a description of where your numbers fall, not a
+   diagnosis. Your doctor sets what's right for you."*
+2. Categories are described, never prescribed — the copy states what a range
+   *is*, and never tells anyone what to do about it (the sole exception is the
+   crisis band, where "contact a doctor" is the only responsible line).
+3. Color is never the only signal: every pill carries a text label, so it
+   works for colorblind users and screen readers alike.
+
 ## 5. Tech approach ("lightweight, easy to download")
 
 - **Expo + React Native + TypeScript**, single codebase → iOS + Android.

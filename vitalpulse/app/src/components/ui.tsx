@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
-import { FONTS, Theme } from '../theme';
+import { FONTS, StatusTone, Theme } from '../theme';
 import { Icon, IconName } from './Icon';
 
 interface ButtonProps {
@@ -72,6 +72,62 @@ export function Disclaimer({ theme, textScale, children }: { theme: Theme; textS
         accessibilityRole="text"
       >
         {children}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * The category pill shown next to a blood pressure reading. Uses the semantic
+ * status ramp, plus a text label — never color alone — so it still reads for
+ * colorblind users and screen readers.
+ */
+export function StatusPill({ theme, textScale, label, tone }: { theme: Theme; textScale: number; label: string; tone: StatusTone }) {
+  const { fg, bg } = theme.status[tone];
+  return (
+    <View style={{ alignSelf: 'flex-start', flexShrink: 0, backgroundColor: bg, borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 }}>
+      <Text numberOfLines={1} style={{ color: fg, fontFamily: FONTS.bodyBold, fontSize: 11.5 * textScale, letterSpacing: 0.3 }}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+/** A designed empty state — an icon and a next step, rather than a line of grey text. */
+export function EmptyState({ theme, textScale, icon, title, body }: {
+  theme: Theme;
+  textScale: number;
+  icon: IconName;
+  title: string;
+  body: string;
+}) {
+  return (
+    <View style={{ alignItems: 'center', paddingVertical: 22, paddingHorizontal: 8 }}>
+      <View
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: 17,
+          backgroundColor: theme.tealTint,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 12,
+        }}
+      >
+        <Icon name={icon} size={24} color={theme.teal} strokeWidth={1.7} />
+      </View>
+      <Text style={{ fontFamily: FONTS.bodyBold, fontSize: 15 * textScale, color: theme.ink, textAlign: 'center' }}>{title}</Text>
+      <Text
+        style={{
+          fontFamily: FONTS.body,
+          fontSize: 13.5 * textScale,
+          color: theme.inkSoft,
+          textAlign: 'center',
+          lineHeight: 19 * textScale,
+          marginTop: 4,
+        }}
+      >
+        {body}
       </Text>
     </View>
   );
