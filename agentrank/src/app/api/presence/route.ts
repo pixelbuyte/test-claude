@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getLiveVisitorCount, heartbeat } from "@/lib/db";
+import { getDisplayVisitorCount, heartbeat } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-/** Live visitor counter: distinct anonymous ids seen in the last 5 minutes. */
+/**
+ * Live visitor counter: distinct anonymous ids seen in the last 5 minutes,
+ * plus the starter baseline while the board is still bootstrap content.
+ *
+ * Must return the same number the page rendered — this is the value the
+ * client poll writes over the server-rendered one. Using the raw count here
+ * is what made the counter fall from ~120 to 1 a second after load.
+ */
 export async function GET() {
   try {
-    const count = await getLiveVisitorCount();
+    const count = await getDisplayVisitorCount();
     return NextResponse.json({ count });
   } catch {
     return NextResponse.json({ count: 0 });

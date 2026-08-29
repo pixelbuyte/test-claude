@@ -28,6 +28,15 @@ export function isEmail(value: string): boolean {
 /** Turns a URL into a clean fallback display name, e.g.
  * "https://www.acme-ai.com/product" -> "Acme Ai". Used when metadata
  * scraping can't find a real title. */
+/** Bare domain for display — "https://www.skinstel.com/x" -> "skinstel.com". */
+export function hostLabel(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
 export function deriveNameFromUrl(url: string): string {
   try {
     const host = new URL(url).hostname.replace(/^www\./, "");

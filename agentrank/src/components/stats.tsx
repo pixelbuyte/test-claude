@@ -54,18 +54,26 @@ function useLiveVisitors(initial: number): number {
   return count;
 }
 
+export interface TopSite {
+  id: string;
+  /** Bare domain — "skinstel.com", the thing a visitor recognises. */
+  host: string;
+  logoUrl: string | null;
+}
+
 export function StatsBar({
-  totalListings,
+  topSite,
   totalClicks,
   liveVisitors,
   totalRevenueCents,
 }: {
-  totalListings: number;
+  topSite: TopSite | null;
   totalClicks: number;
   liveVisitors: number;
   totalRevenueCents: number | null;
 }) {
   const live = useLiveVisitors(liveVisitors);
+  const [iconBroken, setIconBroken] = useState(false);
 
   const cells: { label: string; value: React.ReactNode }[] = [
     {
@@ -77,7 +85,33 @@ export function StatsBar({
         </span>
       ),
     },
-    { label: "Listings ranked", value: formatCount(totalListings) },
+    // A count of listings told a visitor nothing they wanted. Naming who is
+    // actually at #1, with their favicon, is the thing worth looking at — and
+    // it doubles as the proof that the top spot is a real site.
+    {
+      label: "Top right now",
+      value: topSite ? (
+        <a
+          href={`/go/${topSite.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 hover:underline underline-offset-4"
+        >
+          {topSite.logoUrl && !iconBroken ? (
+            // eslint-disable-next-line @next/next/no-img-element -- arbitrary external hosts
+            <img
+              src={topSite.logoUrl}
+              alt=""
+              onError={() => setIconBroken(true)}
+              className="h-5 w-5 rounded-[4px] object-contain"
+            />
+          ) : null}
+          <span className="truncate text-lg">{topSite.host}</span>
+        </a>
+      ) : (
+        <span className="text-lg text-muted">Open</span>
+      ),
+    },
     { label: "Outbound clicks", value: formatCount(totalClicks) },
   ];
   if (totalRevenueCents !== null) {
