@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  cheapestTierItem,
   formatUsd,
   PERMANENT_ITEMS,
   TIER_ITEMS,
@@ -14,18 +15,6 @@ import {
 import { cn, faviconUrl, normalizeUrl } from "@/lib/utils";
 
 type Mode = "permanent" | "rent";
-
-/**
- * The shortest, cheapest way into a tier. Picked by amount rather than by
- * position so inserting a new rung into the catalog moves the default here on
- * its own, and a tier whose durations are ever listed out of order still opens
- * on its real entry price.
- */
-function cheapestSku(tier: Tier): string {
-  return TIER_ITEMS(tier).reduce((low, i) =>
-    i.amountCents < low.amountCents ? i : low,
-  ).sku;
-}
 
 /**
  * The hero's buy widget. Leads with renting a timed spot at the cheapest rung
@@ -75,7 +64,7 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
   const [permanentSku, setPermanentSku] = useState<string | null>(
     availablePermanent[0]?.sku ?? null,
   );
-  const [rentSku, setRentSku] = useState<string>(cheapestSku("top10"));
+  const [rentSku, setRentSku] = useState<string>(cheapestTierItem("top10").sku);
 
   const permanentChoice =
     availablePermanent.find((i) => i.sku === permanentSku) ??
@@ -86,7 +75,7 @@ export function HeroClaim({ takenRanks }: { takenRanks: number[] }) {
 
   const selectTier = (t: Tier) => {
     setTier(t);
-    setRentSku(cheapestSku(t));
+    setRentSku(cheapestTierItem(t).sku);
   };
 
   const [iconFor, setIconFor] = useState<string | null>(normalized);

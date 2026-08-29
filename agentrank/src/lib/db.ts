@@ -233,6 +233,47 @@ export async function getStarterVisitorCount(): Promise<number> {
   return starterVisitorBaseline() + real;
 }
 
+/**
+ * Is the public board still serving starter content? Mirrors exactly what
+ * page.tsx decides from the rows it already has — no active listings, and
+ * nobody holding a permanent rank in any status — but as a standalone query,
+ * so a route with no board data (the /api/presence poll) can reach the same
+ * answer.
+ *
+ * Deliberately its own function rather than a flag inside getActiveListings()
+ * or getPermanentRankOwners(): those gate real money (checkout's tier
+ * capacity, the submit-listing upgrade picker) and must keep seeing the real,
+ * empty database.
+ */
+export async function isBoardBootstrap(): Promise<boolean> {
+  if (demoMode()) return false;
+  const [active, permanent] = await Promise.all([
+    supabaseAdmin()
+      .from("listings")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabaseAdmin()
+      .from("listings")
+      .select("id", { count: "exact", head: true })
+      .not("permanent_rank", "is", null),
+  ]);
+  if (active.error) throw active.error;
+  if (permanent.error) throw permanent.error;
+  return (active.count ?? 0) === 0 && (permanent.count ?? 0) === 0;
+}
+
+/**
+ * The live-visitor number the UI shows, wherever it is asked for. Both the
+ * server render and the /api/presence poll must go through this: when they
+ * disagreed, the page rendered the starter number and the poll a second later
+ * replaced it with the raw presence count, so the counter visibly dropped
+ * from ~120 to 1 in front of the visitor.
+ */
+export async function getDisplayVisitorCount(): Promise<number> {
+  const bootstrap = await isBoardBootstrap().catch(() => false);
+  return bootstrap ? getStarterVisitorCount() : getLiveVisitorCount();
+}
+
 export async function getTotalRevenueCents(): Promise<number> {
   if (demoMode()) return DEMO_REVENUE_CENTS;
   const { data, error } = await supabaseAdmin()
