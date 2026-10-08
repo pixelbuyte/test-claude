@@ -6,7 +6,7 @@
     skintel: [
       { id: 'scan', label: 'Scan', html:
         '<div class="hd">Scan</div><span class="ex">Example</span>' +
-        '<div class="finder"><div class="bottle"><img src="assets/skintel-pump.png" alt=""></div><div class="line"></div></div>' +
+        '<div class="finder"><div class="bottle"><div class="spin"><img class="f" src="assets/skintel-pump.png" alt=""><img class="b" src="assets/skintel-pump-back.png" alt=""></div></div><div class="line"></div></div>' +
         '<div class="hint">Point at a barcode or label</div>' +
         '<div class="sheet"><span class="k">Daily Gentle Cleanser</span><h4>Not great for your skin</h4>' +
         '<span class="verdict">Caution for you</span>' +
