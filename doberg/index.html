@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doberg · Apps for understanding your own body</title>
+<meta name="description" content="Doberg is the small product studio behind Skintel and Blith: apps that learn your patterns and compare you with you.">
+<meta property="og:title" content="Doberg">
+<meta property="og:description" content="The studio behind Skintel and Blith. Apps that compare you with you.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/assets/doberg-mark.png">
+<meta name="theme-color" content="#FAF8F3">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF8F3; --paper-2:#F2EEE6; --ink:#1F1F21; --ink-2:#4A4743; --ink-3:#6E6962;
+  --bronze:#A39381; --bronze-ink:#7A6A58; --line:rgba(31,31,33,0.1);
+  --sk-cream:#F4EDE0; --sk-clay:#A35848; --sk-ink:#1A1814;
+  --bl-base:#0E1211; --bl-surface:#161B1A; --bl-ink:#EEF1EC; --bl-ink2:#A9B2AD; --bl-teal:#5EC4C0;
+  --radius:28px; --max:1120px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Hanken Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{display:block;max-width:100%}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 16px}
+@media (min-width:720px){.wrap{padding:0 32px}}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--bronze-ink)}
+.skip{position:absolute;left:-999px}.skip:focus{left:16px;top:16px;background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:10px;z-index:10}
+
+/* header */
+header{position:sticky;top:0;z-index:5;background:rgba(250,248,243,.86);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:20px;letter-spacing:-.01em}
+.brand img{width:36px;height:36px}
+nav ul{display:flex;gap:4px;margin:0;padding:0;list-style:none}
+nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;text-decoration:none;font-weight:500;font-size:15px;color:var(--ink-2)}
+nav a:hover{background:var(--paper-2);color:var(--ink)}
+@media (max-width:520px){nav li:not(:last-child){display:none}}
+
+/* hero */
+.hero{padding-top:72px;padding-bottom:56px;display:grid;gap:40px;align-items:center}
+@media (min-width:900px){.hero{grid-template-columns:1.2fr .8fr;padding-top:112px;padding-bottom:96px}}
+.hero h1{margin:14px 0 0;font-size:clamp(40px,7vw,72px);line-height:1.02;letter-spacing:-.035em;font-weight:700;max-width:12em}
+.hero h1 em{font-style:normal;color:var(--bronze-ink)}
+.hero p{margin:22px 0 0;font-size:clamp(18px,2.2vw,21px);color:var(--ink-2);max-width:32em}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 24px;border-radius:26px;text-decoration:none;font-weight:600;font-size:16px;border:1.5px solid var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.primary:hover{background:#000}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--paper-2)}
+.mark{justify-self:center;width:min(360px,56vw);aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,var(--paper-2),var(--paper));display:flex;align-items:center;justify-content:center}
+.mark img{width:78%}
+
+/* sections */
+section{padding:72px 0;border-top:1px solid var(--line)}
+.head{display:flex;flex-direction:column;gap:10px;margin-bottom:36px}
+.head h2{margin:0;font-size:clamp(30px,4.4vw,44px);line-height:1.08;letter-spacing:-.025em;font-weight:700}
+.head p{margin:0;color:var(--ink-2);max-width:36em}
+
+/* apps */
+.apps{display:grid;gap:20px}
+@media (min-width:880px){.apps{grid-template-columns:1fr 1fr}}
+.app{border-radius:var(--radius);padding:28px;display:flex;flex-direction:column;gap:18px;min-height:420px}
+.app .top{display:flex;align-items:center;gap:16px}
+.app .icon{width:72px;height:72px;border-radius:18px;flex:none;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.app h3{margin:0;font-size:30px;letter-spacing:-.02em;line-height:1.1}
+.app .kind{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.app p{margin:0;font-size:17px}
+.app ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.app li{display:flex;gap:10px;align-items:flex-start;font-size:16px}
+.app li svg{flex:none;margin-top:4px}
+.app .foot{margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-top:18px}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.status i{width:8px;height:8px;border-radius:4px;display:inline-block}
+
+.skintel{background:var(--sk-cream);color:var(--sk-ink)}
+.skintel .kind,.skintel .status{color:var(--sk-clay)}
+.skintel .status i{background:var(--sk-clay)}
+.skintel p,.skintel li{color:#4A3F37}
+.skintel .foot{border-top:1px solid rgba(26,24,20,.12)}
+.skintel .btn{border-color:var(--sk-clay);background:var(--sk-clay);color:#FFF8F0}
+.skintel .btn:hover{background:#8E4A3B}
+
+.blith{background:var(--bl-base);color:var(--bl-ink);background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:28px 28px}
+.blith .kind,.blith .status{color:var(--bl-teal)}
+.blith .status i{background:var(--bl-teal)}
+.blith p,.blith li{color:var(--bl-ink2)}
+.blith .foot{border-top:1px solid rgba(255,255,255,.1)}
+.blith .note{font-size:14px;color:var(--bl-ink2)}
+
+.lab{margin-top:20px;border:1.5px dashed rgba(31,31,33,.22);border-radius:var(--radius);padding:24px 28px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.lab strong{font-size:19px}
+.lab span{color:var(--ink-3)}
+
+/* principles */
+.grid3{display:grid;gap:16px}
+@media (min-width:820px){.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{background:#FFFFFF;border:1px solid var(--line);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.card .n{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;color:var(--bronze-ink)}
+.card h3{margin:0;font-size:21px;letter-spacing:-.01em}
+.card p{margin:0;color:var(--ink-2);font-size:16px}
+
+/* contact */
+.contact{display:grid;gap:24px;align-items:center}
+@media (min-width:820px){.contact{grid-template-columns:1.2fr .8fr}}
+.mail{font-size:clamp(22px,3.4vw,32px);font-weight:600;letter-spacing:-.01em;text-decoration:none;border-bottom:2px solid var(--bronze);padding-bottom:2px;word-break:break-word}
+
+footer{border-top:1px solid var(--line);padding:32px 0 48px;color:var(--ink-3);font-size:14px}
+.foot-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.foot-row .brand{font-size:16px}
+.foot-row .brand img{width:28px;height:28px}
+.foot-links{display:flex;gap:4px;flex-wrap:wrap}
+.foot-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;text-decoration:none;color:var(--ink-2)}
+.foot-links a:hover{color:var(--ink)}
+
+:focus-visible{outline:3px solid var(--bronze);outline-offset:3px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<a class="skip" href="#apps">Skip to the apps</a>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Doberg home"><img src="/assets/doberg-mark.png" alt="" width="36" height="36">Doberg</a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="#apps">Apps</a></li>
+        <li><a href="#principles">Principles</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <span class="mono">A small product studio</span>
+      <h1>Apps that help you understand <em>your own body.</em></h1>
+      <p>Doberg makes Skintel and Blith. Both learn your patterns and compare you with you, not with averages.</p>
+      <div class="ctas">
+        <a class="btn primary" href="#apps">See the apps</a>
+        <a class="btn ghost" href="#contact">Get in touch</a>
+      </div>
+    </div>
+    <div class="mark" aria-hidden="true"><img src="/assets/doberg-mark.png" alt="" width="512" height="512"></div>
+  </div>
+
+  <section id="apps" aria-labelledby="apps-title">
+    <div class="wrap">
+      <div class="head">
+        <span class="mono">The apps</span>
+        <h2 id="apps-title">Two apps, one idea:<br>your history is the baseline.</h2>
+      </div>
+
+      <div class="apps">
+        <article class="app skintel" aria-labelledby="skintel-title">
+          <div class="top">
+            <img class="icon" src="/assets/skintel-icon.png" alt="Skintel app icon" width="72" height="72">
+            <div>
+              <span class="kind">Skincare</span>
+              <h3 id="skintel-title">Skintel</h3>
+            </div>
+          </div>
+          <p>Scan a skincare product, log how your skin reacted, and find the ingredient your bad days share.</p>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A35848" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Scan a barcode or a label to see what's inside</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A35848" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>A quick daily skin log</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A35848" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>New products scored against your own history</li>
+          </ul>
+          <div class="foot">
+            <span class="status"><i></i>On the web · iPhone app in beta</span>
+            <a class="btn" href="https://skinstel.com" rel="noopener">Visit skinstel.com</a>
+          </div>
+        </article>
+
+        <article class="app blith" aria-labelledby="blith-title">
+          <div class="top">
+            <img class="icon" src="/assets/blith-icon.png" alt="Blith app icon" width="72" height="72">
+            <div>
+              <span class="kind">Health</span>
+              <h3 id="blith-title">Blith</h3>
+            </div>
+          </div>
+          <p>Turns your Apple Health history into daily scores measured against your own usual range.</p>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5EC4C0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Readiness, sleep and load, against your usual</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5EC4C0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>A 3D body map for your own notes</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5EC4C0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Ask questions about your own data</li>
+          </ul>
+          <div class="foot">
+            <span class="status"><i></i>iPhone · in beta</span>
+            <span class="note">Coming to the App Store</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="lab">
+        <div><strong>More in the lab.</strong> <span>New apps are in early testing. We'll share them when they're ready.</span></div>
+        <span class="mono">Coming later</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="principles" aria-labelledby="principles-title">
+    <div class="wrap">
+      <div class="head">
+        <span class="mono">How we build</span>
+        <h2 id="principles-title">Three rules every app follows.</h2>
+      </div>
+      <div class="grid3">
+        <div class="card"><span class="n">01</span><h3>You are the baseline</h3><p>Every number is compared with your own usual, not someone else's average.</p></div>
+        <div class="card"><span class="n">02</span><h3>Honest by design</h3><p>No medical claims and no invented data. Missing data is shown as missing.</p></div>
+        <div class="card"><span class="n">03</span><h3>Made for every day</h3><p>Quick to check, calm to look at, and useful on an ordinary Tuesday.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" aria-labelledby="contact-title">
+    <div class="wrap contact">
+      <div class="head" style="margin:0">
+        <span class="mono">Contact</span>
+        <h2 id="contact-title">Questions, press or partnerships?</h2>
+        <p>We read everything and reply to most.</p>
+      </div>
+      <a class="mail" href="mailto:[CONTACT EMAIL]">[CONTACT EMAIL]</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <a class="brand" href="/" aria-label="Doberg home"><img src="/assets/doberg-mark.png" alt="" width="28" height="28">Doberg</a>
+    <div class="foot-links">
+      <a href="https://skinstel.com" rel="noopener">Skintel</a>
+      <a href="#apps">Blith</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <span>© 2026 Doberg</span>
+  </div>
+</footer>
+</body>
+</html>
